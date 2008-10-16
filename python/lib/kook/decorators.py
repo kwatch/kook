@@ -15,7 +15,6 @@ __all__ = ('product', 'ingreds', 'byprods', 'coprods', 'priority', 'options', 'i
 
 
 def product(name):
-    """decorator for recipe function"""
     def deco(f):
         f._kook_product = name
         return f
@@ -23,7 +22,6 @@ def product(name):
 
 
 def ingreds(*names):
-    """decorator for recipe function"""
     def deco(f):
         f._kook_ingreds = flatten(names)
         return f
@@ -31,7 +29,6 @@ def ingreds(*names):
 
 
 def byprods(*names):
-    """decorator for recipe function"""
     def deco(f):
         f._kook_byprods = flatten(names)
         return f
@@ -39,7 +36,6 @@ def byprods(*names):
 
 
 def coprods(*names):
-    """decorator for recipe function"""
     def deco(f):
         f._kook_coprods = flatten(names)
         return f
@@ -47,7 +43,6 @@ def coprods(*names):
 
 
 def priority(level):
-    """decorator for recipe function"""
     if not isinstance(leve, int):
         import kook
         raise kook.KookRecipeError("priority requires integer.")  # TODO: change backtrace
@@ -58,7 +53,6 @@ def priority(level):
 
 
 def options(*names):
-    """decorator for recipe function"""
     def deco(f):
         f._kook_options = names
         return f
@@ -66,7 +60,6 @@ def options(*names):
 
 
 def if_exists(*args):
-    """helper function to create IfExists object."""
     import kook
     #return kook.kitchen.IfExists(*args)
     return [ kook.kitchen.IfExists(arg) for arg in flatten(args) ]
