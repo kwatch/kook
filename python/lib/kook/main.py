@@ -48,7 +48,7 @@ class Main(object):
         ## parse command-line options
         optparser = CommandOptionParser.new(self.optdef_strs)
         opts, longopts, rests = optparser.parse2(self.args, command=self.command)
-        #print "*** debug: command option: opts=%s, longopts=%s, rests=%s" % (repr(opts), repr(longopts), repr(rests)), 2)
+        #print "*** debug: command option: opts=%s, longopts=%s, rests=%s" % (repr(opts), repr(longopts), repr(rests))
         ## handle options
         if opts.get('h') or longopts.get('help') is True:
             self.stdout.write("pykook - build tool like Make, Rake, Ant, or Cook\n")
@@ -87,7 +87,7 @@ class Main(object):
             if not default_product:
                 write = self.stderr.write
                 write("*** %s: target is not given\n" % self.command)
-                write("*** '%s -l' or '%s -L' show recipes and properties.\n")
+                write("*** '%s -l' or '%s -L' show recipes and properties.\n" % (self.command, self.command))
                 write("*** (or set 'kook_default_product' in your kookbook.)\n")
                 return 1
             rests = [default_product]
