@@ -10,6 +10,7 @@
 import sys, os, re
 import shutil
 #from glob import glob as _glob
+import kook
 from kook import _report_cmd, KookCommandError
 from kook.util import *
 from kook.util import glob2
@@ -220,12 +221,12 @@ def echo_n(*messages):
 
 def _echo(messages, func, cmd, n=False):
     msgs = _prepare(messages, cmd)
-    write = sys.stdout.write
+    write = kook._stdout.write
     for i, msg in enumerate(msgs):
         if i > 0: write(' ')
         write(msg)
     if not n: write("\n")
-    sys.stdout.flush()      # requires for 'echo -n'
+    kook._stdout.flush()      # requires for 'echo -n'
 
 
 def store(*filenames):
