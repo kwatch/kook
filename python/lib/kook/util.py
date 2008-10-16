@@ -264,7 +264,7 @@ class CommandOptionParser(object):
                         arg = optchars[j+1:]
                         if arg and str2int(arg) is None:
                             raise CommandOptionError("-%s%s: integer required." % (ch, arg))
-                        opts[ch] = arg is None and True or str2int(arg)
+                        opts[ch] = not arg and True or str2int(arg)
                         break
                     else:                       # -x arg
                         assert isinstance(optdefs[ch], (str, unicode))
