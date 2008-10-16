@@ -200,7 +200,7 @@ class CommandOptionParser(object):
         return optdefs, help
 
     def parse(self, cmd_args, command=None):
-        opts, rests = self._parse(cmd_args, command, check_longtops=True)
+        opts, rests = self._parse(cmd_args, command, check_longopts=True)
         return opts, rests
 
     def parse2(self, cmd_args, command=None):  ## TODO: rename
