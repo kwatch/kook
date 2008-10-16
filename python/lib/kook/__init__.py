@@ -364,10 +364,11 @@ class Cookbook(object):
 
 class Kitchen(object):
 
-    def __init__(self, cookbook=None):
+    def __init__(self, cookbook=None, **properties):
         if isinstance(cookbook, (str, unicode)):
             cookbook = Cookbook.new(cookbook)
         self.cookbook = cookbook
+        self.properties = properties
 
     @classmethod
     def new(cls, cookbook):
@@ -466,7 +467,10 @@ class Kitchen(object):
         _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
         if isinstance(root, Material):
             raise KookError("%s: is a material (= a file to which no recipe matches)." % target)
-        root.start(args=args, depth=1)
+        if self.properties.get('compare-content') is False:
+            root.start(args=args, depth=1)
+        else:
+            root.start2(args=args, depth=1)
 
 
 class Cookable(object):
@@ -476,6 +480,11 @@ class Cookable(object):
 
     def start(self, depth=1, args=()):
         raise NotImplementedError("%s.start(): not implemented yet." % self.__class__.__name__)
+
+
+CONTENT_CHANGED = 2
+MTIME_UPDATED   = 1
+NOTHING         = 0
 
 
 class Material(Cookable):
@@ -498,6 +507,22 @@ class Material(Cookable):
     def start(self, depth=1, args=()):
         _debug("material %s" % self.product, 1, depth)
         return True
+
+    def start2(self, depth=1, args=(), parent_mtime=0):
+        assert os.path.exists(self.product)
+        if parent_mtime == 0:
+            msg = "material %s"
+            ret = -999
+        else:
+            mtime = os.path.getmtime(self.product)
+            if mtime > parent_mtime:
+                msg = "material %s (newer than product)"
+                ret = CONTENT_CHANGED
+            else:
+                msg = "material %s (not newer)"
+                ret = NOTHING
+        _debug(msg % self.product, 1, depth)
+        return ret
 
 
 class Cooking(Cookable):
@@ -595,6 +620,87 @@ class Cooking(Cookable):
             raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
         self.cooked = True
         _debug("end %s" % self.product, 1, depth)
+
+    def can_skip2(self, status):
+        if _forced:
+            return False
+        if not self.was_file_recipe:
+            return False
+        if not self.children:
+            return False
+        if not os.path.exists(self.product):
+            return False
+        #for child in self.children:
+        #    if not child.was_file_recipe:
+        #        return False
+        #mtime =  os.path.getmtime(self.product)
+        #for child in self.children:
+        #    assert os.path.exists(child.product)
+        #    if mtime < os.path.getmtime(child.product)
+        #        return False
+        if status == CONTENT_CHANGED:
+            return False
+        assert status <= MTIME_UPDATED
+        return True
+
+    def start2(self, depth=1, args=(), parent_mtime=0):
+        if self.cooked:
+            _debug("pass %s (already cooked)" % self.product, 1, depth)
+            return
+        ## exec recipes of ingredients
+        _debug("begin %s" % self.product, 1, depth)
+        if self.was_file_recipe and os.path.exists(self.product):
+            product_mtime = os.path.getmtime(self.product)
+        else:
+            product_mtime = 0
+        status = 0
+        if self.children:
+            for child in self.children:
+                ret = child.start2(depth+1, (), product_mtime)
+                if ret > status:  status = ret
+        ## skip if product is newer than ingredients
+        if self.can_skip2(status):
+            if status == MTIME_UPDATED:
+                assert os.path.exists(self.product)
+                _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
+                _debug("touch and skip %s (func=%s)" % (self.product, self.get_func_name()), 1, depth)
+                _report_cmd("touch %s   # skipped" % self.product)
+                os.utime(self.product, None)
+                return MTIME_UPDATED
+            else:
+                _debug("skip %s (func=%s)" % (self.product, self.get_func_name()), 1, depth)
+                return NOTHING
+        ## exec recipe function
+        assert self.func is not None
+        try:
+            if product_mtime:
+                tmp_filename = ".kook.%s.kook" % self.product
+                os.rename(self.product, tmp_filename)             # rename old product
+            s = self.was_file_recipe and 'create' or 'perform'
+            _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
+            _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
+            self.func(self, *args)
+            if self.was_file_recipe and not os.path.exists(self.product):
+                raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
+            self.cooked = True
+            if product_mtime and self._has_same_content(self.product, tmp_filename):
+                ret = MTIME_UPDATED
+                msg = "end %s (content not changed, mtime updated)"
+            else:
+                ret = CONTENT_CHANGED
+                msg = "end %s (content changed)"
+            _debug(msg % self.product, 1, depth)
+        finally:
+            if product_mtime:
+                os.unlink(tmp_filename)                           # remove old product
+        return ret
+
+    def _has_same_content(self, filename1, filename2):
+        assert os.path.exists(filename1)
+        assert os.path.exists(filename2)
+        if os.path.getsize(filename1) != os.path.getsize(filename2):
+            return False
+        return read_file(filename1) == read_file(filename2)    ## TODO: tuning memory size
 
     ## utility method for convenience
     def __mod__(self, string):
