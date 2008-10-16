@@ -8,6 +8,12 @@
 ###
 
 __RELEASE__ = "$Release: 0.0.0 $".split(' ')[1]
+__all__ = (
+    'KookError', 'KookRecipeError', 'KookCommandError',
+    'product', 'ingreds', 'byprods', 'coprods', 'priority', 'options', 'if_exists',
+    'Recipe', 'TaskRecipe', 'FileRecipe',
+    'Cookbook', 'Kitchen', # 'Cookable', 'Material', 'Cooking', 'create_context',
+)
 
 import sys, os, re, types
 from kook.util import *
