@@ -14,6 +14,8 @@ from StringIO import StringIO
 #from testcase_helper import *
 import kook
 from kook import *
+from kook.kitchen import *
+from kook.cookbook import *
 from kook.commands import *
 from kook.util import read_file, write_file
 

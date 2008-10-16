@@ -13,8 +13,11 @@ __all__ = ['Main']
 
 import sys, os, re, random
 import kook
-from kook.util import *
+from kook import *
 from kook import _debug
+from kook.cookbook import *
+from kook.kitchen import *
+from kook.util import *
 
 
 class Main(object):
@@ -75,13 +78,13 @@ class Main(object):
         if not os.path.isfile(bookname):
             raise CommandOptionError("%s: not found." % bookname)
         properties = longopts
-        cookbook = kook.Cookbook.new(bookname, properties)
+        cookbook = Cookbook.new(bookname, properties)
         ## list recipes
         if opts.get('l') or opts.get('L'):
             self._list_recipes(cookbook, opts)
             return 0
         ## start cooking
-        kitchen = kook.Kitchen.new(cookbook)
+        kitchen = Kitchen.new(cookbook)
         if not rests:
             default_product = cookbook.default_product()
             if not default_product:
