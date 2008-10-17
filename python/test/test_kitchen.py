@@ -188,6 +188,31 @@ def file_ext_o(c):
         self.assertTextEqual("### * hello.o (func=file_ext_o)\n$ gcc -c hello.c hello.h\n", _stderr())
 
 
+    def test_looped_cooking_tree1(self):
+        content = r"""
+@product("hello")
+@ingreds("hello.o")
+def file_hello(c):
+    system(c%"gcc -o $(product) $(ingred)")
+
+@product("*.o")
+@ingreds("$(1).c")
+def file_ext_o(c):
+    system(c%"gcc -c $(ingred)")
+
+@product("*.c")
+@ingreds("$(1)")            # looped ("$(1)" == "hello")
+def file_ext_c(c):
+    system(c%"cp $(ingred) $(product)")
+
+@ingreds("hello")
+def task_all(c):
+    pass
+"""
+        ex = self.assertRaises2(KookRecipeError, lambda: self._start(content, "all"))
+        self.assertTextEqual("hello: recipe is looped (hello->hello.o->hello.c->hello).", str(ex))
+
+
     def test_content_compared1(self):
         content = r"""
 @product("hello")
