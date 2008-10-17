@@ -74,6 +74,7 @@ class KookKitchenTest(unittest.TestCase, TestCaseHelper):
         kitchen.start_cooking(*targets)
         return kitchen
 
+
     def test_specific_file_cooking1(self):
         content = r"""\
 @product('hello.o')
@@ -87,6 +88,7 @@ def file_hello_o(c):
         self.assertEqual("invoked.\n", _stdout())
         expected = "### * hello.o (func=file_hello_o)\n$ gcc -c hello.c\n$ echo invoked.\n"
         self.assertTextEqual(expected, _stderr())
+
 
     def test_generic_file_cooking1(self):
         content = r"""\
@@ -102,6 +104,7 @@ def file_ext_o(c):
         expected = "### * hello.o (func=file_ext_o)\n$ gcc -c hello.c\n$ echo invoked.\n"
         self.assertTextEqual(expected, _stderr())
 
+
     def test_specific_task_cooking1(self):
         content = r"""\
 def task_build(c):
@@ -114,18 +117,6 @@ def task_build(c):
         expected = "### * build (func=task_build)\n$ gcc -o hello hello.c\n$ echo invoked.\n"
         self.assertTextEqual(expected, _stderr())
 
-    def test_generic_task_cooking1(self):
-        content = r"""\
-@product('build_*')
-def task_build(c):
-    system('gcc -o %s %s.c' % (c.m[1], c.m[1]))
-    echo("invoked.")
-"""
-        self._start(content, 'build_hello')
-        self.assertFileExists('hello')
-        self.assertEqual("invoked.\n", _stdout())
-        expected = "### * build_hello (func=task_build)\n$ gcc -o hello hello.c\n$ echo invoked.\n"
-        self.assertTextEqual(expected, _stderr())
 
     def test_generic_task_cooking1(self):
         content = r"""\
@@ -139,6 +130,176 @@ def task_build(c):
         self.assertEqual("invoked.\n", _stdout())
         expected = "### * build_hello (func=task_build)\n$ gcc -o hello hello.c\n$ echo invoked.\n"
         self.assertTextEqual(expected, _stderr())
+
+
+    def test_generic_task_cooking1(self):
+        content = r"""\
+@product('build_*')
+def task_build(c):
+    system('gcc -o %s %s.c' % (c.m[1], c.m[1]))
+    echo("invoked.")
+"""
+        self._start(content, 'build_hello')
+        self.assertFileExists('hello')
+        self.assertEqual("invoked.\n", _stdout())
+        expected = "### * build_hello (func=task_build)\n$ gcc -o hello hello.c\n$ echo invoked.\n"
+        self.assertTextEqual(expected, _stderr())
+
+
+    def test_error_when_ingredients_not_found(self):
+        content = r"""
+@product("*.o")
+@ingreds("$(1).c", "$(1).h")    # *.h not found
+def file_ext_o(c):
+    system(c%"gcc -c $(ingred)")
+"""
+        if os.path.isfile("hello.h"): os.unlink("hello.h")
+        self.assertFileExists("hello.c")
+        def _f():
+            self._start(content, "hello.o")
+        ex = self.assertRaises2(kook.KookRecipeError, _f)
+        self.assertTextEqual("hello.h: can't find any recipe to produce.", str(ex))
+
+
+    def test_if_exists1(self):
+        content = r"""
+@product("*.o")
+@ingreds("$(1).c", if_exists("$(1).h"))    # *.h may not exist
+def file_ext_o(c):
+    if len(c.ingreds) == 2:
+        system(c%"gcc -c $(ingreds[0]) $(ingreds[1])")
+    else:
+        system(c%"gcc -c $(ingreds[0])")
+"""
+        ## when hello.h not exist
+        if os.path.exists("hello.o"): os.unlink("hello.o")
+        if os.path.exists("hello.h"): os.unlink("hello.h")
+        self._start(content, "hello.o")
+        self.assertFileExists("hello.o")
+        self.assertTextEqual("", _stdout())
+        self.assertTextEqual("### * hello.o (func=file_ext_o)\n$ gcc -c hello.c\n", _stderr())
+        ## when hello.h exists (and newer than product)
+        _setup_stdio()
+        time.sleep(1)
+        write_file("hello.h", "#include <stdio.h>\n")
+        self._start(content, "hello.o")
+        self.assertFileExists("hello.o")
+        self.assertTextEqual("", _stdout())
+        self.assertTextEqual("### * hello.o (func=file_ext_o)\n$ gcc -c hello.c hello.h\n", _stderr())
+
+
+    def test_content_compared1(self):
+        content = r"""
+@product("hello")
+@ingreds("hello.o")
+def file_command(c):
+    system(c%"gcc -o $(product) $(ingred)")
+
+@product("*.o")
+@ingreds("$(1).c")
+def file_ext_o(c):
+    system(c%"gcc -c $(ingred)")
+"""
+        ## 1st
+        self._start(content, "hello")
+        self.assertFileExists("hello")
+        self.assertEqual("", _stdout())
+        expected = (
+            "### ** hello.o (func=file_ext_o)\n"
+            "$ gcc -c hello.c\n"
+            "### * hello (func=file_command)\n"
+            "$ gcc -o hello hello.o\n"
+        )
+        self.assertTextEqual(expected, _stderr())
+        ## 2nd (content compared)
+        old_utime = os.path.getmtime("hello")
+        time.sleep(1)
+        os.utime("hello.c", None)
+        _setup_stdio()
+        self._start(content, "hello")
+        self.assertTrue(os.path.getmtime("hello") > old_utime, "hello's mtime is not changed.")
+        self.assertFileExists("hello")
+        self.assertEqual("", _stdout())
+        expected = (
+            "### ** hello.o (func=file_ext_o)\n"
+            "$ gcc -c hello.c\n"
+            "### * hello (func=file_command)\n"
+            "$ touch hello   # skipped\n"             # content compared and skipped
+        )
+        self.assertTextEqual(expected, _stderr())
+
+
+    def test_complicated_cooking1(self):
+        content = r"""
+command = "hello"
+
+@ingreds(command)
+def task_build(c):
+    echo("task_build() invoked.")
+
+@product(command)
+@ingreds("%s.o" % command)
+def file_command(c):
+    system(c%"gcc -o $(product) $(ingred)")
+
+@product("*.o")
+@ingreds("$(1).c", if_exists("$(1).h"))
+def file_ext_o(c):
+    system(c%"gcc -c $(ingred)")
+    system(c%"gcc -g -c $(1).c")
+
+@ingreds('build')
+def task_all(c):
+    echo("task_all() invoked.")
+"""
+        ## 1st
+        self._start(content, "all")
+        self.assertFileExists("hello")
+        self.assertEqual("task_build() invoked.\ntask_all() invoked.\n", _stdout())
+        expected = (
+            "### **** hello.o (func=file_ext_o)\n"
+            "$ gcc -c hello.c\n"
+            "$ gcc -g -c hello.c\n"
+            "### *** hello (func=file_command)\n"
+            "$ gcc -o hello hello.o\n"
+            "### ** build (func=task_build)\n"
+            "$ echo task_build() invoked.\n"
+            "### * all (func=task_all)\n"
+            "$ echo task_all() invoked.\n"
+        )
+        self.assertTextEqual(expected, _stderr())
+        ## 2nd
+        _setup_stdio()
+        self._start(content, "all")
+        self.assertEqual("task_build() invoked.\ntask_all() invoked.\n", _stdout())
+        expected = (
+            "### ** build (func=task_build)\n"
+            "$ echo task_build() invoked.\n"
+            "### * all (func=task_all)\n"
+            "$ echo task_all() invoked.\n"
+        )
+        self.assertTextEqual(expected, _stderr())
+        ## 3rd, content compared, if_exists()
+        time.sleep(1)
+        write_file("hello.h", "#include <stdio.h>\n")
+        _setup_stdio()
+        self._start(content, "all")
+        self.assertEqual("task_build() invoked.\ntask_all() invoked.\n", _stdout())
+        expected = (
+            "### **** hello.o (func=file_ext_o)\n"
+            "$ gcc -c hello.c\n"
+            "$ gcc -g -c hello.c\n"
+            "### *** hello (func=file_command)\n"
+            "$ touch hello   # skipped\n"                   # skipped
+            "### ** build (func=task_build)\n"
+            "$ echo task_build() invoked.\n"
+            "### * all (func=task_all)\n"
+            "$ echo task_all() invoked.\n"
+        )
+        self.assertTextEqual(expected, _stderr())
+
+
+KookKitchenTest.remove_tests_except(os.environ.get('TEST'))
 
 
 def test_main():
