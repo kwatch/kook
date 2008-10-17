@@ -90,7 +90,7 @@ class Kitchen(object):
             visited[cooking.product] = True
             for child in cooking.children:
                 if child.product in visited:
-                    pos = route.find(child.product)
+                    pos = route.index(child.product)
                     loop = "->".join( prod for prod in route[pos:] + [child.product] )
                     raise KookRecipeError("%s: recipe is looped (%s)." % (child.product, loop))
                 elif child.children:
