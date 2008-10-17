@@ -1,28 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, os, re
-#import traceback
 import kook.main
-
-#kook.main.Main().main()
-
-try:
-    kook.main.Main().main()
-except Exception, ex:
-    if os.environ.get('E'):
-        import traceback
-        s = traceback.format_exc()
-        pat = re.compile(r'^  File "(.*)", line (\d+),', re.M)
-        tuples = [ (m.group(1), m.group(2)) for m in pat.finditer(s) ]
-        tuples.reverse()
-        for filename, linenum in tuples:
-            if os.access(filename, os.W_OK):
-                break
-        else:
-            filename = linenum = None
-        if filename and linenum:
-            command = "emacsclient -n +%s %s" % (linenum, filename)
-            os.system(command)
-    raise
-
+kook.main.Main().main()

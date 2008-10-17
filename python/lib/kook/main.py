@@ -162,7 +162,27 @@ class Main(object):
         try:
             status = self.invoke()
             sys.exit(status)
-        except CommandOptionError, ex:
-            self.stderr.write(self.command + ": " + str(ex) + "\n")
+        except Exception, ex:
+            ## show errors
+            ex_classes = (CommandOptionError, )   # or (CommandOptionError, KookError)
+            if isinstance(ex, ex_classes):
+                self.stderr.write(self.command + ": " + str(ex) + "\n")
+            ## kick emacsclient when $E defined
+            if os.environ.get('E'):
+                import traceback
+                s = traceback.format_exc()
+                pat = re.compile(r'^  File "(.*)", line (\d+),', re.M)
+                tuples = [ (m.group(1), m.group(2)) for m in pat.finditer(s) ]
+                tuples.reverse()
+                for filename, linenum in tuples:
+                    if os.access(filename, os.W_OK):
+                        break
+                else:
+                    filename = linenum = None
+                if filename and linenum:
+                    kicker_command = "emacsclient -n +%s %s" % (linenum, filename)
+                    os.system(kicker_command)
+            ## re-raise exception when debug mode
+            if not isinstance(ex, ex_classes) or kook._debug_level > 0:
+                raise
             sys.exit(1)
-
