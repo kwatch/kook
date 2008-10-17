@@ -70,6 +70,15 @@ class TestCaseHelper:
         self.assertTrue(isinstance(value, (str, unicode)),msg)
         self.assertEqual("", value)
 
+    @classmethod
+    def remove_tests_except(cls, test_name):
+        if not test_name: return
+        if not test_name.startswith('test_'):
+            test_name = 'test_' + test_name
+        for name in dir(cls):
+            if name.startswith('test_') and name != test_name:
+                delattr(cls, name)
+
 
 #    def load_testdata(filename, untabify=True):
 #        i = filename.rfind('.')
