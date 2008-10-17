@@ -275,7 +275,7 @@ class CommandOptionParser(object):
                             i += 1      # not j
                             if i == N:
                                 raise CommandOptionError("-%s: %s required." % (ch, optdefs[ch], ))
-                            arg = args[i]
+                            arg = cmd_args[i]
                         if optdefs[ch] == 'N':  # -x N
                             if str2int(arg) is None:
                                 raise CommandOptionError("-%s %s: integer required." % (ch, arg, ))
