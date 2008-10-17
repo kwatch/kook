@@ -117,7 +117,7 @@ class Cookbook(object):
         for recipes in recipes_tuple:      ## TODO: use dict for specific recipes
             for recipe in recipes:
                 if recipe.match(target):
-                    _debug("find_recipe(): target=%s, func=%s, product=%s" % \
+                    _debug("Cookbook#find_recipe(): target=%s, func=%s, product=%s" % \
                                (repr(target), recipe.get_func_name(), repr(recipe.product), ), 2)
                     return recipe
         return None
