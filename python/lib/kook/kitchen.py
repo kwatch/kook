@@ -337,7 +337,8 @@ class Cooking(Cookable):
         assert self.func is not None
         try:
             if product_mtime:
-                tmp_filename = ".kook.%s.kook" % self.product
+                tmp_basename = ".kook.%s.kook" % os.path.basename(self.product)
+                tmp_filename = os.path.join(os.path.dirname(self.product), tmp_basename)
                 os.rename(self.product, tmp_filename)             # rename old product
             s = self.was_file_recipe and 'create' or 'perform'
             _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
