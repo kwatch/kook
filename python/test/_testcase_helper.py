@@ -70,6 +70,15 @@ class TestCaseHelper:
         self.assertTrue(isinstance(value, (str, unicode)),msg)
         self.assertEqual("", value)
 
+    def assertRaises2(self, err_class, callable, *args, **kwargs):
+        try:
+            callable(*args, **kwargs)
+        except err_class, err:
+            return err
+        else:
+            err_class_name = getattr(err_class, '__name__') or str(err_class)
+            raise self.failureException, "%s not raised" % err_class_name
+
     @classmethod
     def remove_tests_except(cls, test_name):
         if not test_name: return
