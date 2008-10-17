@@ -102,3 +102,31 @@ def task_default(c):
     #with chdir("dist"):
     #    system(c%"tar xzf $(package)-$(release).tar.gz")
     #    system(c%"ls $(package)-$(release)/")
+
+
+@product('doc')
+@ingreds('doc/users-guide.html', 'doc/docstyle.css')
+def task_doc(c):
+    """make document"""
+    pass
+
+@product('doc/users-guide.html')
+@ingreds('doc/users-guide.txt')
+#@byprods('doc/users-guide.toc.html')
+@byprods('users-guide.toc.html')
+def file_users_guide_html(c):
+    system(c%"kwaser -t html-css -T $(ingred) > $(byprod)")
+    system(c%"kwaser -t html-css    $(ingred) > $(product)")
+    rm_f(c.byprod)
+
+@product('doc/users-guide.txt')
+@ingreds('../doc/users-guide.eruby')
+def file_users_guide_txt(c):
+    os.path.isdir('doc') or mkdir('doc')
+    system(c%"erubis -E PercentLine -p '\\[% %\\]' $(ingred) > $(product)")
+
+@product('doc/docstyle.css')
+@ingreds('../doc/docstyle.css')
+def file_users_guide_css(c):
+    os.path.isdir('doc') or mkdir('doc')
+    cp(c.ingred, c.product)
