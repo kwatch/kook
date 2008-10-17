@@ -108,6 +108,34 @@ Command-line example::
     $ rm -f *.o
 
 
+Trouble Shooting
+----------------
+
+
+Q: I got the "*.c: can't find any recipe to produce." error.
+A: You may use "*.c" instead of "$(1).c" as @ingreds() argument.
+
+::
+    ## Use "$(1).c" instead of "*.c"
+    @product("*.o")
+    @ingreds("*.c")  #=> KookRecipeError: *.c: can't find any recipe to produce.
+    def file_ext_o(c):
+        system(c%"gcc -c $(ingred)")
+
+
+Q: I got the "sh: line 1: ingred: command not found" error.
+A: You may forget to add "c%" at the beginning of string.
+
+::
+    ## Don't forget to add "c%" if you want to use "$()".
+    @product("*.o")
+    @ingreds("$(1).c")
+    def file_ext_o(c):
+        system("gcc -c $(ingred)")
+	    #=> KookCommandError: sh: line 1: ingred: command not found" error.
+
+
+
 License
 -------
 
