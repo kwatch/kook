@@ -16,7 +16,6 @@
     <div align="left"><h1>pyKook Users' Guide</h1></div>
     <div align="left">
       makoto kuwata &lt;kwa(at)kuwata-lab.com&gt;<br>
-      last update: $Date: $<br>
     </div>
 
 <a name="preface"></a>
@@ -151,10 +150,10 @@ def file_hello_o(c):
     """compile 'hello.c' and 'hello.h'"""   # recipe description
     system("gcc -g -c hello.c")
 </pre>
-<p>The following is an example of invoking pykook command.
-Command-line option '-l' shows recipes which have description.
+<p>The following is an example of invoking <code>pykook</code> command<sup>(<a href="#fnref:1" name="fnlink:1">*1</a>)</sup>.
+Command-line option '<code>-l</code>' shows recipes which have description.
 It means that recipes which have description are public recipes.
-Command-line option '-L' shows all recipes.
+Command-line option '<code>-L</code>' shows all recipes.
 </p>
 <a name="Kookbook1.recipe.result"></a>
 <div class="terminal_caption">
@@ -185,7 +184,7 @@ $ gcc -g -o hello hello.o
 </li>
 <li>If recipe of ingredient is executed but content of ingredient is not changed, then recipe of product will not be executed and product will be 'touched'.
 </li>
-<li>If you specify command-line option '-F', these rules are ignored and all recipes are executed forcedly.
+<li>If you specify command-line option '<code>-F</code>', these rules are ignored and all recipes are executed forcedly.
 </li>
 </ul>
 <a name="Kookbook1.product2.result"></a>
@@ -211,6 +210,12 @@ $ gcc -g -c hello.c
 ### * hello (func=file_hello)
 $ gcc -g -o hello hello.o
 </pre>
+<div class="footnote">
+ <dl compact>
+  <dt>(<a name="fnref:1" href="#fnlink:1">*1</a>)</dt>
+  <dd>pyKook also provides <code>pyk</code> command which is equivarent to <code>pykook</code>, because <code>pykook</code> is too long to type many times :)</dd>
+ </dl>
+</div>
 <br>
 
 
@@ -455,9 +460,9 @@ Task recipe </b></dt>
 <p>For example, task recipe <code>clean</code> is a recipe to delete '*.o' files and is not combined to file 'clean'.
 Also symbolic recipe <code>all</code> is a recipe to call recipe of 'hello' and is not combined to file 'all'.
 </p>
-<a name="Kookbook5.yaml"></a>
+<a name="Kookbook5.py"></a>
 <div class="program_caption">
-Kookbook.py.yaml: Symbolic recipes</div>
+Kookbook.py: Symbolic recipes</div>
 <pre class="program">## file recipe
 @product("hello")
 @ingreds("hello.o")
@@ -521,7 +526,7 @@ sh&gt; pykook clean
 $ rm -f *.o
 
 sh&gt; ls -F
-kookbook.yaml    hello*    hello.c    hello.h
+Kookbook.py    hello*    hello.c    hello.h
 </pre>
 <p>pyKook have several well-known task name.
 Task recipes which product name is in the following list will be got pubilic automatically.

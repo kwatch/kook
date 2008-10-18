@@ -1,10 +1,10 @@
 .=title:	pyKook Users' Guide
 .?revision:	$Rev$
 .?release:	$Release$
-.?lastupdate:	$Date: $
 .?author:	makoto kuwata <kwa(at)kuwata-lab.com>
 .?stylesheet:	docstyle.css
 .#.?stylesheet:	html-css.css
+.#.?lastupdate:	$Date: $
 
 
 .$ Preface		| preface*
@@ -75,10 +75,10 @@ def file_hello_o(c):
     system("gcc -g -c hello.c")
 .--------------------
 
-The following is an example of invoking pykook command.
-Command-line option '-l' shows recipes which have description.
+The following is an example of invoking {{,pykook,}} command{{(pyKook also provides {{,pyk,}} command which is equivarent to {{,pykook,}}, because {{,pykook,}} is too long to type many times :))}}.
+Command-line option '{{,-l,}}' shows recipes which have description.
 It means that recipes which have description are public recipes.
-Command-line option '-L' shows all recipes.
+Command-line option '{{,-L,}}' shows all recipes.
 
 .? command-line example
 .==================== Kookbook1.recipe.result
@@ -104,8 +104,7 @@ pyKook checks both timestamps and contents of files (= products, ingredients).
 .* If product is older than ingredients, that recipe will be executed.
 .* If product is newer than or have the same timestamp as ingredients, that recipe will not be executed.
 .* If recipe of ingredient is executed but content of ingredient is not changed, then recipe of product will not be executed and product will be 'touched'.
-.* If you specify command-line option '-F', these rules are ignored and all recipes are executed forcedly.
-
+.* If you specify command-line option '{{,-F,}}', these rules are ignored and all recipes are executed forcedly.
 
 .==================== Kookbook1.product2.result
 sh> pykook hello               # 1st time
@@ -131,22 +130,6 @@ $ gcc -g -c hello.c
 $ gcc -g -o hello hello.o
 .====================
 
-
-.#One of the aim of pyKook is {{*fusion of 'declarative' and 'procedural'*}}.
-.#Attributes of recipe are described in declarative format (=YAML) and steps how to generate product are described in procedural format (=Python).
-.#
-.#The benefits of this style are:
-.#.* Easy to read and write for human.  Readability and Writeability is very important.
-.#.* Powerful to write complex logics.  You can get power of Python in YAML.
-.#
-.#% if PHP
-.#PHP is easy to read and write but not a little suitable for DSL(Domain Specific Language).
-.#Embedding PHP code in YAML is more suitable for DSL.
-.#% elsif RUBY
-.#Ruby is the language which is easy to define DSL(Domain Specific Language).
-.#But not all the language have the ability to define DSL as easily as Ruby.
-.#Embedding script code in YAML solve the problem.
-.#% else error() end
 
 
 .$$ Product and Ingredients		| cookbook-prod
@@ -363,8 +346,8 @@ Recipe function of file and task recipes should be started with 'file_' and 'tas
 For example, task recipe {{,clean,}} is a recipe to delete '*.o' files and is not combined to file 'clean'.
 Also symbolic recipe {{,all,}} is a recipe to call recipe of 'hello' and is not combined to file 'all'.
 
-.? Kookbook.py.yaml: Symbolic recipes
-.-------------------- Kookbook5.yaml
+.? Kookbook.py: Symbolic recipes
+.-------------------- Kookbook5.py
 ## file recipe
 @product("hello")
 @ingreds("hello.o")
@@ -428,7 +411,7 @@ sh> pykook clean
 $ rm -f *.o
 
 sh> ls -F
-kookbook.yaml    hello*    hello.c    hello.h
+Kookbook.py    hello*    hello.c    hello.h
 .====================
 
 pyKook have several well-known task name.
@@ -1049,8 +1032,6 @@ def file_ext_o(c):
 .#.? command-line example
 .#.==================== Kookbook21.recursive2.result
 .#sh> pykook -F :clean
-.#.#@.<<<:! (cd project; pykook -F -f Kookbook21.yaml :clean)
-.#.#.<<<:! (cd project; pykook -F -f Kookbook21.yaml :clean | perl -pe 's!/.*/project!/tmp/project!g; s!/.*/rook !/usr/local/bin/rook !g')
 .#% if PHP
 .#...
 .#% elsif RUBY
