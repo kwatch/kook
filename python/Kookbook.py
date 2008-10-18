@@ -2,7 +2,7 @@ from __future__ import with_statement
 
 import os, sys, re
 #from glob import glob
-from kook.util import read_file, write_file, glob2
+from kook.utils import read_file, write_file, glob2
 
 
 release = prop('release', '0.0.0')
@@ -41,7 +41,7 @@ def task_package(c):
     system('python setup.py sdist')
     #system('python setup.py sdist --keep-temp')
     with chdir('dist') as d:
-        #pkgs = kook.util.glob2(c%"$(package)-$(release).tar.gz");
+        #pkgs = kook.utils.glob2(c%"$(package)-$(release).tar.gz");
         #pkg = pkgs[0]
         pkg = c%"$(package)-$(release).tar.gz"
         echo(c%"pkg=$(pkg)")

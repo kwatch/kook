@@ -1312,7 +1312,7 @@ The following functions are available in 'method*:' part of recipes.
 	store("lib/**/*.py", "doc/**/*.{html,css}", "dir")
 	## ex.
 	##   "lib/kook/__init__.py"  is copied into "dir/lib/kook/__init__.py"
-	##   "lib/kook/util.py"      is copied into "dir/lib/kook/util.py"
+	##   "lib/kook/utils.py"     is copied into "dir/lib/kook/utils.py"
 	##   "lib/kook/main.py"      is copied into "dir/lib/kook/main.py"
 	##   "doc/users-guide.html"  is copied into "dir/doc/users-guide.html"
 	##   "doc/docstyle.css"      is copied into "dir/doc/docstyle.css"
@@ -1412,7 +1412,7 @@ The following functions are available in 'method*:' part of recipes.
 
 
 The above functions can take lists or tuples as file or directory names.
-(If argument is list or tuple, it is flatten by {{,kook.util.flatten(),}}.)
+(If argument is list or tuple, it is flatten by {{,kook.utils.flatten(),}}.)
 
 For example, the following code is available.
 
