@@ -229,7 +229,7 @@ class CommandOptionParser(object):
                 elif optdefs[name] is False:    # --name
                     if arg is not None:
                         raise CommandOptionError("%s: argument is now allowed." % cmd_arg)
-                    opts[name] = arg
+                    opts[name] = True
                 elif optdefs[name] is True:     # --name[=arg]
                     opts[name] = arg is None and True or arg
                 elif optdefs[name] is 1:        # --name[=N]
