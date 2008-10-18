@@ -354,6 +354,13 @@ class Cooking(Cookable):
                 ret = CONTENT_CHANGED
                 msg = "end %s (content changed)"
             _debug(msg % self.product, 1, depth)
+        except Exception, ex:
+            if product_mtime:
+                _report_msg("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), depth)
+                #_debug("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), 1, depth)
+                if os.path.isfile(self.product):
+                    os.unlink(self.product)
+            raise
         finally:
             if product_mtime:
                 os.unlink(tmp_filename)                           # remove old product

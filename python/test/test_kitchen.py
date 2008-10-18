@@ -227,14 +227,14 @@ def task_build(c, *args):
 """
         self._start(content, "build", "-hf foo.txt", "-D999", "--help", "--debug", "--file=bar.txt", "aaa", "bbb")
         expected = """\
-opts={'help': None, 'f': ' foo.txt', 'h': True, 'file': 'bar.txt', 'debug': True, 'D': 999}
+opts={'help': True, 'f': ' foo.txt', 'h': True, 'file': 'bar.txt', 'debug': True, 'D': 999}
 rests=('aaa', 'bbb')
 opts['D']=999
 opts['debug']=True
 opts['f']= foo.txt
 opts['file']=bar.txt
 opts['h']=True
-opts['help']=None
+opts['help']=True
 """
         self.assertTextEqual(expected, _stdout())
         self.assertTextEqual("### * build (func=task_build)\n", _stderr())
@@ -287,6 +287,31 @@ def file_ext_o(c):
             "$ touch hello   # skipped\n"             # content compared and skipped
         )
         self.assertTextEqual(expected, _stderr())
+
+
+    def test_remove_produt_when_recipe_failed1(self):
+        content = r"""
+@product('hello.h')
+@ingreds('hello.c')
+def file_hello_txt(c):
+    open(c.product, "w").write("abc")
+    #import sys, os
+    #sys.stderr.write("*** debug: os.path.exists('hello.h')=%s\n" % (os.path.exists('hello.h')))
+    system(c%"gcc HOGE.c")
+    #system(c%"gcc HOGE.c 2>&1 /dev/null")
+"""
+        self.assertFileExists("hello.h")
+        time.sleep(1)
+        os.utime("hello.c", None)
+        ex = self.assertRaises2(kook.KookCommandError, lambda: self._start(content, "hello.h"))
+        self.assertEqual("", _stdout())
+        expected = (
+            "### * hello.h (func=file_hello_txt)\n"
+            "$ gcc HOGE.c\n"
+            "### * (remove hello.h because unexpected error raised (func=file_hello_txt))\n"
+        )
+        self.assertTextEqual(expected, _stderr())
+        self.assertFileNotExist("hello.h")        # product should be removed
 
 
     def test_complicated_cooking1(self):
