@@ -37,7 +37,7 @@ def task_package(c):
     cp('setup.py.txt', 'setup.py')
     edit('setup.py', by=repl)
     ## setup
-    rm_f('MANIFEST')
+    #rm_f('MANIFEST')
     system('python setup.py sdist')
     #system('python setup.py sdist --keep-temp')
     with chdir('dist') as d:
