@@ -53,7 +53,7 @@ class Kitchen(object):
             if cookbook.material_p(_target):
                 if not os.path.exists(_target):
                     raise KookRecipeError("%s: material not found." % _target)
-                cooking = self._create_material_from(target)
+                cooking = self._create_material_from(_target)
             else:
                 recipe = cookbook.find_recipe(_target)
                 if recipe:
