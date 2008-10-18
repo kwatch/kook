@@ -17,7 +17,7 @@ from kook import *
 from kook import _debug
 from kook.cookbook import *
 from kook.kitchen import *
-from kook.util import *
+from kook.utils import *
 
 
 class Main(object):

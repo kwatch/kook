@@ -17,7 +17,7 @@ from kook import *
 from kook.kitchen import *
 from kook.cookbook import *
 from kook.commands import *
-from kook.util import read_file, write_file
+from kook.utils import read_file, write_file
 
 from _testcase_helper import TestCaseHelper
 
@@ -239,7 +239,7 @@ opts['help']=True
         self.assertTextEqual(expected, _stdout())
         self.assertTextEqual("### * build (func=task_build)\n", _stderr())
         ## command option error
-        from kook.util import CommandOptionError
+        from kook.utils import CommandOptionError
         ex = self.assertRaises2(CommandOptionError, lambda: self._start(content, "build", "-f"))
         self.assertTextEqual("task_build(): -f: file required.", str(ex))
         ex = self.assertRaises2(CommandOptionError, lambda: self._start(content, "build", "-Dx"))

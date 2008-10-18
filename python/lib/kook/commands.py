@@ -12,8 +12,8 @@ import shutil
 #from glob import glob as _glob
 import kook
 from kook import _report_cmd, KookCommandError
-from kook.util import *
-from kook.util import glob2
+from kook.utils import *
+from kook.utils import glob2
 
 
 __all__ = (

@@ -9,7 +9,7 @@
 
 #from kook import KookRecipeError
 #from kook.kitchen import IfExists
-from kook.util import flatten
+from kook.utils import flatten
 
 __all__ = ('product', 'ingreds', 'byprods', 'coprods', 'priority', 'cmdopts', 'if_exists', )
 

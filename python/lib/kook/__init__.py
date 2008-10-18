@@ -16,7 +16,7 @@ __all__ = (
 )
 
 import sys, os, re, types
-from kook.util import *
+from kook.utils import *
 
 
 class KookError(StandardError):

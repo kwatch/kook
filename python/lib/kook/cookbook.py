@@ -9,7 +9,7 @@
 
 import os, re, types
 from kook import _debug
-from util import *
+from kook.utils import *
 
 #__all__ = ('Cookbook', 'Recipe', 'TaskRecipe', 'FileRecipe', )
 __all__ = ('Cookbook', )

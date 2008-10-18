@@ -14,7 +14,7 @@ from kook.cookbook import *
 from kook.cookbook import FileRecipe
 #from kook.cookbook import Cookbook, FileRecipe
 from kook import KookError, KookRecipeError, _debug, _report_cmd, _report_msg
-from kook.util import *
+from kook.utils import *
 
 __all__ = ('Kitchen', 'IfExists', )
 
