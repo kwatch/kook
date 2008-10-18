@@ -79,9 +79,10 @@ class Cookbook(object):
             'file': {'specific': [], 'generic': []},
         }
         for name, obj in context.iteritems():
-            if name == 'materials':
-                array = obj
-                self.materials = array
+            if name == 'kook_materials':
+                if not isinstance(obj, (tuple, list)):
+                    raise KookRecipeError("kook_materials: tuple or list expected.")
+                self.materials = obj
             elif type(obj) == types.FunctionType:
                 func = obj
                 if name.startswith('task_'):
