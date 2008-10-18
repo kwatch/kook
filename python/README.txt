@@ -108,41 +108,7 @@ Command-line example::
     $ rm -f *.o
 
 
-Trouble Shooting
-----------------
-
-
-Q: I got the "xxx: product not created (in file_xxx())." error.
-A: Define 'task_xxx()' instead of 'file_xxx()'.
-
-::
-    ## Use 'task_clean()' instead of 'file_clean()'
-    def file_clean(c):   #=> KookRecipeError: clean: product not created (in file_clean()).
-        rm_f("*.o")
-
-
-Q: I got the "*.c: can't find any recipe to produce." error.
-A: Use "$(1).c" instead of "*.c" in @ingreds() argument.
-
-::
-    ## Use "$(1).c" instead of "*.c"
-    @product("*.o")
-    @ingreds("*.c")  #=> KookRecipeError: *.c: can't find any recipe to produce.
-    def file_ext_o(c):
-        system(c%"gcc -c $(ingred)")
-
-
-Q: I got the "sh: line 1: ingred: command not found" error.
-A: Add "c%" at the beginning of command string.
-
-::
-    ## Don't forget to add "c%" if you want to use "$()".
-    @product("*.o")
-    @ingreds("$(1).c")
-    def file_ext_o(c):
-        system("gcc -c $(ingred)")
-	    #=> KookCommandError: sh: line 1: ingred: command not found" error.
-
+See 'doc/users-guide.html' for details.
 
 
 License

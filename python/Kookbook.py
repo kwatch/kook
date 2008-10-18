@@ -117,7 +117,7 @@ def task_doc(c):
 def file_users_guide_html(c):
     system(c%"kwaser -t html-css -T $(ingred) > $(byprod)")
     system(c%"kwaser -t html-css    $(ingred) > $(product)")
-    rm_f(c.byprod)
+    mv(c.byprod, "doc")
 
 @product('doc/users-guide.txt')
 @ingreds('../doc/users-guide.eruby')
