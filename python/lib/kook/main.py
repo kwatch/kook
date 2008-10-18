@@ -73,12 +73,22 @@ class Main(object):
                 raise CommandOptionError("-f %s: not a file." % arg)
             if not os.path.isfile(arg):
                 raise CommandOptionError("-f %s: not found." % arg)
+        ## property file
+        props = {}
+        if os.path.isfile("Properties.py"):
+            with open("Properties.py") as f:
+                content = f.read()
+            exec content in props, props
+            for name in props.keys():
+                if not re.match(r'[a-zA-Z]', name):
+                    del props[name]
+        if longopts:
+            props.update(longopts)
         ## cookbook
         bookname = opts.get('f', 'Kookbook.py')
         if not os.path.isfile(bookname):
             raise CommandOptionError("%s: not found." % bookname)
-        properties = longopts
-        cookbook = Cookbook.new(bookname, properties)
+        cookbook = Cookbook.new(bookname, props)
         ## list recipes
         if opts.get('l') or opts.get('L'):
             self._list_recipes(cookbook, opts)
