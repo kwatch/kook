@@ -213,6 +213,37 @@ def task_all(c):
         self.assertTextEqual("hello: recipe is looped (hello->hello.o->hello.c->hello).", str(ex))
 
 
+    def test_recipe_cmdopts1(self):
+        content = r"""
+import kook
+@options("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
+         "--help: help", "--debug[=N]: debug", "--file=filename: file")
+def task_build(c, *args):
+    opts, rests = c.parse_args(args)
+    kook._stdout.write("opts=%s\n" % repr(opts))
+    kook._stdout.write("rests=%s\n" % repr(rests))
+    for key in sorted(opts.keys()):
+        kook._stdout.write("opts[%s]=%s\n" % (repr(key), opts[key]))
+"""
+        self._start(content, "build", "-hf foo.txt", "-D999", "--help", "--debug", "--file=bar.txt", "aaa", "bbb")
+        expected = """\
+opts={'help': None, 'f': ' foo.txt', 'h': True, 'file': 'bar.txt', 'debug': True, 'D': 999}
+rests=('aaa', 'bbb')
+opts['D']=999
+opts['debug']=True
+opts['f']= foo.txt
+opts['file']=bar.txt
+opts['h']=True
+opts['help']=None
+"""
+        self.assertTextEqual(expected, _stdout())
+        self.assertTextEqual("### * build (func=task_build)\n", _stderr())
+        ## command option error
+        from kook.util import CommandOptionError
+        ex = self.assertRaises2(CommandOptionError, lambda: self._start(content, "build", "-f"))
+        self.assertTextEqual("task_build(): -f: file required.", str(ex))
+
+
     def test_content_compared1(self):
         content = r"""
 @product("hello")
