@@ -56,7 +56,7 @@ class Main(object):
             self.stdout.write(optparser.help())
             return 0
         if opts.get('V'):
-            self.stdout.write(geekjob.__RELEASE__ + "\n")
+            self.stdout.write(kook.__RELEASE__ + "\n")
             return 0
         if opts.get('q'):  kook._quiet   = True
         if opts.get('F'):  kook._forced  = True
