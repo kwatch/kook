@@ -5,7 +5,7 @@ import os, sys, re
 from kook.util import read_file, write_file, glob2
 
 
-release = prop('release', '0.0.1')
+release = prop('release', '0.0.0')
 package = prop('package', 'Kook')
 #package = prop('package', 'pyKook')
 
