@@ -62,7 +62,7 @@ class TestCaseHelper:
     def assertFileNotExist(self, filename, identifier=None):
         msg = "File %s expected not to be there but exists." % filename
         if identifier: msg = "[%s] %s" % (identifier, msg)
-        self.assertTrue(os.path.exists(filename), msg)
+        self.assertFalse(os.path.exists(filename), msg)
 
     def assertEmpty(self, value, identifier=None):
         msg = "empty string is expected but got %s." % repr(value)
