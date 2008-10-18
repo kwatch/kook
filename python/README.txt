@@ -112,8 +112,17 @@ Trouble Shooting
 ----------------
 
 
+Q: I got the "xxx: product not created (in file_xxx())." error.
+A: Define 'task_xxx()' instead of 'file_xxx()'.
+
+::
+    ## Use 'task_clean()' instead of 'file_clean()'
+    def file_clean(c):   #=> KookRecipeError: clean: product not created (in file_clean()).
+        rm_f("*.o")
+
+
 Q: I got the "*.c: can't find any recipe to produce." error.
-A: You may use "*.c" instead of "$(1).c" as @ingreds() argument.
+A: Use "$(1).c" instead of "*.c" in @ingreds() argument.
 
 ::
     ## Use "$(1).c" instead of "*.c"
@@ -124,7 +133,7 @@ A: You may use "*.c" instead of "$(1).c" as @ingreds() argument.
 
 
 Q: I got the "sh: line 1: ingred: command not found" error.
-A: You may forget to add "c%" at the beginning of string.
+A: Add "c%" at the beginning of command string.
 
 ::
     ## Don't forget to add "c%" if you want to use "$()".
