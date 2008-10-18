@@ -30,8 +30,6 @@ class Main(object):
         self.stdout = sys.stdout
         self.stderr = sys.stderr
 
-    optchars = "hVD?vqcQFf:"
-
     optdef_strs = (
         "-h:      help",
         #"--help: help",
@@ -42,7 +40,7 @@ class Main(object):
         "-F:      forcedly",
         "-l:      list public recipes",
         "-L:      list all recipes",
-        "-n:      not invoke (dry run)",
+        #"-n:      not invoke (dry run)",
         "--name=value: property name and value",
         "--name:       property name and value(=True)",
     )
