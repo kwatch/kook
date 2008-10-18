@@ -406,4 +406,4 @@ class Cooking(Cookable):
             _debug("parse_args() (func=%s): opts=%s, rests=%s" % (self.get_func_name(), repr(opts), repr(rests)), 2)
             return opts, rests
         except CommandOptionError, ex:
-            raise CommandOptionError("%s(): %s" % (self.get_func_name(), ex.message, ))
+            raise CommandOptionError("%s(): %s" % (self.get_func_name(), str(ex), ))
