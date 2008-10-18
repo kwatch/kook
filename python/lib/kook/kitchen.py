@@ -193,7 +193,7 @@ class Cooking(Cookable):
     is_material = False
     was_file_recipe = None
 
-    def __init__(self, product, func, ingreds=(), byprods=(), options=()):
+    def __init__(self, product, func, ingreds=(), byprods=(), cmdopts=()):
         self.product = product
         self.func    = func
         self.ingreds = ingreds
@@ -201,7 +201,7 @@ class Cooking(Cookable):
         self.ingred  = ingreds and ingreds[0] or None
         self.byprod  = byprods and byprods[0] or None
         self.children = []       # child cookables
-        self.options = options
+        self.cmdopts = cmdopts
         self.cooked  = None
         self.args = ()
 
@@ -212,7 +212,7 @@ class Cooking(Cookable):
         func    = recipe.func
         ingreds = recipe.ingreds or ()
         byprods = recipe.byprods or ()
-        options = recipe.options or ()
+        cmdopts = recipe.cmdopts or ()
         if recipe.pattern:
             matched = re.match(recipe.pattern, target)
             assert matched is not None
@@ -232,7 +232,7 @@ class Cooking(Cookable):
         else:
             matched = None
             m = None
-        self = cls(product, func=func, ingreds=ingreds, byprods=byprods, options=options)
+        self = cls(product, func=func, ingreds=ingreds, byprods=byprods, cmdopts=cmdopts)
         self.was_file_recipe = isinstance(recipe, FileRecipe)
         self.matched = matched
         self.m = m
@@ -398,12 +398,12 @@ class Cooking(Cookable):
         return re.sub(r'\$\((\w+)(?:\[(\d+)\])?\)', repl, string)
 
     ## utility method for convenience
-    def parse_args(self, args):
-        parser = CommandOptionParser.new(self.options)
-        _debug("parse_args() (func=%s): optdefs=%s" % (self.get_func_name(), repr(parser.optdefs)), 2)
+    def parse_cmdopts(self, args):
+        parser = CommandOptionParser.new(self.cmdopts)
+        _debug("parse_cmdopts() (func=%s): optdefs=%s" % (self.get_func_name(), repr(parser.optdefs)), 2)
         try:
             opts, rests = parser.parse(args)
-            _debug("parse_args() (func=%s): opts=%s, rests=%s" % (self.get_func_name(), repr(opts), repr(rests)), 2)
+            _debug("parse_cmdopts() (func=%s): opts=%s, rests=%s" % (self.get_func_name(), repr(opts), repr(rests)), 2)
             return opts, rests
         except CommandOptionError, ex:
             raise CommandOptionError("%s(): %s" % (self.get_func_name(), str(ex), ))

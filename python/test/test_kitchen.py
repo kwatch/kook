@@ -216,10 +216,10 @@ def task_all(c):
     def test_recipe_cmdopts1(self):
         content = r"""
 import kook
-@options("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
+@cmdopts("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
          "--help: help", "--debug[=N]: debug", "--file=filename: file")
 def task_build(c, *args):
-    opts, rests = c.parse_args(args)
+    opts, rests = c.parse_cmdopts(args)
     kook._stdout.write("opts=%s\n" % repr(opts))
     kook._stdout.write("rests=%s\n" % repr(rests))
     for key in sorted(opts.keys()):
@@ -242,6 +242,10 @@ opts['help']=None
         from kook.util import CommandOptionError
         ex = self.assertRaises2(CommandOptionError, lambda: self._start(content, "build", "-f"))
         self.assertTextEqual("task_build(): -f: file required.", str(ex))
+        ex = self.assertRaises2(CommandOptionError, lambda: self._start(content, "build", "-Dx"))
+        self.assertTextEqual("task_build(): -Dx: integer required.", str(ex))
+        ex = self.assertRaises2(CommandOptionError, lambda: self._start(content, "build", "--debug=x"))
+        self.assertTextEqual("task_build(): --debug=x: integer required.", str(ex))
 
 
     def test_content_compared1(self):
