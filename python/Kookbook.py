@@ -57,11 +57,16 @@ def task_package(c):
         #tar_czf(c%"$(dir).tar.gz", dir)
         system(c%"tar -cf $(dir).tar $(dir)")
         system(c%"gzip -f9 $(dir).tar")
+        rm_rf(dir)
         ## create *.egg file
-        with chdir(dir) as d3:
-            system("python setup.py bdist_egg")
-            mv("dist/*.egg", "..")
-            rm_rf("build", "dist")
+        for python in ['python2.5', 'python2.6']:
+            system(c%"tar xzf $(dir).tar.gz")
+            with chdir(dir):
+                system(c%"$(python) setup.py bdist_egg")
+                mv("dist/*.egg", "..")
+                #rm_rf("build", "dist")
+            rm_rf(dir)
+        system(c%"tar -xzf $(dir).tar.gz")
 
 
 def task_uninstall(c):

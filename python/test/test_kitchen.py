@@ -19,7 +19,7 @@ from kook.cookbook import *
 from kook.commands import *
 from kook.utils import read_file, write_file
 
-from _testcase_helper import TestCaseHelper
+from testcase_helper import TestCaseHelper
 
 
 def _setup_stdio():

@@ -64,6 +64,27 @@ class TestCaseHelper:
         if identifier: msg = "[%s] %s" % (identifier, msg)
         self.assertFalse(os.path.exists(filename), msg)
 
+    def assertFileNewerThan(self, filename, arg, identifier=None):
+        msg = "File %s expected to be newer thant %s." % (repr(filename), repr(arg))
+        if identifier: msg = "[%s] %s" % (identifier, msg)
+        mtime1 = os.path.getmtime(filename)
+        mtime2 = isinstance(arg, (str, unicode)) and os.path.getmtime(arg) or arg
+        self.assertTrue(mtime1 > mtime2, msg)
+
+    def assertSameTimestampWith(self, filename, arg, identifier=None):
+        msg = "File %s expected to be the same timestampt with %s." % (repr(filename), repr(arg))
+        if identifier: msg = "[%s] %s" % (identifier, msg)
+        mtime1 = os.path.getmtime(filename)
+        mtime2 = isinstance(arg, (str, unicode)) and os.path.getmtime(arg) or arg
+        self.assertTrue(mtime1 == mtime2, msg)
+
+    def asertFileOlderThan(self, filename, arg, identifier=None):
+        msg = "File %s expected to be older thant %s." % (repr(filename), repr(arg))
+        if identifier: msg = "[%s] %s" % (identifier, msg)
+        mtime1 = os.path.getmtime(filename)
+        mtime2 = isstr(arg, (str, unicode)) and os.path.getmtime(arg) or arg
+        self.assertTrue(mtime1 < mtime2, msg)
+
     def assertEmpty(self, value, identifier=None):
         msg = "empty string is expected but got %s." % repr(value)
         if identifier: msg = "[%s] %s" % (identifier, msg)
