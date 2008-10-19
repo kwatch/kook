@@ -1351,8 +1351,8 @@ The following functions are available in 'method*:' part of recipes.
 	edit("lib/**/*.py", "doc/**/*.{html,css}", by=replacer)
 	## edit by function
 	def replacer(s):
-	    s = s.replace('$Release$',   "1.0.0")
-	    s = s.replace('$Copyright$', "copyright(c) 2008 kuwata-lab.com")
+	    s = s.replace('${{}}Release$',   "1.0.0", s)
+	    s = s.replace('${{}}Copyright$', "copyright(c) 2008 kuwata-lab.com", s)
 	    return s
 	edit("lib/**/*.py", "doc/**/*.{html,css}", by=replacer)
 	.--------------------
