@@ -36,7 +36,7 @@
 .=title:	[%= PROJECT %] Users' Guide
 .?revision:	$Rev$
 .?release:	$Release$
-.?author:	makoto kuwata <kwa(at)kuwata-lab.com>
+.#.?author:	makoto kuwata <kwa(at)kuwata-lab.com>
 .?stylesheet:	docstyle.css
 .#.?stylesheet:	html-css.css
 .#.?lastupdate:	$Date: $
