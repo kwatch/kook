@@ -863,6 +863,12 @@ $ gcc -g -o hello hello.o
 
 
 
+.$$ Short command			| topic-short-command
+
+pyKook provides {{,pyk,}} command which is the same as {{,pykook,}} command, because {{,pykook,}} is too long to type many times :)
+
+
+
 .$$ Invoke Recipes Forcedly		| topic-forcedly
 
 Command-line option '-F' invokes recipes forcedly.
