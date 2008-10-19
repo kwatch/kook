@@ -127,31 +127,39 @@ def meta2rexp(pattern):
     return ''.join(buf)
 
 
+def _listup(path, kind=None, arr=None):
+    if arr is None: arr = []
+    if kind == 'f':
+        if os.path.isfile(path): arr.append(path)
+    elif kind == 'd':
+        if os.path.isdir(path): arr.append(path)
+    else:
+        arr.append(path)
+    if os.path.isdir(path):
+        dir = os.listdir(path)   # raise error
+        for fname in dir:
+            if fname[0] == '.': continue
+            path2 = os.path.join(path, fname)
+            _listup(path2, kind, arr)
+    return arr
+
+
 def glob2(pattern):
-    pair = pattern.split('**', 1)
-    #print "*** debug: pair=%s\n" % repr(pair)
+    pair = pattern.split(r'**/', 2)
     if len(pair) == 1:
         filenames = glob(pattern)
+        return filenames
+    dirpat, basepat = pair
+    if dirpat and dirpat[-1] == '/':
+        dirpat = dirpat[0:-1]
     else:
-        dirpat, basepat = pair
-        if dirpat and dirpat[-1] == '/':
-            dirpat = dirpat[0:-1]
-        else:
-            dirpat += '*'
-        #print "*** debug: dirpat=%s\n" % repr(dirpat)
-        pathlist = glob(dirpat)
-        #print "*** debug: pathlist=%s\n" % repr(pathlist)
-        filenames = []
-        for path in pathlist:
-            if not os.path.isdir(path): continue
-            entries = os.listdir(path)
-            #print "*** debug: path=%s, entries=%s\n" % (repr(path), repr(entries))
-            for entry in entries:
-                if entry[0] == '.': continue
-                entry_path = os.path.join(path, entry)
-                globbed = glob2(entry_path + basepat)
-                #print "*** debug: entry_path=%s, basepat=%s, globbed=%s\n" % (repr(entry_path), repr(basepat), repr(globbed))
-                filenames.extend(globbed)
+        dirpat += '*'
+    filenames = []
+    for path in glob(dirpat):
+        dirlist = _listup(path, 'd')
+        for dir in dirlist:
+            entries = glob2(os.path.join(dir, basepat))
+            filenames.extend(entries)
     return filenames
 
 
