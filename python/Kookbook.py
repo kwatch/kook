@@ -120,7 +120,10 @@ def task_doc(c):
 @byprods('users-guide.toc.html')
 def file_users_guide_html(c):
     system(c%"kwaser -t html-css -T $(ingred) > $(byprod)")
-    system(c%"kwaser -t html-css    $(ingred) > $(product)")
+    #system(c%"kwaser -t html-css    $(ingred) | tidy -q -i -wrap 9999 > $(product)")
+    system(c%"kwaser -t html-css    $(ingred) > $(product).tmp")
+    system_f(c%"tidy -q -i -wrap 9999 $(product).tmp > $(product)")
+    rm(c%"$(product).tmp")
     mv(c.byprod, "doc")
 
 @product('doc/users-guide.txt')
