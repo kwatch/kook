@@ -5,13 +5,12 @@ import os, sys, re
 from kook.utils import read_file, write_file, glob2
 
 
-release = prop('release', '0.0.0')
 package = prop('package', 'Kook')
 #package = prop('package', 'pyKook')
 
-
-copyright       = "copyright(c) 2008 kuwata-lab.com all rights reserved."
-license         = "MIT License"
+release         = prop('release', None)
+copyright       = prop('copyright', None)
+license         = prop('license', None)
 python_basepath = "/usr/local/lib/python2.6"
 #site_packages_path = "%s/lib/python2.4/site-packages" % python_basepath
 site_packages_path = "%s/site-packages" % python_basepath
