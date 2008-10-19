@@ -978,6 +978,12 @@ $ gcc -g -o hello hello.o
 
 
 
+.$$ Short command			| topic-short-command
+
+[%= PROJECT %] provides {{,[%= SHORT_COMMAND %],}} command which is the same as {{,[%= COMMAND %],}} command, because {{,[%= COMMAND %],}} is too long to type many times :)
+
+
+
 .$$ Invoke Recipes Forcedly		| topic-forcedly
 
 Command-line option '-F' invokes recipes forcedly.
