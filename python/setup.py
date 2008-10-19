@@ -37,7 +37,7 @@ download = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version
 #download = 'http://jaist.dl.sourceforge.net/sourceforge/kook/%s-%s.tar.gz' % (name, version)
 classifiers = [
     'Development Status :: 4 - Beta',
-    'Environment :: Console'
+    'Environment :: Console',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
