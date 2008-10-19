@@ -74,8 +74,7 @@ class Main(object):
         ## property file
         props = {}
         if os.path.isfile("Properties.py"):
-            with open("Properties.py") as f:
-                content = f.read()
+            content = read_file("Properties.py")
             exec content in props, props
             for name in props.keys():
                 if not re.match(r'[a-zA-Z]', name):
