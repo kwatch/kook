@@ -415,8 +415,8 @@ class Cooking(Cookable):
                 if name == 'byprod':   return self.byprods[0]
                 if name == 'ingreds':  return ' '.join(self.ingreds)
                 if name == 'coprods':  return ' '.join(self.coprods)
-                if name in frame.f_locals:  return frame.f_locals[name]
-                if name in frame.f_globals: return frame.f_globals[name]
+                if name in frame.f_locals:  return str(frame.f_locals[name])
+                if name in frame.f_globals: return str(frame.f_globals[name])
                 raise NameError("$(%s): unknown name. (func=%s)" % (name, self.get_func_name(), ))
         return re.sub(r'\$\((\w+)(?:\[(\d+)\])?\)', repl, string)
 
