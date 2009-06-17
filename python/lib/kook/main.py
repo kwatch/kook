@@ -172,10 +172,27 @@ class Main(object):
             sys.exit(status)
         except Exception:
             ex = sys.exc_info()[1]
-            ## show errors
-            ex_classes = (CommandOptionError, )   # or (CommandOptionError, KookError)
+            ## show command option error
+            ex_classes = (CommandOptionError, kook.KookCommandError, kook.KookRecipeError)   # or (CommandOptionError, KookError)
             if isinstance(ex, ex_classes):
+                if not isinstance(ex, CommandOptionError):
+                    self.stderr.write("*** ERROR\n")
                 self.stderr.write(self.command + ": " + str(ex) + "\n")
+            ## system() failed
+            if isinstance(ex, kook.KookCommandError):
+                #self.stderr.write(self.command + ": " + str(ex) + "\n")
+                traceback_obj = sys.exc_info()[2]
+                import traceback
+                found = False
+                for tupl in reversed(traceback.extract_tb(traceback_obj)):
+                    filename, linenum, func_name, message = tupl
+                    if filename.endswith('Kookbook.py'):
+                        found = True
+                        break
+                if found:
+                    self.stderr.write("%s:%s: %s\n" % (filename, linenum, message))
+                else:
+                    traceback.print_tb(traceback_obj, file=sys.stderr)
             ## kick emacsclient when $E defined
             if os.environ.get('E'):
                 import traceback
@@ -194,4 +211,3 @@ class Main(object):
             ## re-raise exception when debug mode
             if not isinstance(ex, ex_classes) or kook._debug_level > 0:
                 raise
-            sys.exit(1)
