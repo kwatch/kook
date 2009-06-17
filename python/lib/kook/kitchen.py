@@ -373,7 +373,21 @@ class Cooking(Cookable):
         assert os.path.exists(filename2)
         if os.path.getsize(filename1) != os.path.getsize(filename2):
             return False
-        return read_file(filename1) == read_file(filename2)    ## TODO: tuning memory size
+        f1 = f2 = None
+        try:
+            f1 = open(filename1, "rb")
+            f2 = open(filename2, "rb")
+            size = 1024*1024
+            while True:
+                s1 = f1.read(size)
+                s2 = f2.read(size)
+                if not s1 and not s2:
+                    return True
+                if s1 != s2:
+                    return False
+        finally:
+            if f1: f1.close()
+            if f2: f2.close()
 
     ## utility method for convenience
     def __mod__(self, string):
