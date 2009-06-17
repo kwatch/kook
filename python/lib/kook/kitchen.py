@@ -28,7 +28,7 @@ class IfExists(object):
 class Kitchen(object):
 
     def __init__(self, cookbook=None, **properties):
-        if isinstance(cookbook, (str, unicode)):
+        if kook.utils._is_str(cookbook):
             cookbook = Cookbook.new(cookbook)
         self.cookbook = cookbook
         self.properties = properties
@@ -239,7 +239,7 @@ class Cooking(Cookable):
         return self
 
     def get_func_name(self):
-        return self.func.func_code.co_name
+        return kook.utils._get_codeobj(self.func).co_name
 
     def can_skip(self):
         if _forced:
@@ -354,7 +354,8 @@ class Cooking(Cookable):
                 ret = CONTENT_CHANGED
                 msg = "end %s (content changed)"
             _debug(msg % self.product, 1, depth)
-        except Exception, ex:
+        except Exception:
+            ex = sys.exc_info()[1]
             if product_mtime:
                 _report_msg("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), depth)
                 #_debug("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), 1, depth)
@@ -412,5 +413,6 @@ class Cooking(Cookable):
             opts, rests = parser.parse(args)
             _debug("parse_cmdopts() (func=%s): opts=%s, rests=%s" % (self.get_func_name(), repr(opts), repr(rests)), 2)
             return opts, rests
-        except CommandOptionError, ex:
+        except CommandOptionError:
+            ex = sys.exc_info()[1]
             raise CommandOptionError("%s(): %s" % (self.get_func_name(), str(ex), ))

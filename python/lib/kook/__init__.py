@@ -19,7 +19,7 @@ import sys, os, re, types
 from kook.utils import *
 
 
-class KookError(StandardError):
+class KookError(Exception):  # StandardError is not available in Python 3.0
     pass
 
 

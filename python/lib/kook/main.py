@@ -75,7 +75,8 @@ class Main(object):
         props = {}
         if os.path.isfile("Properties.py"):
             content = read_file("Properties.py")
-            exec content in props, props
+            #exec content in props, props
+            exec(content, props, props)
             for name in props.keys():
                 if not re.match(r'[a-zA-Z]', name):
                     del props[name]
@@ -169,7 +170,8 @@ class Main(object):
         try:
             status = self.invoke()
             sys.exit(status)
-        except Exception, ex:
+        except Exception:
+            ex = sys.exc_info()[1]
             ## show errors
             ex_classes = (CommandOptionError, )   # or (CommandOptionError, KookError)
             if isinstance(ex, ex_classes):

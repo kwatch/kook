@@ -7,14 +7,21 @@
 ### $License$
 ###
 
-import os, re
+import sys, os, re
 from glob import glob
 
+if sys.version_info[0] == 2:
+    python2 = True
+    python3 = False
+elif sys.version_info[0] == 3:
+    python2 = False
+    python3 = True
 
-class ArgumentError(StandardError):
+
+class ArgumentError(Exception):
 
     def __init__(self, *args):
-        StandardError.__init__(self, *args)
+        Exception.__init__(self, *args)
 
 
 def str2int(s):
@@ -24,17 +31,56 @@ def str2int(s):
         return None
 
 
-def read_file(filename):
-    f = open(filename, 'r')
-    s = f.read()
-    f.close()
-    return s
+if python2:
+    def read_file(filename, encoding=None):
+        f = content = None
+        try:
+            if encoding:
+                f = open(filename, 'rb+')
+                content = f.read().decode(kwargs['encoding'])
+            else:
+                f = open(filename, 'r+')
+                content = f.read()
+        finally:
+            if f:
+                f.close()
+        return content
 
+elif python3:
+    def read_file(filename, encoding=None):
+        f = content = None
+        try:
+            if encoding:
+                f = open(filename, 'r+', encoding=encoding)
+                content = f.read()
+            else:
+                f = open(filename, 'r+', encoding='utf-8')
+                #f = open(filename, 'r+')
+                content = f.read()
+        finally:
+            if f:
+                f.close()
+        return content
+ 
 
-def write_file(filename, content):
-    f = open(filename, 'w')
-    f.write(content)
-    f.close()
+if python2:
+    def write_file(filename, content, encoding=None):
+        if encoding and isinstance(content, unicode):
+            content = content.encode(encoding)
+        f = open(filename, 'w')
+        try:
+            f.write(content)
+        finally:
+            f.close()
+
+elif python3:
+    def write_file(filename, content, encoding='utf-8'):
+        if encoding is None: encoding = 'utf-8'
+        f = open(filename, 'w', encoding=encoding)
+        try:
+            f.write(content)
+        finally:
+            f.close()
 
 
 def flatten(items, _arr=None):
@@ -93,7 +139,7 @@ def meta2rexp(pattern):
         if ch == '\\':
             i += 1
             if i >= n:
-                raise StandardError("%s: invalid pattern." % pattern)
+                raise ArgumentError("%s: invalid pattern." % pattern)  # or StandardError
             ch = pattern[i]
             buf.append(ch)
         elif ch == '*':
@@ -117,7 +163,7 @@ def meta2rexp(pattern):
                     break
                 i += 1
             if right is None:
-                raise StandardError("%s: '{' is not closed by '}'." % pattern)
+                raise ArgumentError("%s: '{' is not closed by '}'." % pattern)  # or StandardError
             words = pattern[left+1:right].split(',')
             buf.extend(('(', '|'.join(words), ')', ))
         else:
@@ -163,7 +209,7 @@ def glob2(pattern):
     return filenames
 
 
-class CommandOptionError(StandardError):
+class CommandOptionError(Exception):   # StandardError is not available in Python 3.0
     pass
 
 
@@ -232,7 +278,7 @@ class CommandOptionParser(object):
                 if not check_longopts:
                     if arg is None: arg = True
                     longopts[name] = arg
-                elif not optdefs.has_key(name):
+                elif name not in optdefs:
                     raise CommandOptionError("%s: unknown command option." % cmd_arg)
                 elif optdefs[name] is False:    # --name
                     if arg is not None:
@@ -259,7 +305,7 @@ class CommandOptionParser(object):
                 n = len(optchars)
                 while j < n:
                     ch = optchars[j]
-                    if not optdefs.has_key(ch):
+                    if ch not in optdefs:
                         raise CommandOptionError("-%s: unknown command option." % ch)
                     elif optdefs[ch] is False:  # -x
                         opts[ch] = True
@@ -369,3 +415,19 @@ class CommandOptionParser(object):
 #    #print "*** debug: opts:", repr(opts), ", longopts:", repr(longopts), ", rests:", repr(rests)
 #    return opts, longopts, rests
 #
+
+
+## compatibility for Python 2.x and 3.0
+
+if python2:
+    def _is_str(obj):
+        return isinstance(obj, (str, unicode))  # unicode is not defined in Python 3.0
+    def _get_codeobj(func):
+        return func.func_code
+elif python3:
+    def _is_str(obj):
+        return isinstance(obj, str)
+    def _get_codeobj(func):
+        return func.__code__
+
+

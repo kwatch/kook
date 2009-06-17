@@ -317,7 +317,7 @@ def edit(*filenames, **kwargs):
 
 def _edit(filenames, func, cmd, kwargs):
     fnames = _prepare(filenames, cmd)
-    if not ('by' in kwargs):
+    if 'by' not in kwargs:
         raise ArgumentError("%s: keyword arg 'by' is reqiured." % func)
     by = kwargs['by']
     for fname in fnames:
@@ -326,13 +326,15 @@ def _edit(filenames, func, cmd, kwargs):
         if os.path.isdir(fname):
             #raise KookCommandError("%s: %s: can't edit directory." % (func, fname))
             continue
-        f = open(fname, 'r+')
-        content = f.read()
-        if callable(by):
+        encoding = kwargs.get('encoding', None)
+        content = kook.utils.read_file(fname, encoding)
+        if hasattr(by, '__call__'):
             content = by(content)
         elif isinstance(by, (tuple, list)):
             for rexp, repl in by:
                 content = re.sub(rexp, repl, content)
+        if encoding:
+            content = content.encode(encoding)
         f.seek(0)
         f.truncate(0)
         f.write(content)

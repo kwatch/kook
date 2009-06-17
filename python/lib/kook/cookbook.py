@@ -35,10 +35,10 @@ class Cookbook(object):
         #    self.load_file(bookname)
 
     def prop(self, name, value):
-        if not self._property_names_dict.has_key(name):
+        if name not in self._property_names_dict:
             self._property_names_dict[name] = True
             self.property_names.append(name)
-        if self.context.has_key(name):
+        if name in self.context:
             value = self.context[name]
         else:
             self.context[name] = value
@@ -72,13 +72,14 @@ class Cookbook(object):
         if properties: context.update(properties)
         context['prop'] = self.prop
         self.context = context
-        exec code_obj in context, context
+        exec(code_obj, context, context)
         ## create recipes
         recipes = {
             'task': {'specific': [], 'generic': []},
             'file': {'specific': [], 'generic': []},
         }
-        for name, obj in context.iteritems():
+        for name in context:         # dict.iteritems() is not available in Python 3.0
+            obj = context.get(name)
             if name == 'kook_materials':
                 if not isinstance(obj, (tuple, list)):
                     raise KookRecipeError("kook_materials: tuple or list expected.")
@@ -186,10 +187,10 @@ class Recipe(object):
             return self.product == target
 
     def get_func_name(self):
-        return self.func.func_code.co_name
+        return kook.utils._get_codeobj(self.func).co_name
 
     def _func_linenum(self):
-        return self.func.func_code.co_firstlineno
+        return kook.utils._get_codeobj(self.func).co_firstlineno
 
     @classmethod
     def new(cls, func_name, func, prefix, _cls=None):
