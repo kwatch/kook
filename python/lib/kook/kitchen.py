@@ -320,7 +320,7 @@ class Cooking(Cookable):
         if self.children:
             for child in self.children:
                 ret = child.start2(depth+1, (), product_mtime)
-                if ret > status:  status = ret
+                if ret is not None and ret > status:  status = ret
         ## skip if product is newer than ingredients
         if self.can_skip2(status):
             if status == MTIME_UPDATED:
