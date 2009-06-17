@@ -336,32 +336,33 @@ class Cooking(Cookable):
         ## exec recipe function
         assert self.func is not None
         try:
-            if product_mtime:
-                tmp_basename = ".kook.%s.kook" % os.path.basename(self.product)
-                tmp_filename = os.path.join(os.path.dirname(self.product), tmp_basename)
-                os.rename(self.product, tmp_filename)             # rename old product
-            s = self.was_file_recipe and 'create' or 'perform'
-            _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
-            _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
-            self.func(self, *args)
-            if self.was_file_recipe and not os.path.exists(self.product):
-                raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
-            self.cooked = True
-            if product_mtime and self._has_same_content(self.product, tmp_filename):
-                ret = MTIME_UPDATED
-                msg = "end %s (content not changed, mtime updated)"
-            else:
-                ret = CONTENT_CHANGED
-                msg = "end %s (content changed)"
-            _debug(msg % self.product, 1, depth)
-        except Exception:
-            ex = sys.exc_info()[1]
-            if product_mtime:
-                _report_msg("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), depth)
-                #_debug("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), 1, depth)
-                if os.path.isfile(self.product):
-                    os.unlink(self.product)
-            raise
+            try:
+                if product_mtime:
+                    tmp_basename = ".kook.%s.kook" % os.path.basename(self.product)
+                    tmp_filename = os.path.join(os.path.dirname(self.product), tmp_basename)
+                    os.rename(self.product, tmp_filename)             # rename old product
+                s = self.was_file_recipe and 'create' or 'perform'
+                _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
+                _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
+                self.func(self, *args)
+                if self.was_file_recipe and not os.path.exists(self.product):
+                    raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
+                self.cooked = True
+                if product_mtime and self._has_same_content(self.product, tmp_filename):
+                    ret = MTIME_UPDATED
+                    msg = "end %s (content not changed, mtime updated)"
+                else:
+                    ret = CONTENT_CHANGED
+                    msg = "end %s (content changed)"
+                _debug(msg % self.product, 1, depth)
+            except Exception:
+                ex = sys.exc_info()[1]
+                if product_mtime:
+                    _report_msg("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), depth)
+                    #_debug("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), 1, depth)
+                    if os.path.isfile(self.product):
+                        os.unlink(self.product)
+                raise
         finally:
             if product_mtime:
                 os.unlink(tmp_filename)                           # remove old product
