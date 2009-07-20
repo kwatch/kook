@@ -132,20 +132,6 @@ def task_build(c):
         self.assertTextEqual(expected, _stderr())
 
 
-    def test_generic_task_cooking1(self):
-        content = r"""\
-@product('build_*')
-def task_build(c):
-    system('gcc -o %s %s.c' % (c.m[1], c.m[1]))
-    echo("invoked.")
-"""
-        self._start(content, 'build_hello')
-        self.assertFileExists('hello')
-        self.assertEqual("invoked.\n", _stdout())
-        expected = "### * build_hello (func=task_build)\n$ gcc -o hello hello.c\n$ echo invoked.\n"
-        self.assertTextEqual(expected, _stderr())
-
-
     def test_error_when_ingredients_not_found(self):
         content = r"""
 @product("*.o")
