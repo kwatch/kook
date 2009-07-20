@@ -276,7 +276,7 @@ class CommandOptionParser(object):
                         raise CommandOptionError("%s: integer required." % cmd_arg)
                     opts[name] = arg is None and True or str2int(arg)
                 else:                           # --name=arg
-                    assert isinstance(arg, (str, unicode))
+                    assert _is_str(arg)
                     if arg is None:
                         raise CommandOptionError("%s: argument required." % cmd_arg)
                     if optdefs[name] == 'N':    # --name=N
@@ -306,7 +306,7 @@ class CommandOptionParser(object):
                         opts[ch] = not arg and True or str2int(arg)
                         break
                     else:                       # -x arg
-                        assert isinstance(optdefs[ch], (str, unicode))
+                        assert _is_str(optdefs[ch])
                         if optchars[j+1:]:
                             arg = optchars[j+1:]
                         else:
