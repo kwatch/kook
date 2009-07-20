@@ -373,10 +373,6 @@ def task_all(c):
 KookKitchenTest.remove_tests_except(os.environ.get('TEST'))
 
 
-def test_main():
-    test_support.run_unittest(KookKitchenTest)
-
-
 if __name__ == '__main__':
-    test_main()
-
+    #test_support.run_unittest(KookKitchenTest)
+    unittest.main()

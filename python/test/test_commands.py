@@ -103,10 +103,7 @@ class KookCommandsTest(unittest.TestCase, TestCaseHelper):
         self.assertEquals(expected, glob2("hello.d/**/*"))
 
 
-def test_main():
-    test_support.run_unittest(KookCommandsTest)
-
-
 if __name__ == '__main__':
-    test_main()
+    #test_support.run_unittest(KookCommandsTest)
+    unittest.main()
 
