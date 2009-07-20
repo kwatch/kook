@@ -85,23 +85,6 @@ elif python3:
 
 def flatten(items, _arr=None):
     """flatten nested list or tuple."""
-    def _flatten(items, _arr):
-        for item in items:
-            if isinstance(item, (list, tuple)):
-                flatten(item, _arr)
-            else:
-                _arr.append(item)
-    _arr = []
-    #_flatten(items, _arr)
-    if isinstance(item, (list, tuple)):
-        flatten(item, _arr)
-    else:
-        _arr.append(item)
-    return _arr
-
-
-def flatten(items, _arr=None):
-    """flatten nested list or tuple."""
     if _arr is None: _arr = []
     for item in items:
         if isinstance(item, (list, tuple)):
