@@ -103,6 +103,9 @@ class KookCommandsTest(unittest.TestCase, TestCaseHelper):
         self.assertEquals(expected, glob2("hello.d/**/*"))
 
 
+KookCommandsTest.remove_tests_except(os.environ.get('TEST'))
+
+
 if __name__ == '__main__':
     #test_support.run_unittest(KookCommandsTest)
     unittest.main()
