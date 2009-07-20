@@ -184,6 +184,8 @@ def glob2(pattern):
     else:
         dirpat += '*'
     filenames = []
+    if dirpat == '*':
+        filenames.extend(glob(basepat))
     for path in glob(dirpat):
         dirlist = _listup(path, 'd')
         for dir in dirlist:

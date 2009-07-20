@@ -91,7 +91,7 @@ class KookCommandsTest(unittest.TestCase, TestCaseHelper):
         expected = ["hello.d/src/include/hello.h", "hello.d/src/include/hello2.h"]
         self.assertEquals(expected, glob2("hello.d/**/*.h"))
         expected = ["hello.h", "hello.d/src/include/hello.h", "hello.d/src/include/hello2.h"]
-        #self.assertEquals(expected, glob2("**/*.h")) # BUG
+        self.assertEquals(expected, glob2("**/*.h"))
         expected = [
             "hello.d/src",
             "hello.d/src/include",
