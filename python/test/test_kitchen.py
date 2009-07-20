@@ -6,10 +6,12 @@
 ###
 
 import unittest
-from test import test_support
 import sys, os, re, time
 from glob import glob
-from StringIO import StringIO
+try:
+    from StringIO import StringIO      # 2.x
+except ImportError:
+    from io import StringIO            # 3.x
 
 #from testcase_helper import *
 import kook
@@ -374,5 +376,6 @@ KookKitchenTest.remove_tests_except(os.environ.get('TEST'))
 
 
 if __name__ == '__main__':
+    #from test import test_support
     #test_support.run_unittest(KookKitchenTest)
     unittest.main()

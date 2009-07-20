@@ -6,7 +6,6 @@
 ###
 
 import unittest
-from test import test_support
 import sys, os, re, time, shutil
 from glob import glob
 
@@ -107,6 +106,6 @@ KookCommandsTest.remove_tests_except(os.environ.get('TEST'))
 
 
 if __name__ == '__main__':
+    #from test import test_support
     #test_support.run_unittest(KookCommandsTest)
     unittest.main()
-
