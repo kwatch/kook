@@ -87,8 +87,11 @@ def task_uninstall(c):
 
 
 def task_test(c):
+    from glob import glob
     with chdir('test') as d:
-        system("python test_all.py 2>&1 >  test.log")
+        #system("python test_all.py 2>&1 >  test.log")
+        for fname in glob('test_*.py'):
+            system("python " + fname)
 
 
 def task_clean(c):
