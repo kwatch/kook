@@ -1,7 +1,19 @@
 
 releases:
 
+  - release:  0.1.0
+    date:     2009-07-20
+    enhancements:
+
+      - Python 3 support.
+
+    bugfixes:
+
+      - glob2() now recognizes files on current directory.
+
+
   - release:  0.0.1
     date:     2008-10-19
     enhancements:
+
       - First release
