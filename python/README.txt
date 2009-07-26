@@ -14,6 +14,10 @@ Kookbook.py, which is a task definition file for pyKook, is written in Python.
 You can write any Python code in Kookbook.py.
 
 
+*NOTICE* pyKook is under alpha release. Specs or features may be changed
+in the future.
+
+
 Install
 -------
 
