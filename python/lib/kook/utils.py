@@ -61,7 +61,7 @@ elif python3:
             if f:
                 f.close()
         return content
- 
+
 
 if python2:
     def write_file(filename, content, encoding=None):
