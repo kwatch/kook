@@ -4,6 +4,7 @@
 ### $License$
 ###
 
+import oktest
 from oktest import *
 import sys, os, re, time, shutil
 from os.path import isfile, isdir, getmtime

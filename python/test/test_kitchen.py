@@ -4,23 +4,22 @@
 ### $License$
 ###
 
-import unittest
+import oktest
+from oktest import *
 import sys, os, re, time
+from os.path import isfile, isdir
 from glob import glob
 try:
     from StringIO import StringIO      # 2.x
 except ImportError:
     from io import StringIO            # 3.x
 
-#from testcase_helper import *
 import kook
 from kook import *
 from kook.kitchen import *
 from kook.cookbook import *
 from kook.commands import *
 from kook.utils import read_file, write_file
-
-from testcase_helper import TestCaseHelper
 
 
 def _setup_stdio():
@@ -55,15 +54,15 @@ char *command = "hello";
 """
 
 
-class KookKitchenTest(unittest.TestCase, TestCaseHelper):
+class KookKitchenTest(object):
 
 
-    def setUp(self):
+    def before_each(self):
         _setup_stdio()
         write_file('hello.c', HELLO_C)
         write_file('hello.h', HELLO_H)
 
-    def tearDown(self):
+    def after_each(self):
         for x in glob('hello*'):
             os.unlink(x)
         _teardown_stdio()
@@ -85,10 +84,10 @@ def file_hello_o(c):
     echo("invoked.")
 """
         self._start(content, 'hello.o')
-        self.assertFileExists('hello.o')
-        self.assertEqual("invoked.\n", _stdout())
+        ok('hello.o', isfile)
+        ok(_stdout(), '==', "invoked.\n")
         expected = "### * hello.o (func=file_hello_o)\n$ gcc -c hello.c\n$ echo invoked.\n"
-        self.assertTextEqual(expected, _stderr())
+        ok(_stderr(), '==', expected)
 
 
     def test_generic_file_cooking1(self):
@@ -100,10 +99,10 @@ def file_ext_o(c):
     echo("invoked.")
 """
         self._start(content, 'hello.o')
-        self.assertFileExists('hello.o')
-        self.assertEqual("invoked.\n", _stdout())
+        ok('hello.o', isfile)
+        ok(_stdout(), '==', "invoked.\n")
         expected = "### * hello.o (func=file_ext_o)\n$ gcc -c hello.c\n$ echo invoked.\n"
-        self.assertTextEqual(expected, _stderr())
+        ok(_stderr(), '==', expected)
 
 
     def test_specific_task_cooking1(self):
@@ -113,10 +112,10 @@ def task_build(c):
     echo("invoked.")
 """
         self._start(content, 'build')
-        self.assertFileExists('hello')
-        self.assertEqual("invoked.\n", _stdout())
+        ok('hello', isfile)
+        ok(_stdout(), '==', "invoked.\n")
         expected = "### * build (func=task_build)\n$ gcc -o hello hello.c\n$ echo invoked.\n"
-        self.assertTextEqual(expected, _stderr())
+        ok(_stderr(), '==', expected)
 
 
     def test_generic_task_cooking1(self):
@@ -127,10 +126,10 @@ def task_build(c):
     echo("invoked.")
 """
         self._start(content, 'build_hello')
-        self.assertFileExists('hello')
-        self.assertEqual("invoked.\n", _stdout())
+        ok('hello', isfile)
+        ok(_stdout(), '==', "invoked.\n")
         expected = "### * build_hello (func=task_build)\n$ gcc -o hello hello.c\n$ echo invoked.\n"
-        self.assertTextEqual(expected, _stderr())
+        ok(_stderr(), '==', expected)
 
 
     def test_error_when_ingredients_not_found(self):
@@ -141,11 +140,11 @@ def file_ext_o(c):
     system(c%"gcc -c $(ingred)")
 """
         if os.path.isfile("hello.h"): os.unlink("hello.h")
-        self.assertFileExists("hello.c")
+        ok("hello.c", isfile)
         def _f():
             self._start(content, "hello.o")
-        ex = self.assertRaises2(kook.KookRecipeError, _f)
-        self.assertTextEqual("hello.h: can't find any recipe to produce.", str(ex))
+        errmsg = "hello.h: can't find any recipe to produce."
+        ok(_f, 'raises', kook.KookRecipeError, errmsg)
 
 
     def test_if_exists1(self):
@@ -162,17 +161,17 @@ def file_ext_o(c):
         if os.path.exists("hello.o"): os.unlink("hello.o")
         if os.path.exists("hello.h"): os.unlink("hello.h")
         self._start(content, "hello.o")
-        self.assertFileExists("hello.o")
-        self.assertTextEqual("", _stdout())
-        self.assertTextEqual("### * hello.o (func=file_ext_o)\n$ gcc -c hello.c\n", _stderr())
+        ok("hello.o", isfile)
+        ok(_stdout(), '==', "")
+        ok(_stderr(), '==', "### * hello.o (func=file_ext_o)\n$ gcc -c hello.c\n")
         ## when hello.h exists (and newer than product)
         _setup_stdio()
         time.sleep(1)
         write_file("hello.h", "#include <stdio.h>\n")
         self._start(content, "hello.o")
-        self.assertFileExists("hello.o")
-        self.assertTextEqual("", _stdout())
-        self.assertTextEqual("### * hello.o (func=file_ext_o)\n$ gcc -c hello.c hello.h\n", _stderr())
+        ok("hello.o", isfile)
+        ok(_stdout(), '==', "")
+        ok(_stderr(), '==', "### * hello.o (func=file_ext_o)\n$ gcc -c hello.c hello.h\n")
 
 
     def test_looped_cooking_tree1(self):
@@ -196,8 +195,9 @@ def file_ext_c(c):
 def task_all(c):
     pass
 """
-        ex = self.assertRaises2(KookRecipeError, lambda: self._start(content, "all"))
-        self.assertTextEqual("hello: recipe is looped (hello->hello.o->hello.c->hello).", str(ex))
+        func = lambda: self._start(content, "all")
+        errmsg = "hello: recipe is looped (hello->hello.o->hello.c->hello)."
+        ok(func, 'raises', KookRecipeError, errmsg)
 
 
     def test_recipe_cmdopts1(self):
@@ -223,16 +223,21 @@ opts['file']=bar.txt
 opts['h']=True
 opts['help']=True
 """
-        self.assertTextEqual(expected, _stdout())
-        self.assertTextEqual("### * build (func=task_build)\n", _stderr())
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "### * build (func=task_build)\n")
         ## command option error
         from kook.utils import CommandOptionError
-        ex = self.assertRaises2(CommandOptionError, lambda: self._start(content, "build", "-f"))
-        self.assertTextEqual("task_build(): -f: file required.", str(ex))
-        ex = self.assertRaises2(CommandOptionError, lambda: self._start(content, "build", "-Dx"))
-        self.assertTextEqual("task_build(): -Dx: integer required.", str(ex))
-        ex = self.assertRaises2(CommandOptionError, lambda: self._start(content, "build", "--debug=x"))
-        self.assertTextEqual("task_build(): --debug=x: integer required.", str(ex))
+        func = lambda: self._start(content, "build", "-f")
+        errmsg = "task_build(): -f: file required."
+        ok(func, 'raises', CommandOptionError, errmsg)
+        #
+        func = lambda: self._start(content, "build", "-Dx")
+        errmsg = "task_build(): -Dx: integer required."
+        ok(func, 'raises', CommandOptionError, errmsg)
+        #
+        func = lambda: self._start(content, "build", "--debug=x")
+        errmsg = "task_build(): --debug=x: integer required."
+        ok(func, 'raises', CommandOptionError, errmsg)
 
 
     def test_content_compared1(self):
@@ -249,31 +254,31 @@ def file_ext_o(c):
 """
         ## 1st
         self._start(content, "hello")
-        self.assertFileExists("hello")
-        self.assertEqual("", _stdout())
+        ok("hello", isfile)
+        ok(_stdout(), '==', "")
         expected = (
             "### ** hello.o (func=file_ext_o)\n"
             "$ gcc -c hello.c\n"
             "### * hello (func=file_command)\n"
             "$ gcc -o hello hello.o\n"
         )
-        self.assertTextEqual(expected, _stderr())
+        ok(_stderr(), '==', expected)
         ## 2nd (content compared)
         old_utime = os.path.getmtime("hello")
         time.sleep(1)
         os.utime("hello.c", None)
         _setup_stdio()
         self._start(content, "hello")
-        self.assertTrue(os.path.getmtime("hello") > old_utime, "hello's mtime is not changed.")
-        self.assertFileExists("hello")
-        self.assertEqual("", _stdout())
+        ok(os.path.getmtime("hello"), '>', old_utime)
+        ok("hello", isfile)
+        ok(_stdout(), '==', "")
         expected = (
             "### ** hello.o (func=file_ext_o)\n"
             "$ gcc -c hello.c\n"
             "### * hello (func=file_command)\n"
             "$ touch hello   # skipped\n"             # content compared and skipped
         )
-        self.assertTextEqual(expected, _stderr())
+        ok(_stderr(), '==', expected)
 
 
     def test_remove_produt_when_recipe_failed1(self):
@@ -287,18 +292,19 @@ def file_hello_txt(c):
     system(c%"gcc HOGE.c")
     #system(c%"gcc HOGE.c 2>&1 /dev/null")
 """
-        self.assertFileExists("hello.h")
+        ok("hello.h", isfile)
         time.sleep(1)
         os.utime("hello.c", None)
-        ex = self.assertRaises2(kook.KookCommandError, lambda: self._start(content, "hello.h"))
-        self.assertEqual("", _stdout())
+        func = lambda: self._start(content, "hello.h")
+        ok(func, 'raises', kook.KookCommandError)
+        ok(_stdout(), '==', "")
         expected = (
             "### * hello.h (func=file_hello_txt)\n"
             "$ gcc HOGE.c\n"
             "### * (remove hello.h because unexpected error raised (func=file_hello_txt))\n"
         )
-        self.assertTextEqual(expected, _stderr())
-        self.assertFileNotExist("hello.h")        # product should be removed
+        ok(_stderr(), '==', expected)
+        ok("hello.h", isfile, False)         # product should be removed
 
 
     def test_complicated_cooking1(self):
@@ -326,8 +332,8 @@ def task_all(c):
 """
         ## 1st
         self._start(content, "all")
-        self.assertFileExists("hello")
-        self.assertEqual("task_build() invoked.\ntask_all() invoked.\n", _stdout())
+        ok("hello", isfile)
+        ok(_stdout(), '==', "task_build() invoked.\ntask_all() invoked.\n")
         expected = (
             "### **** hello.o (func=file_ext_o)\n"
             "$ gcc -c hello.c\n"
@@ -339,24 +345,24 @@ def task_all(c):
             "### * all (func=task_all)\n"
             "$ echo task_all() invoked.\n"
         )
-        self.assertTextEqual(expected, _stderr())
+        ok(_stderr(), '==', expected)
         ## 2nd
         _setup_stdio()
         self._start(content, "all")
-        self.assertEqual("task_build() invoked.\ntask_all() invoked.\n", _stdout())
+        ok(_stdout(), '==', "task_build() invoked.\ntask_all() invoked.\n")
         expected = (
             "### ** build (func=task_build)\n"
             "$ echo task_build() invoked.\n"
             "### * all (func=task_all)\n"
             "$ echo task_all() invoked.\n"
         )
-        self.assertTextEqual(expected, _stderr())
+        ok(_stderr(), '==', expected)
         ## 3rd, content compared, if_exists()
         time.sleep(1)
         write_file("hello.h", "#include <stdio.h>\n")
         _setup_stdio()
         self._start(content, "all")
-        self.assertEqual("task_build() invoked.\ntask_all() invoked.\n", _stdout())
+        ok(_stdout(), '==', "task_build() invoked.\ntask_all() invoked.\n")
         expected = (
             "### **** hello.o (func=file_ext_o)\n"
             "$ gcc -c hello.c\n"
@@ -368,13 +374,8 @@ def task_all(c):
             "### * all (func=task_all)\n"
             "$ echo task_all() invoked.\n"
         )
-        self.assertTextEqual(expected, _stderr())
-
-
-KookKitchenTest.remove_tests_except(os.environ.get('TEST'))
+        ok(_stderr(), '==', expected)
 
 
 if __name__ == '__main__':
-    #from test import test_support
-    #test_support.run_unittest(KookKitchenTest)
-    unittest.main()
+    oktest.invoke_tests('Test$')
