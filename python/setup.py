@@ -1,7 +1,7 @@
 ###
 ### $Rev$
-### $Release: 0.0.1 $
-### copyright(c) 2008 kuwata-lab.com all rights reserved.
+### $Release: 0.0.2 $
+### copyright(c) 2008-2009 kuwata-lab.com all rights reserved.
 ### MIT License
 ###
 
@@ -19,7 +19,7 @@ else:
 
 
 name     = 'Kook'
-version  = '0.0.1'
+version  = '0.0.2'
 author   = 'makoto kuwata'
 email    = 'kwa@kuwata-lab.com'
 maintainer = author
@@ -42,6 +42,11 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
+    'Programming Language :: Python :: 2.4',
+    'Programming Language :: Python :: 2.5',
+    'Programming Language :: Python :: 2.6',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.0',
     'Topic :: Software Development :: Libraries :: Python Modules',
 ]
 
