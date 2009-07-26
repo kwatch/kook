@@ -4,14 +4,13 @@
 ### $License$
 ###
 
-import unittest
+from oktest import *
 import sys, os, re, time, shutil
+from os.path import isfile, isdir, getmtime
 from glob import glob
 
-from testcase_helper import *
 from kook.commands import *
 from kook.utils import read_file, write_file
-from testcase_helper import *
 
 
 HELLO_C = """\
@@ -31,10 +30,10 @@ char *command = "hello";
 """
 
 
-class KookCommandsTest(unittest.TestCase, TestCaseHelper):
+class KookCommandsTest(object):
 
 
-    def setUp(self):
+    def before_each(self):
         write_file('hello.c', HELLO_C)
         write_file('hello.h', HELLO_H)
         t = time.time() - 99
@@ -50,7 +49,7 @@ class KookCommandsTest(unittest.TestCase, TestCaseHelper):
         os.utime('hello.d/src/include/hello.h', (t, t))
         os.utime('hello.d/src/include/hello2.h', (t, t))
 
-    def tearDown(self):
+    def after_each(self):
         for f in glob('hello*'):
             if os.path.isdir(f):
                 shutil.rmtree(f)
@@ -59,37 +58,36 @@ class KookCommandsTest(unittest.TestCase, TestCaseHelper):
 
 
     def test_cp(self):
-        self.assertFileNotExist('hello2.c')
+        ok('hello2.c', isfile, False)
         time.sleep(1)
         cp('hello.c', 'hello2.c')
-        self.assertFileExists('hello2.c')
-        self.assertFileNewerThan('hello2.c', 'hello.c')
+        ok('hello2.c', isfile, True)
+        ok(getmtime('hello2.c'), '>', getmtime('hello.c'))
 
     def test_cp_p(self):
-        self.assertFileNotExist('hello2.c')
+        ok('hello2.c', isfile, False)
         cp_p('hello.c', 'hello2.c')
-        self.assertFileExists('hello2.c')
-        self.assertSameTimestampWith('hello2.c', 'hello.c')
+        ok('hello2.c', isfile, True)
+        ok(getmtime('hello2.c'), '==', getmtime('hello.c'))
 
     def test_cp_r(self):
-        self.assertFileNotExist('hello.d/src2')
+        ok('hello.d/src2', isfile, False)
         cp_r('hello.d/src', 'hello.d/src2')
-        self.assertFileExists('hello.d/src2/include/hello.h')
-        self.assertFileNewerThan('hello.d/src2/include/hello.h', 'hello.d/src/include/hello.h')
+        ok('hello.d/src2/include/hello.h', isfile, True)
+        ok(getmtime('hello.d/src2/include/hello.h'), '>', getmtime('hello.d/src/include/hello.h'))
 
     def test_cp_pr(self):
-        self.assertFileNotExist('hello.d/src2')
+        ok('hello.d/src2', isfile, False)
         cp_r('hello.d/src', 'hello.d/src2')
-        self.assertFileExists('hello.d/src2/include/hello.h')
-        #self.assertSameTimestampWith('hello.d/src2/include/hello.h', 'hello.d/src/include/hello.h') # BUG
-
+        ok('hello.d/src2/include/hello.h', isfile)
+        #ok(getmtime('hello.d/src2/include/hello.h'), '==', getmtime('hello.d/src/include/hello.h')) # BUG
 
     def test_glob2(self):
         from kook.utils import glob2
         expected = ["hello.d/src/include/hello.h", "hello.d/src/include/hello2.h"]
-        self.assertEquals(expected, glob2("hello.d/**/*.h"))
+        ok(glob2("hello.d/**/*.h"), '==', expected)
         expected = ["hello.h", "hello.d/src/include/hello.h", "hello.d/src/include/hello2.h"]
-        self.assertEquals(expected, glob2("**/*.h"))
+        ok(glob2("**/*.h"), '==', expected)
         expected = [
             "hello.d/src",
             "hello.d/src/include",
@@ -98,13 +96,8 @@ class KookCommandsTest(unittest.TestCase, TestCaseHelper):
             "hello.d/src/include/hello2.h",
             "hello.d/src/lib/hello.c",
         ]
-        self.assertEquals(expected, glob2("hello.d/**/*"))
-
-
-KookCommandsTest.remove_tests_except(os.environ.get('TEST'))
+        ok(glob2("hello.d/**/*"), '==', expected)
 
 
 if __name__ == '__main__':
-    #from test import test_support
-    #test_support.run_unittest(KookCommandsTest)
-    unittest.main()
+    oktest.invoke_tests('Test$')
