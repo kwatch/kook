@@ -335,7 +335,6 @@ def _edit(filenames, func, cmd, kwargs):
                 content = re.sub(rexp, repl, content)
         if encoding:
             content = content.encode(encoding)
-        f.seek(0)
-        f.truncate(0)
+        f = open(fname, 'wb')
         f.write(content)
         f.close()
