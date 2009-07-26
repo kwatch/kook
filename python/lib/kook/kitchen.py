@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 ###
-### $Rev$
 ### $Release: $
 ### $Copyright$
 ### $License$
