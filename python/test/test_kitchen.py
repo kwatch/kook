@@ -200,21 +200,23 @@ def task_all(c):
         ok(func, 'raises', KookRecipeError, errmsg)
 
 
-    def test_recipe_cmdopts1(self):
+    def test_recipe_optdefs1(self):
         content = r"""
 import kook
 @optdefs("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
          "--help: help", "--debug[=N]: debug", "--file=filename: file")
-def task_build(c, *args):
-    opts, rests = c.parse_cmdopts(args)
-    kook._stdout.write("opts=%s\n" % repr(opts))
+def task_build(c, *args, **kwargs):
+    rests, opts = args, kwargs
+    keys = opts.keys(); keys.sort()
+    s = '{' + ', '.join([ "%s: %s" % (repr(k), repr(opts[k])) for k in keys ]) + '}'
+    kook._stdout.write("opts=%s\n" % s)
     kook._stdout.write("rests=%s\n" % repr(rests))
     for key in sorted(opts.keys()):
         kook._stdout.write("opts[%s]=%s\n" % (repr(key), opts[key]))
 """
         self._start(content, "build", "-hf foo.txt", "-D999", "--help", "--debug", "--file=bar.txt", "aaa", "bbb")
         expected = """\
-opts={'help': True, 'f': ' foo.txt', 'h': True, 'file': 'bar.txt', 'debug': True, 'D': 999}
+opts={'D': 999, 'debug': True, 'f': ' foo.txt', 'file': 'bar.txt', 'h': True, 'help': True}
 rests=('aaa', 'bbb')
 opts['D']=999
 opts['debug']=True

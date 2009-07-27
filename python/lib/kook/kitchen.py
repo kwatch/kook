@@ -240,6 +240,13 @@ class Cooking(Cookable):
     def get_func_name(self):
         return kook.utils._get_codeobj(self.func).co_name
 
+    def _call_func_with(self, argv):
+        if self.optdefs:
+            opts, rests = self.parse_cmdopts(argv)
+            self.func(self, *rests, **opts)
+        else:
+            self.func(self, *argv)
+
     def can_skip(self):
         if _forced:
             return False
@@ -277,7 +284,8 @@ class Cooking(Cookable):
         s = self.was_file_recipe and 'create' or 'perform'
         _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
         _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
-        self.func(self, *argv)
+        #self.func(self, *argv)
+        self._call_func_with(argv)
         if self.was_file_recipe and not os.path.exists(self.product):
             raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
         self.cooked = True
@@ -343,7 +351,8 @@ class Cooking(Cookable):
                 s = self.was_file_recipe and 'create' or 'perform'
                 _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
                 _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
-                self.func(self, *argv)
+                #self.func(self, *argv)
+                self._call_func_with(argv)
                 if self.was_file_recipe and not os.path.exists(self.product):
                     raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
                 self.cooked = True
