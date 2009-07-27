@@ -128,8 +128,8 @@ class Main(object):
             for recipe in recipes:
                 if show_all or recipe.desc:
                     write(format % (recipe.product, recipe.desc or ''))
-                    if kook._quiet or not recipe.cmdopts: continue
-                    optparser = CommandOptionParser.new(recipe.cmdopts)
+                    if kook._quiet or not recipe.optdefs: continue
+                    optparser = CommandOptionParser.new(recipe.optdefs)
                     for opt, desc in optparser.helps:
                         write(format2 % (opt, desc))
             write("\n")

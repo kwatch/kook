@@ -203,7 +203,7 @@ def task_all(c):
     def test_recipe_cmdopts1(self):
         content = r"""
 import kook
-@cmdopts("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
+@optdefs("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
          "--help: help", "--debug[=N]: debug", "--file=filename: file")
 def task_build(c, *args):
     opts, rests = c.parse_cmdopts(args)
