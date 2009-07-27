@@ -108,16 +108,16 @@ class Kitchen(object):
         assert len(route) == 0
         assert len(visited) == 0
 
-    def start_cooking(self, *args):
+    def start_cooking(self, *argv):
         #roots = self._create_cooking_trees(targets)
         #for root in roots:
         #    _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
         #    assert isinstance(root, Cooking)
         #    root.start()
         ## target
-        if args:
-            target = args[0]
-            args = args[1:]
+        if argv:
+            target = argv[0]
+            argv = argv[1:]
         else:
             target = self.cookbook.context.get('kook_default_product')
             target = ':default'
@@ -130,9 +130,9 @@ class Kitchen(object):
         if isinstance(root, Material):
             raise KookError("%s: is a material (= a file to which no recipe matches)." % target)
         if self.properties.get('compare-content') is False:
-            root.start(args=args, depth=1)
+            root.start(argv=argv, depth=1)
         else:
-            root.start2(args=args, depth=1)
+            root.start2(argv=argv, depth=1)
 
 
 class Cookable(object):
@@ -140,7 +140,7 @@ class Cookable(object):
     product = None
     ingreds = ()
 
-    def start(self, depth=1, args=()):
+    def start(self, depth=1, argv=()):
         raise NotImplementedError("%s.start(): not implemented yet." % self.__class__.__name__)
 
 
@@ -166,11 +166,11 @@ class Material(Cookable):
     def new(cls, filename):
         return cls(filename)
 
-    def start(self, depth=1, args=()):
+    def start(self, depth=1, argv=()):
         _debug("material %s" % self.product, 1, depth)
         return True
 
-    def start2(self, depth=1, args=(), parent_mtime=0):
+    def start2(self, depth=1, argv=(), parent_mtime=0):
         assert os.path.exists(self.product)
         if parent_mtime == 0:
             msg = "material %s"
@@ -202,7 +202,7 @@ class Cooking(Cookable):
         self.children = []       # child cookables
         self.optdefs = optdefs
         self.cooked  = None
-        self.args = ()
+        self.argv = ()
 
     @classmethod
     def new(cls, target, recipe):
@@ -259,7 +259,7 @@ class Cooking(Cookable):
                 return False
         return True
 
-    def start(self, depth=1, args=()):
+    def start(self, depth=1, argv=()):
         if self.cooked:
             _debug("pass %s (already cooked)" % self.product, 1, depth)
             return
@@ -277,7 +277,7 @@ class Cooking(Cookable):
         s = self.was_file_recipe and 'create' or 'perform'
         _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
         _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
-        self.func(self, *args)
+        self.func(self, *argv)
         if self.was_file_recipe and not os.path.exists(self.product):
             raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
         self.cooked = True
@@ -305,7 +305,7 @@ class Cooking(Cookable):
         assert status <= MTIME_UPDATED
         return True
 
-    def start2(self, depth=1, args=(), parent_mtime=0):
+    def start2(self, depth=1, argv=(), parent_mtime=0):
         if self.cooked:
             _debug("pass %s (already cooked)" % self.product, 1, depth)
             return
@@ -343,7 +343,7 @@ class Cooking(Cookable):
                 s = self.was_file_recipe and 'create' or 'perform'
                 _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
                 _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
-                self.func(self, *args)
+                self.func(self, *argv)
                 if self.was_file_recipe and not os.path.exists(self.product):
                     raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
                 self.cooked = True
@@ -420,11 +420,11 @@ class Cooking(Cookable):
         return re.sub(r'\$\((\w+)(?:\[(\d+)\])?\)', repl, string)
 
     ## utility method for convenience
-    def parse_cmdopts(self, args):
+    def parse_cmdopts(self, argv):
         parser = CommandOptionParser.new(self.optdefs)
         _debug("parse_cmdopts() (func=%s): optdefs=%s" % (self.get_func_name(), repr(parser.optdefs)), 2)
         try:
-            opts, rests = parser.parse(args)
+            opts, rests = parser.parse(argv)
             _debug("parse_cmdopts() (func=%s): opts=%s, rests=%s" % (self.get_func_name(), repr(opts), repr(rests)), 2)
             return opts, rests
         except CommandOptionError:
