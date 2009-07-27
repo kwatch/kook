@@ -1,5 +1,5 @@
 .=title:	pyKook Users' Guide
-.#.?revision:	$Rev$
+.?revision:	$Rev$
 .?release:	$Release$
 .#.?author:	makoto kuwata <kwa(at)kuwata-lab.com>
 .?stylesheet:	docstyle.css
