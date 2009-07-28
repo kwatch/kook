@@ -215,7 +215,7 @@ import kook
          "--help: help", "--debug[=N]: debug", "--file=filename: file")
 def task_build(c, *args, **kwargs):
     rests, opts = args, kwargs
-    keys = opts.keys(); keys.sort()
+    keys = list(opts.keys()); keys.sort()
     s = '{' + ', '.join([ "%s: %s" % (repr(k), repr(opts[k])) for k in keys ]) + '}'
     kook._stdout.write("opts=%s\n" % s)
     kook._stdout.write("rests=%s\n" % repr(rests))
