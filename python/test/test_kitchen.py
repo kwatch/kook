@@ -86,7 +86,8 @@ def file_hello_o(c):
         self._start(content, 'hello.o')
         ok('hello.o', isfile)
         ok(_stdout(), '==', "invoked.\n")
-        expected = "### * hello.o (func=file_hello_o)\n$ gcc -c hello.c\n$ echo invoked.\n"
+        expected = ( "### * hello.o (func=file_hello_o)\n"
+                     "$ gcc -c hello.c\n$ echo invoked.\n" )
         ok(_stderr(), '==', expected)
 
 
@@ -101,7 +102,8 @@ def file_ext_o(c):
         self._start(content, 'hello.o')
         ok('hello.o', isfile)
         ok(_stdout(), '==', "invoked.\n")
-        expected = "### * hello.o (func=file_ext_o)\n$ gcc -c hello.c\n$ echo invoked.\n"
+        expected = ( "### * hello.o (func=file_ext_o)\n"
+                     "$ gcc -c hello.c\n$ echo invoked.\n" )
         ok(_stderr(), '==', expected)
 
 
@@ -114,7 +116,8 @@ def task_build(c):
         self._start(content, 'build')
         ok('hello', isfile)
         ok(_stdout(), '==', "invoked.\n")
-        expected = "### * build (func=task_build)\n$ gcc -o hello hello.c\n$ echo invoked.\n"
+        expected = ( "### * build (func=task_build)\n"
+                     "$ gcc -o hello hello.c\n$ echo invoked.\n" )
         ok(_stderr(), '==', expected)
 
 
@@ -128,7 +131,8 @@ def task_build(c):
         self._start(content, 'build_hello')
         ok('hello', isfile)
         ok(_stdout(), '==', "invoked.\n")
-        expected = "### * build_hello (func=task_build)\n$ gcc -o hello hello.c\n$ echo invoked.\n"
+        expected = ( "### * build_hello (func=task_build)\n"
+                     "$ gcc -o hello hello.c\n$ echo invoked.\n" )
         ok(_stderr(), '==', expected)
 
 
@@ -163,7 +167,9 @@ def file_ext_o(c):
         self._start(content, "hello.o")
         ok("hello.o", isfile)
         ok(_stdout(), '==', "")
-        ok(_stderr(), '==', "### * hello.o (func=file_ext_o)\n$ gcc -c hello.c\n")
+        expected = ( "### * hello.o (func=file_ext_o)\n"
+                     "$ gcc -c hello.c\n" )
+        ok(_stderr(), '==', expected)
         ## when hello.h exists (and newer than product)
         _setup_stdio()
         time.sleep(1)
@@ -171,7 +177,9 @@ def file_ext_o(c):
         self._start(content, "hello.o")
         ok("hello.o", isfile)
         ok(_stdout(), '==', "")
-        ok(_stderr(), '==', "### * hello.o (func=file_ext_o)\n$ gcc -c hello.c hello.h\n")
+        expected = ( "### * hello.o (func=file_ext_o)\n"
+                     "$ gcc -c hello.c hello.h\n" )
+        ok(_stderr(), '==', expected)
 
 
     def test_looped_cooking_tree1(self):
