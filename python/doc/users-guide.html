@@ -838,9 +838,9 @@ def task_all(c):
 
 @ingreds(command)
 <strong>@spices("-d dir: directory to install (default '/usr/local/bin')",</strong>
-         <strong>"--command=command: command name (default '%s')" % command)</strong>
-def task_install(c, <strong>*args</strong>):
-    <strong>opts, rests = c.parse_spices(args)</strong>
+        <strong>"--command=command: command name (default '%s')" % command)</strong>
+def task_install(c, <strong>*args</strong>, <strong>**kwargs</strong>):
+    <strong>opts, rests = kwargs, args</strong>
     dir = opts.get('d', '/usr/local/bin')  # get option value
     cmd = opts.get('command', command)     # get option value
     system(c%"sudo cp $(command) $(dir)/$(cmd)")   # or install command
@@ -888,15 +888,15 @@ Password: *******
       </div>
       <pre class="program">
 @spices("-h:      help",            # short opts (no argument)
-         "-f file: filename",        # short opts (argument required)
-         "-d[N]:   debug level",     # short opts (optional argument)
-         "--help:  help",            # long opts (no argument)
-         "--file=file: filename",    # long opts (argument required)
-         "--debug[=N]: debug level", # long opts (optional argument)
-         )
-def task_echo(c, *args):
+        "-f file: filename",        # short opts (argument required)
+        "-d[N]:   debug level",     # short opts (optional argument)
+        "--help:  help",            # long opts (no argument)
+        "--file=file: filename",    # long opts (argument required)
+        "--debug[=N]: debug level", # long opts (optional argument)
+        )
+def task_echo(c, *args, **kwargs):
     """test of @spices"""
-    opts, rests = c.parse_spices(args)
+    opts, rests = kwargs, args
     print "opts:", repr(opts)
     print "rests:", repr(rests)
 </pre>
