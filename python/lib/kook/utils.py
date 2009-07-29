@@ -190,15 +190,15 @@ class CommandOptionParser(object):
     uncheck_longopts = False
 
     def __init__(self, optdef_strs=()):
-        self.parse_optdefs(optdef_strs)
+        self.parse_spices(optdef_strs)
 
     @classmethod
     def new(cls, optdef_strs=()):
         return cls(optdef_strs)
 
-    def parse_optdefs(self, optdef_strs):
+    def parse_spices(self, optdef_strs):
         helps = []
-        optdefs = {}
+        spices = {}
         for optdef_str in optdef_strs:
             opt, desc = optdef_str.split(':', 1)
             if desc: desc = desc.strip()
@@ -207,23 +207,23 @@ class CommandOptionParser(object):
             m = re.match(r'^-(\w)(?:\s+(.+)|\[(\w+)\])?$', opt)
             if m:
                 name, arg1, arg2 = m.group(1), m.group(2), m.group(3)
-                #optdefs[name] = arg1 and arg1 or (arg2 and True or False)
-                if   arg1:  optdefs[name] = arg1
-                elif arg2:  optdefs[name] = arg2 == 'N' and 1 or True
-                else:       optdefs[name] = False
+                #spices[name] = arg1 and arg1 or (arg2 and True or False)
+                if   arg1:  spices[name] = arg1
+                elif arg2:  spices[name] = arg2 == 'N' and 1 or True
+                else:       spices[name] = False
                 continue
             m = re.match(r'^--([a-zA-Z][-\w]+)(?:=(.+)|\[=(.+)\])?$', opt)
             if m:
                 name, arg1, arg2 = m.group(1), m.group(2), m.group(3)
-                #optdefs[name] = arg1 and arg1 or (arg2 and True or False)
-                if   arg1:  optdefs[name] = arg1
-                elif arg2:  optdefs[name] = arg2 == 'N' and 1 or True
-                else:       optdefs[name] = False
+                #spices[name] = arg1 and arg1 or (arg2 and True or False)
+                if   arg1:  spices[name] = arg1
+                elif arg2:  spices[name] = arg2 == 'N' and 1 or True
+                else:       spices[name] = False
                 continue
             raise ArgumentError("%s: invalid command optin definition." % optdef_str)
-        self.optdefs = optdefs
+        self.spices = spices
         self.helps = helps
-        return optdefs, help
+        return spices, help
 
     def parse(self, cmd_args, command=None):
         opts, rests = self._parse(cmd_args, command, check_longopts=True)
@@ -234,7 +234,7 @@ class CommandOptionParser(object):
         return opts, longopts, rests
 
     def _parse(self, cmd_args, command=None, check_longopts=True):
-        optdefs = self.optdefs
+        spices = self.spices
         i = 0
         N = len(cmd_args)
         opts = {}
@@ -250,15 +250,15 @@ class CommandOptionParser(object):
                 if not check_longopts:
                     if arg is None: arg = True
                     longopts[name] = arg
-                elif name not in optdefs:
+                elif name not in spices:
                     raise CommandOptionError("%s: unknown command option." % cmd_arg)
-                elif optdefs[name] is False:    # --name
+                elif spices[name] is False:    # --name
                     if arg is not None:
                         raise CommandOptionError("%s: argument is now allowed." % cmd_arg)
                     opts[name] = True
-                elif optdefs[name] is True:     # --name[=arg]
+                elif spices[name] is True:     # --name[=arg]
                     opts[name] = arg is None and True or arg
-                elif optdefs[name] is 1:        # --name[=N]
+                elif spices[name] is 1:        # --name[=N]
                     if arg and str2int(arg) is None:
                         raise CommandOptionError("%s: integer required." % cmd_arg)
                     opts[name] = arg is None and True or str2int(arg)
@@ -266,7 +266,7 @@ class CommandOptionParser(object):
                     assert _is_str(arg)
                     if arg is None:
                         raise CommandOptionError("%s: argument required." % cmd_arg)
-                    if optdefs[name] == 'N':    # --name=N
+                    if spices[name] == 'N':    # --name=N
                         if str2int(arg) is None:
                             raise CommandOptionError("%s: integer required." % cmd_arg)
                         arg = str2int(arg)
@@ -277,32 +277,32 @@ class CommandOptionParser(object):
                 n = len(optchars)
                 while j < n:
                     ch = optchars[j]
-                    if ch not in optdefs:
+                    if ch not in spices:
                         raise CommandOptionError("-%s: unknown command option." % ch)
-                    elif optdefs[ch] is False:  # -x
+                    elif spices[ch] is False:  # -x
                         opts[ch] = True
                         j += 1
                         continue
-                    elif optdefs[ch] is True:   # -x[arg]
+                    elif spices[ch] is True:   # -x[arg]
                         opts[ch] = optchars[j+1:] or True
                         break
-                    elif optdefs[ch] is 1:      # -x[N]
+                    elif spices[ch] is 1:      # -x[N]
                         arg = optchars[j+1:]
                         if arg and str2int(arg) is None:
                             raise CommandOptionError("-%s%s: integer required." % (ch, arg))
                         opts[ch] = not arg and True or str2int(arg)
                         break
                     else:                       # -x arg
-                        assert _is_str(optdefs[ch])
+                        assert _is_str(spices[ch])
                         if optchars[j+1:]:
                             arg = optchars[j+1:]
                         else:
                             assert j + 1 == n
                             i += 1      # not j
                             if i == N:
-                                raise CommandOptionError("-%s: %s required." % (ch, optdefs[ch], ))
+                                raise CommandOptionError("-%s: %s required." % (ch, spices[ch], ))
                             arg = cmd_args[i]
-                        if optdefs[ch] == 'N':  # -x N
+                        if spices[ch] == 'N':  # -x N
                             if str2int(arg) is None:
                                 raise CommandOptionError("-%s %s: integer required." % (ch, arg, ))
                             arg = str2int(arg)

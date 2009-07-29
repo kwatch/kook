@@ -71,7 +71,7 @@
 
             <li><a href="#cookbook-materials">Materials</a></li>
 
-            <li><a href="#cookbook-optdefs">Command-line options for recipe</a></li>
+            <li><a href="#cookbook-spices">Command-line options for recipe</a></li>
           </ul>
         </li>
 
@@ -801,11 +801,11 @@ $ gcc -g -O2 -c hello.c
 $ gcc -g -O2 -o hello hello.o optparse.o
 ### * all (func=task_all)
 </pre><br>
-      <a name="cookbook-optdefs" id="cookbook-optdefs"></a>
+      <a name="cookbook-spices" id="cookbook-spices"></a>
 
       <h3 class="section2">Command-line options for recipe</h3>
 
-      <p>You can specify command-line options for certain recipes by <code>@optdefs()</code> decorator.</p><a name="Kookbook9.py" id="Kookbook9.py"></a>
+      <p>You can specify command-line options for certain recipes by <code>@spices()</code> decorator.</p><a name="Kookbook9.py" id="Kookbook9.py"></a>
 
       <div class="program_caption">
         Kookbook.py: command-line options for recipes
@@ -837,16 +837,16 @@ def task_all(c):
     pass
 
 @ingreds(command)
-<strong>@optdefs("-d dir: directory to install (default '/usr/local/bin')",</strong>
+<strong>@spices("-d dir: directory to install (default '/usr/local/bin')",</strong>
          <strong>"--command=command: command name (default '%s')" % command)</strong>
 def task_install(c, <strong>*args</strong>):
-    <strong>opts, rests = c.parse_optdefs(args)</strong>
+    <strong>opts, rests = c.parse_spices(args)</strong>
     dir = opts.get('d', '/usr/local/bin')  # get option value
     cmd = opts.get('command', command)     # get option value
     system(c%"sudo cp $(command) $(dir)/$(cmd)")   # or install command
 </pre>
 
-      <p>Command-line options of recipes are displayed by '-l' or '-L' option.</p><a name="Kookbook9.optdefs1.result" id="Kookbook9.optdefs1.result"></a>
+      <p>Command-line options of recipes are displayed by '-l' or '-L' option.</p><a name="Kookbook9.spices1.result" id="Kookbook9.spices1.result"></a>
 
       <div class="terminal_caption">
         command-line example
@@ -871,7 +871,7 @@ kook_default_product: all
 (Tips: 'c%"gcc $(ingreds[0])"' is more natural than '"gcc %s" % c.ingreds[0]'.)
 </pre>
 
-      <p>You can specify command-line options for the recipe.</p><a name="Kookbook9.optdefs2.result" id="Kookbook9.optdefs2.result"></a>
+      <p>You can specify command-line options for the recipe.</p><a name="Kookbook9.spices2.result" id="Kookbook9.spices2.result"></a>
       <pre class="terminal">
 sh&gt; pykook install <strong>-d /opt/local/bin --command=hellow</strong>
 ### * install (func=task_install)
@@ -881,13 +881,13 @@ Password: *******
 
       <p>This feature can replace many small scripts with pyKook.</p>
 
-      <p>The following is an example to show styles of <code>@optdefs</code> arguments.</p>
+      <p>The following is an example to show styles of <code>@spices</code> arguments.</p>
 
       <div class="program_caption">
-        Kookbook.py: example of @optdefs()
+        Kookbook.py: example of @spices()
       </div>
       <pre class="program">
-@optdefs("-h:      help",            # short opts (no argument)
+@spices("-h:      help",            # short opts (no argument)
          "-f file: filename",        # short opts (argument required)
          "-d[N]:   debug level",     # short opts (optional argument)
          "--help:  help",            # long opts (no argument)
@@ -895,8 +895,8 @@ Password: *******
          "--debug[=N]: debug level", # long opts (optional argument)
          )
 def task_echo(c, *args):
-    """test of @optdefs"""
-    opts, rests = c.parse_optdefs(args)
+    """test of @spices"""
+    opts, rests = c.parse_spices(args)
     print "opts:", repr(opts)
     print "rests:", repr(rests)
 </pre>
@@ -909,7 +909,7 @@ sh&gt; pykook -L
 Properties:
 
 Task recipes:
-  echo                : test of @optdefs
+  echo                : test of @spices
     -h                    help
     -f file               filename
     -d[N]                 debug level

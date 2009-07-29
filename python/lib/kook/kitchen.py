@@ -192,7 +192,7 @@ class Cooking(Cookable):
     is_material = False
     was_file_recipe = None
 
-    def __init__(self, product, func, ingreds=(), byprods=(), optdefs=()):
+    def __init__(self, product, func, ingreds=(), byprods=(), spices=()):
         self.product = product
         self.func    = func
         self.ingreds = ingreds
@@ -200,7 +200,7 @@ class Cooking(Cookable):
         self.ingred  = ingreds and ingreds[0] or None
         self.byprod  = byprods and byprods[0] or None
         self.children = []       # child cookables
-        self.optdefs = optdefs
+        self.spices = spices
         self.cooked  = None
         self.argv = ()
 
@@ -211,7 +211,7 @@ class Cooking(Cookable):
         func    = recipe.func
         ingreds = recipe.ingreds or ()
         byprods = recipe.byprods or ()
-        optdefs = recipe.optdefs or ()
+        spices = recipe.spices or ()
         if recipe.pattern:
             matched = re.match(recipe.pattern, target)
             assert matched is not None
@@ -231,7 +231,7 @@ class Cooking(Cookable):
         else:
             matched = None
             m = None
-        self = cls(product, func=func, ingreds=ingreds, byprods=byprods, optdefs=optdefs)
+        self = cls(product, func=func, ingreds=ingreds, byprods=byprods, spices=spices)
         self.was_file_recipe = isinstance(recipe, FileRecipe)
         self.matched = matched
         self.m = m
@@ -241,7 +241,7 @@ class Cooking(Cookable):
         return kook.utils._get_codeobj(self.func).co_name
 
     def _call_func_with(self, argv):
-        if self.optdefs:
+        if self.spices:
             opts, rests = self.parse_cmdopts(argv)
             self.func(self, *rests, **opts)
         else:
@@ -430,8 +430,8 @@ class Cooking(Cookable):
 
     ## utility method for convenience
     def parse_cmdopts(self, argv):
-        parser = CommandOptionParser.new(self.optdefs)
-        _debug("parse_cmdopts() (func=%s): optdefs=%s" % (self.get_func_name(), repr(parser.optdefs)), 2)
+        parser = CommandOptionParser.new(self.spices)
+        _debug("parse_cmdopts() (func=%s): spices=%s" % (self.get_func_name(), repr(parser.spices)), 2)
         try:
             opts, rests = parser.parse(argv)
             _debug("parse_cmdopts() (func=%s): opts=%s, rests=%s" % (self.get_func_name(), repr(opts), repr(rests)), 2)

@@ -208,10 +208,10 @@ def task_all(c):
         ok(func, 'raises', KookRecipeError, errmsg)
 
 
-    def test_recipe_optdefs1(self):
+    def test_recipe_spices1(self):
         content = r"""
 import kook
-@optdefs("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
+@spices("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
          "--help: help", "--debug[=N]: debug", "--file=filename: file")
 def task_build(c, *args, **kwargs):
     rests, opts = args, kwargs

@@ -716,9 +716,9 @@ $ gcc -g -O2 -o hello hello.o optparse.o
 
 
 
-.$$ Command-line options for recipe	| cookbook-optdefs
+.$$ Command-line options for recipe	| cookbook-spices
 
-You can specify command-line options for certain recipes by {{,@optdefs(),}} decorator.
+You can specify command-line options for certain recipes by {{,@spices(),}} decorator.
 
 .? Kookbook.py: command-line options for recipes
 .-------------------- Kookbook9.py
@@ -748,10 +748,10 @@ def task_all(c):
     pass
 
 @ingreds(command)
-{{*@optdefs("-d dir: directory to install (default '/usr/local/bin')",*}}
+{{*@spices("-d dir: directory to install (default '/usr/local/bin')",*}}
          {{*"--command=command: command name (default '%s')" % command)*}}
 def task_install(c, {{**args*}}):
-    {{*opts, rests = c.parse_optdefs(args)*}}
+    {{*opts, rests = c.parse_spices(args)*}}
     dir = opts.get('d', '/usr/local/bin')  # get option value
     cmd = opts.get('command', command)     # get option value
     system(c%"sudo cp $(command) $(dir)/$(cmd)")   # or install command
@@ -760,7 +760,7 @@ def task_install(c, {{**args*}}):
 Command-line options of recipes are displayed by '-l' or '-L' option.
 
 .? command-line example
-.==================== Kookbook9.optdefs1.result
+.==================== Kookbook9.spices1.result
 sh> pykook -l
 Properties:
   CC                  : 'gcc'
@@ -782,7 +782,7 @@ kook_default_product: all
 
 You can specify command-line options for the recipe.
 
-.==================== Kookbook9.optdefs2.result
+.==================== Kookbook9.spices2.result
 sh> pykook install {{*-d /opt/local/bin --command=hellow*}}
 ### * install (func=task_install)
 $ sudo cp hello /opt/local/bin/hellow
@@ -791,11 +791,11 @@ Password: *******
 
 This feature can replace many small scripts with pyKook.
 
-The following is an example to show styles of {{,@optdefs,}} arguments.
+The following is an example to show styles of {{,@spices,}} arguments.
 
-.? Kookbook.py: example of @optdefs()
+.? Kookbook.py: example of @spices()
 .--------------------
-@optdefs("-h:      help",            # short opts (no argument)
+@spices("-h:      help",            # short opts (no argument)
          "-f file: filename",        # short opts (argument required)
 	 "-d[N]:   debug level",     # short opts (optional argument)
 	 "--help:  help",            # long opts (no argument)
@@ -803,8 +803,8 @@ The following is an example to show styles of {{,@optdefs,}} arguments.
 	 "--debug[=N]: debug level", # long opts (optional argument)
 	 )
 def task_echo(c, *args):
-    """test of @optdefs"""
-    opts, rests = c.parse_optdefs(args)
+    """test of @spices"""
+    opts, rests = c.parse_spices(args)
     print "opts:", repr(opts)
     print "rests:", repr(rests)
 .--------------------
@@ -815,7 +815,7 @@ sh> pykook -L
 Properties:
 
 Task recipes:
-  echo                : test of @optdefs
+  echo                : test of @spices
     -h                    help
     -f file               filename
     -d[N]                 debug level
@@ -1440,7 +1440,7 @@ The following file pattern is available.
 
 
 .#
-.#.$$ Command-line options		| refs-optdefs
+.#.$$ Command-line options		| refs-spices
 .#
 .#Usage: pykook [..options..] [product [arguments...]]
 .#

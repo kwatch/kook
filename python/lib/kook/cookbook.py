@@ -160,13 +160,13 @@ class Recipe(object):
 
     kind = None
 
-    def __init__(self, product=None, ingreds=(), byprods=(), func=None, desc=None, optdefs=None):
+    def __init__(self, product=None, ingreds=(), byprods=(), func=None, desc=None, spices=None):
         self.product = product
         self.ingreds = ingreds
         self.byprods = byprods
         self.func    = func
         self.desc    = desc
-        self.optdefs = optdefs
+        self.spices = spices
         if not product:
             self.pattern = None
         elif type(product) is _re_pattern_type:
@@ -197,11 +197,11 @@ class Recipe(object):
         product = getattr(func, '_kook_product', func_name[len(prefix):])
         ingreds = getattr(func, '_kook_ingreds', ())
         byprods = getattr(func, '_kook_byprods', ())
-        optdefs = getattr(func, '_kook_optdefs', None)
+        spices = getattr(func, '_kook_spices', None)
         func    = func
         desc    = func.__doc__  ## can be empty string
         if desc is None: desc = _default_descs.get(product)
-        return _cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, optdefs=optdefs)
+        return _cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
 
     def __repr__(self):
         #return "<%s product=%s func=%s>" % (self.__class__.__name__, repr(self.product), self.get_func_name())

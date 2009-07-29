@@ -10,7 +10,7 @@
 #from kook.kitchen import IfExists
 from kook.utils import flatten
 
-__all__ = ('product', 'ingreds', 'byprods', 'coprods', 'priority', 'optdefs', 'if_exists', )
+__all__ = ('product', 'ingreds', 'byprods', 'coprods', 'priority', 'spices', 'if_exists', )
 
 
 def product(name):
@@ -51,9 +51,9 @@ def priority(level):
     return deco
 
 
-def optdefs(*names):
+def spices(*names):
     def deco(f):
-        f._kook_optdefs = names
+        f._kook_spices = names
         return f
     return deco
 
