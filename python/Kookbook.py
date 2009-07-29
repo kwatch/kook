@@ -11,10 +11,7 @@ package = prop('package', 'Kook')
 release         = prop('release', None)
 copyright       = prop('copyright', None)
 license         = prop('license', None)
-python_basepath = "/usr/local/lib/python2.6"
-#site_packages_path = "%s/lib/python2.4/site-packages" % python_basepath
-site_packages_path = "%s/site-packages" % python_basepath
-script_file     = ["pykook", "pyk"]
+script_file     = ["pykook"]
 library_files   = [ "lib/*.py" ]
 
 
@@ -56,22 +53,27 @@ def task_package(c):
         #tar_czf(c%"$(dir).tar.gz", dir)
         system(c%"tar -cf $(dir).tar $(dir)")
         system(c%"gzip -f9 $(dir).tar")
-        rm_rf(dir)
         ## create *.egg file
-        for python in ['python2.5', 'python2.6']:
+        #for python in ['python2.5', 'python2.6']:
+        for python in ['python']:
+            rm_rf(dir)
             system(c%"tar xzf $(dir).tar.gz")
             with chdir(dir):
                 system(c%"$(python) setup.py bdist_egg")
                 mv("dist/*.egg", "..")
                 #rm_rf("build", "dist")
-            rm_rf(dir)
+        rm_rf(dir)
         system(c%"tar -xzf $(dir).tar.gz")
 
 
 def task_uninstall(c):
-    #script_file    = "$python_basepath/bin/" + script_file;
-    #library_files  = [ os.path.join(site_packages_path, item) for item in library_files ]
-    #compiled_files = [ item + '.c' for item in library_files ]
+    site_packages_dir = None
+    for path in sys.path:
+        if os.path.basename(path) == 'site-packages':
+            site_packages_dir = path
+            break
+    else:
+        raise Exception("site-packages directory not found.")
     script_files = ["/usr/local/bin/pykook", "/usr/local/bin/pyk"]
     library_files = c%"$(site_packages_dir)/$(package)*"
     rm(script_files, library_files)
