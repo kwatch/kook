@@ -11,7 +11,7 @@ package = prop('package', 'Kook')
 release         = prop('release', None)
 copyright       = prop('copyright', None)
 license         = prop('license', None)
-script_file     = ["pykook"]
+script_file     = ["pykook", "kk"]
 library_files   = [ "lib/*.py" ]
 
 

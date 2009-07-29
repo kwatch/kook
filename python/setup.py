@@ -62,7 +62,7 @@ setup(
     #
     py_modules=['kook'],
     package_dir={'': 'lib'},
-    scripts=['bin/pykook', 'bin/pyk'],
+    scripts=['bin/pykook', 'bin/kk'],
     packages=['kook'],
     #zip_safe = False,
 )
