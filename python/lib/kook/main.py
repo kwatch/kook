@@ -76,7 +76,7 @@ class Main(object):
             content = read_file("Properties.py")
             #exec content in props, props
             exec(content, props, props)
-            for name in props.keys():
+            for name in list(props.keys()):
                 if not re.match(r'[a-zA-Z]', name):
                     del props[name]
         if longopts:
