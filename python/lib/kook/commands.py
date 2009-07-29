@@ -332,8 +332,4 @@ def _edit(filenames, func, cmd, kwargs):
         elif isinstance(by, (tuple, list)):
             for rexp, repl in by:
                 content = re.sub(rexp, repl, content)
-        if encoding:
-            content = content.encode(encoding)
-        f = open(fname, 'wb')
-        f.write(content)
-        f.close()
+        kook.utils.write_file(fname, content, encoding)
