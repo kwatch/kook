@@ -3,7 +3,7 @@
 % if ENV['PROJECT']
 %   case ENV['PROJECT']
 %   when 'kook', 'phkook';  project = 'phKook'
-%   when 'rook', 'rbkook';  project = 'rbRook'
+%   when 'rook', 'rbkook';  project = 'rbKook'
 %   when 'pook', 'pykook';  project = 'pyKook'
 %   else raise "*** internal error: ENV['PROJECT']=#{ENV['PROJECT']}"
 %   end
@@ -16,9 +16,9 @@
 %   end
 % end
 % case project
-% when "phKook";  phkook = true;  tuple = %w[PHP    php phkook phk]
-% when "rbKook";  rbkook = true;  tuple = %w[Ruby   rb  rbkook rbk]
-% when "pyKook";  pykook = true;  tuple = %w[Python py  pykook pyk]
+% when "phKook";  phkook = true;  tuple = %w[PHP    php phkook kk]
+% when "rbKook";  rbkook = true;  tuple = %w[Ruby   rb  rbkook kk]
+% when "pyKook";  pykook = true;  tuple = %w[Python py  pykook kk]
 % end
 % lang, suffix, command, short_command = tuple
 % LANG, SUFFIX, COMMAND, SHORT_COMMAND = tuple
