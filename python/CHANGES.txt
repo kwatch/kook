@@ -2,10 +2,32 @@
 releases:
 
   - release:  0.0.2
-    date:     2009-07-26
+    date:     2009-07-30
     enhancements:
 
       - Python 3 support.
+
+    changes:
+
+      - Decorator '@cmdopts()' is renamed to '@spices()', and
+        there is no need to call parse_cmdopts().
+        
+            ### prev version
+            @cmdopts('-v: verbose', '-f file: filename')
+            def task_example(c, *args):
+                opts, rests = c.parse_cmdopts(args)
+                verbose = opts.get('v', False):
+                fileame = opts.get('f', None)
+            
+            ### since this release (0.0.2)
+            @spices('-v: verbose', '-f file: filename')
+            def task_example(c, *args, *kwargs):
+                opts, rests = kwarts, args
+                verbose = opts.get('v', False):
+                fileame = opts.get('f', None)
+
+      - Testing library is changed from Python's unittest library
+        into 'test/oktest.py'.
 
     bugfixes:
 
