@@ -1,0 +1,251 @@
+.################################################################################
+
+
+.$ [ANN] pyKook 0.0.2 - a simple build tool similar to Make or Ant
+
+Hi all,
+
+I have released pyKook 0.0.2.
+http://pypi.python.org/pypi/Kook/0.0.2
+http://www.kuwata-lab.com/kook/
+http://www.kuwata-lab.com/kook/pykook-users-guide.html
+
+
+Overview
+--------
+
+pyKook is a simple build tool similar to Make, Ant, Rake, or SCons.
+pyKook regards software project as cooking.
+Terms used in pyKook are cooking terms.
+For example:
+
+    cookbook    -  Makefile
+    product     -  target file
+    ingredient  -  source file
+    recipe      -  how to create target from source
+    spices      -  command-line options for recipe
+
+
+Cookbook (= Makefile) is written in pure Python.
+You can write any statements or expressions in cookbook.
+
+
+Example
+-------
+
+Example of cookbook (Kookbook.py):
+
+    --------------------------------------------------
+    ##
+    ## properties
+    ##
+    cc     = prop('cc',     'gcc')
+    cflags = prop('cflags', '-g -Wall')
+    
+    
+    ##
+    ## recipes
+    ##
+    @ingreds("hello")
+    def task_all(c):
+        pass
+    
+    @product("hello")
+    @ingreds("hello.o")
+    def file_command(c):
+        """generates hello command"""
+        system(c%"$(cc) $(cflags) -o $(product) $(ingred)")
+    
+    @product("*.o")
+    @ingreds("$(1).c", if_exists("$(1).h"))
+    def file_ext_o(c):
+        """compile '*.c' and '*.h'"""
+        system(c%"$(cc) $(cflags) -c $(1).c")
+    
+    def task_clean(c):
+        rm_f("*.o")
+    --------------------------------------------------
+
+
+Exampe of result:
+
+    ==================================================
+    bash> ls
+    Kookbook.py   hello.c    hello.h
+    
+    bash> pykook -l
+    Properties:
+      cc                  : 'gcc'
+      cflags              : '-g -Wall'
+    
+    Task recipes:
+      all                 : cook all products
+      clean               : remove by-products
+    
+    File recipes:
+      hello               : generates hello command
+      *.o                 : compile '*.c' and '*.h'
+    
+    (Tips: you can set 'kook_default_product' variable in your kookbook.)
+    
+    bash> pykook all           # or, pykook --cc=gcc4 all
+    ### *** hello.o (func=file_ext_o)
+    $ gcc -g -Wall -c hello.c
+    ### ** hello (func=file_command)
+    $ gcc -g -Wall -o hello hello.o
+    ### * all (func=task_all)
+    ==================================================
+
+
+See users-guide for more details.
+http://www.kuwata-lab.com/kook/pykook-users-guide.html
+
+
+Enhancements, Changes, Bug fixes sice 0.0.1
+-------------------------------------------
+
+
+Enhancements:
+
+- Python 3 support.
+
+- Add 'kk' script which is shortcat for kk command.
+
+
+Changes:
+
+- Decorator '@cmdopts()' is renamed to '@spices()', and
+  there is no need to call parse_cmdopts().
+  
+      ### prev version
+      @cmdopts('-v: verbose', '-f file: filename')
+      def task_example(c, *args):
+          opts, rests = c.parse_cmdopts(args)
+          verbose = opts.get('v', False):
+          fileame = opts.get('f', None)
+      
+      ### since this release (0.0.2)
+      @spices('-v: verbose', '-f file: filename')
+      def task_example(c, *args, *kwargs):
+          opts, rests = kwarts, args
+          verbose = opts.get('v', False):
+          fileame = opts.get('f', None)
+
+- Remove 'pyk' script
+
+- Testing library is changed from Python's unittest library
+  into 'test/oktest.py'.
+
+
+Bugfixes:
+
+- glob2() now recognizes files on current directory.
+
+
+
+Have fun!
+
+--
+regards,
+makoto kuwata
+
+
+################################################################################
+
+.$ [ANN] pyKook 0.0.1 - a simple build tool similar to Make or Ant
+
+Hi all,
+
+I have released pyKook 0.0.1.
+http://pypi.python.org/pypi/Kook/0.0.1
+http://www.kuwata-lab.com/kook/
+http://www.kuwata-lab.com/kook/pykook-users-guide.html
+
+pyKook is a simple build tool similar to Make, Ant, Rake, or SCons.
+pyKook regards software project as cooking.
+Terms used in pyKook are cooking terms.
+For example:
+
+    cookbook    -  Makefile
+    product     -  target file
+    ingredient  -  source file
+    recipe      -  how to create target from source
+
+
+Cookbook (= Makefile) is written in pure Python.
+You can write any statements or expressions in cookbook.
+
+
+Example of cookbook (Kookbook.py):
+
+    --------------------------------------------------
+    ##
+    ## properties
+    ##
+    cc     = prop('cc',     'gcc')
+    cflags = prop('cflags', '-g -Wall')
+    
+    
+    ##
+    ## recipes
+    ##
+    @ingreds("hello")
+    def task_all(c):
+        pass
+    
+    @product("hello")
+    @ingreds("hello.o")
+    def file_command(c):
+        """generates hello command"""
+        system(c%"$(cc) $(cflags) -o $(product) $(ingred)")
+    
+    @product("*.o")
+    @ingreds("$(1).c", if_exists("$(1).h"))
+    def file_ext_o(c):
+        """compile '*.c' and '*.h'"""
+        system(c%"$(cc) $(cflags) -c $(1).c")
+    
+    def task_clean(c):
+        rm_f("*.o")
+    --------------------------------------------------
+
+
+Exampe of result:
+
+    ==================================================
+    sh> ls
+    Kookbook.py   hello.c    hello.h
+    
+    sh> pykook -l
+    Properties:
+      cc                  : 'gcc'
+      cflags              : '-g -Wall'
+    
+    Task recipes:
+      all                 : cook all products
+      clean               : remove by-products
+    
+    File recipes:
+      hello               : generates hello command
+      *.o                 : compile '*.c' and '*.h'
+    
+    (Tips: you can set 'kook_default_product' variable in your kookbook.)
+    
+    sh> pykook all           # or, pykook --cc=gcc4 all
+    ### *** hello.o (func=file_ext_o)
+    $ gcc -g -Wall -c hello.c
+    ### ** hello (func=file_command)
+    $ gcc -g -Wall -o hello hello.o
+    ### * all (func=task_all)
+    ==================================================
+
+
+See users-guide for more details.
+http://www.kuwata-lab.com/kook/pykook-users-guide.html
+
+
+Have fun!
+
+--
+regards,
+makoto kuwata
