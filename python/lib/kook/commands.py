@@ -312,24 +312,30 @@ def _chdir(dirname, func, cmd):
 
 
 def edit(*filenames, **kwargs):
-    _edit(filenames, 'edit', 'edit', kwargs)
+    by       = kwargs.get('by', None)
+    encoding = kwargs.get('encoding', None)
+    if not by:
+        raise ArgumentError("edit: keyword arg 'by' is reqiured.")
+    if hasattr(by, '__call__'):
+        pass
+    elif isinstance(by, (tuple, list)):
+        pairs = by
+        def by(s):
+            for rexp, repl in pairs:
+                s = re.sub(rexp, repl, s)
+            return s
+    else:
+        raise ArgumentError("edit: 'by' should be callable or list of tuples.")
+    _edit(filenames, 'edit', 'edit', by, encoding)
 
-def _edit(filenames, func, cmd, kwargs):
+def _edit(filenames, func, cmd, by, encoding=None):
     fnames = _prepare(filenames, cmd)
-    if 'by' not in kwargs:
-        raise ArgumentError("%s: keyword arg 'by' is reqiured." % func)
-    by = kwargs['by']
     for fname in fnames:
         if not os.path.exists(fname):
             raise KookCommandError("%s: %s: not found." % (func, fname))
         if os.path.isdir(fname):
             #raise KookCommandError("%s: %s: can't edit directory." % (func, fname))
             continue
-        encoding = kwargs.get('encoding', None)
         content = kook.utils.read_file(fname, encoding)
-        if hasattr(by, '__call__'):
-            content = by(content)
-        elif isinstance(by, (tuple, list)):
-            for rexp, repl in by:
-                content = re.sub(rexp, repl, content)
+        content = by(content)
         kook.utils.write_file(fname, content, encoding)
