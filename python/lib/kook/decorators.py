@@ -10,7 +10,7 @@
 #from kook.kitchen import IfExists
 from kook.utils import flatten
 
-__all__ = ('product', 'ingreds', 'byprods', 'coprods', 'priority', 'spices', 'if_exists', )
+__all__ = ('product', 'ingreds', 'byprods', 'coprods', 'priority', 'spices', 'cmdopts', 'if_exists', )
 
 
 def product(name):
@@ -56,6 +56,13 @@ def spices(*names):
         f._kook_spices = names
         return f
     return deco
+
+
+def cmdopts(*names):
+    import sys
+    sys.stderr.write("[pykook] ERROR: '@cmdopts()' is obsolete. Use '@spices()' instead.\n")
+    sys.stderr.write("[pykook]        See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n")
+    sys.exit(1)
 
 
 def if_exists(*args):
