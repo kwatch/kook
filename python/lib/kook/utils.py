@@ -9,12 +9,8 @@
 import sys, os, re
 from glob import glob
 
-if sys.version_info[0] == 2:
-    python2 = True
-    python3 = False
-elif sys.version_info[0] == 3:
-    python2 = False
-    python3 = True
+python2 = sys.version_info[0] == 2
+python3 = sys.version_info[0] == 3
 
 
 class ArgumentError(Exception):
@@ -31,51 +27,43 @@ def str2int(s):
 
 
 if python2:
+
     def read_file(filename, encoding=None):
-        f = content = None
+        f = open(filename, 'rb')
         try:
-            if encoding:
-                f = open(filename, 'rb+')
-                content = f.read().decode(kwargs['encoding'])
-            else:
-                f = open(filename, 'r+')
-                content = f.read()
+            content = f.read()
         finally:
-            if f:
-                f.close()
+            f.close()
+        if encoding:
+            content = content.decode(encoding)
         return content
 
-elif python3:
-    def read_file(filename, encoding=None):
-        f = content = None
-        try:
-            if encoding:
-                f = open(filename, 'r+', encoding=encoding)
-                content = f.read()
-            else:
-                f = open(filename, 'r+', encoding='utf-8')
-                #f = open(filename, 'r+')
-                content = f.read()
-        finally:
-            if f:
-                f.close()
-        return content
-
-
-if python2:
     def write_file(filename, content, encoding=None):
-        if encoding and isinstance(content, unicode):
-            content = content.encode(encoding)
-        f = open(filename, 'w')
+        if isinstance(content, unicode):
+            content = content.encode(encoding or 'utf-8')
+        f = open(filename, 'wb')
         try:
             f.write(content)
         finally:
             f.close()
 
 elif python3:
+
+    def read_file(filename, encoding='utf-8'):
+        if encoding is False:
+            f = open(filename, 'rb')
+        else:
+            f = open(filename, 'r', encoding=(encoding or 'utf-8'))
+        try:
+            return f.read()
+        finally:
+            f.close()
+
     def write_file(filename, content, encoding='utf-8'):
-        if encoding is None: encoding = 'utf-8'
-        f = open(filename, 'w', encoding=encoding)
+        if encoding is False:
+            f = open(filename, 'wb')
+        else:
+            f = open(filename, 'w', encoding=(encoding or 'utf-8'))
         try:
             f.write(content)
         finally:
