@@ -7,6 +7,8 @@ releases:
 
       - Python 3 support.
 
+      - Add 'kk' script which is shortcat for kk command.
+
     changes:
 
       - Decorator '@cmdopts()' is renamed to '@spices()', and
@@ -25,6 +27,8 @@ releases:
                 opts, rests = kwarts, args
                 verbose = opts.get('v', False):
                 fileame = opts.get('f', None)
+
+      - Remove 'pyk' script
 
       - Testing library is changed from Python's unittest library
         into 'test/oktest.py'.
