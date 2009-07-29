@@ -75,7 +75,7 @@ def file_hello_o(c):
     system("gcc -g -c hello.c")
 .--------------------
 
-The following is an example of invoking {{,pykook,}} command{{(pyKook also provides {{,pyk,}} command which is equivarent to {{,pykook,}}, because {{,pykook,}} is too long to type many times :))}}.
+The following is an example of invoking {{,pykook,}} command{{(pyKook also provides {{,kk,}} command which is equivarent to {{,pykook,}}, because {{,pykook,}} is too long to type many times :))}}.
 Command-line option '{{,-l,}}' shows recipes which have description.
 It means that recipes which have description are public recipes.
 Command-line option '{{,-L,}}' shows all recipes.
@@ -865,7 +865,7 @@ $ gcc -g -o hello hello.o
 
 .$$ Short command			| topic-short-command
 
-pyKook provides {{,pyk,}} command which is the same as {{,pykook,}} command, because {{,pykook,}} is too long to type many times :)
+pyKook provides {{,kk,}} command which is the same as {{,pykook,}} command, because {{,pykook,}} is too long to type many times :)
 
 
 
