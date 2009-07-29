@@ -1,1 +1,4 @@
 *.pyc
+archives/*
+dist/*
+tmp/*
