@@ -831,9 +831,9 @@ $ gcc -g -O2 -o hello hello.o optparse.o
 
 
 
-.$$ Command-line options for recipe	| cookbook-cmdopts
+.$$ Command-line options for recipe	| cookbook-spices
 
-You can specify command-line options for certain recipes by {{,@cmdopts(),}} decorator.
+You can specify command-line options for certain recipes by {{,@spices(),}} decorator.
 
 .? [%= BOOKNAME %]: command-line options for recipes
 .-------------------- [%= BASENAME %]9.[%= suffix %]
@@ -863,10 +863,10 @@ def task_all(c):
     pass
 
 @ingreds(command)
-{{*@cmdopts("-d dir: directory to install (default '/usr/local/bin')",*}}
-         {{*"--command=command: command name (default '%s')" % command)*}}
-def task_install(c, {{**args*}}):
-    {{*opts, rests = c.parse_cmdopts(args)*}}
+{{*@spices("-d dir: directory to install (default '/usr/local/bin')",*}}
+        {{*"--command=command: command name (default '%s')" % command)*}}
+def task_install(c, {{**args*}}, {{***kwargs*}}):
+    {{*opts, rests = kwargs, args*}}
     dir = opts.get('d', '/usr/local/bin')  # get option value
     cmd = opts.get('command', command)     # get option value
     system(c%"sudo cp $(command) $(dir)/$(cmd)")   # or install command
@@ -875,7 +875,7 @@ def task_install(c, {{**args*}}):
 Command-line options of recipes are displayed by '-l' or '-L' option.
 
 .? command-line example
-.==================== [%= BASENAME %]9.cmdopts1.result
+.==================== [%= BASENAME %]9.spices1.result
 sh> [%= COMMAND %] -l
 Properties:
   CC                  : 'gcc'
@@ -897,7 +897,7 @@ kook_default_product: all
 
 You can specify command-line options for the recipe.
 
-.==================== [%= BASENAME %]9.cmdopts2.result
+.==================== [%= BASENAME %]9.spices2.result
 sh> [%= COMMAND %] install {{*-d /opt/local/bin --command=hellow*}}
 ### * install (func=task_install)
 $ sudo cp hello /opt/local/bin/hellow
@@ -906,20 +906,20 @@ Password: *******
 
 This feature can replace many small scripts with [%= PROJECT %].
 
-The following is an example to show styles of {{,@cmdopts,}} arguments.
+The following is an example to show styles of {{,@spices,}} arguments.
 
-.? [%= BOOKNAME %]: example of @cmdopts()
+.? [%= BOOKNAME %]: example of @spices()
 .--------------------
-@cmdopts("-h:      help",            # short opts (no argument)
-         "-f file: filename",        # short opts (argument required)
-	 "-d[N]:   debug level",     # short opts (optional argument)
-	 "--help:  help",            # long opts (no argument)
-	 "--file=file: filename",    # long opts (argument required)
-	 "--debug[=N]: debug level", # long opts (optional argument)
-	 )
-def task_echo(c, *args):
-    """test of @cmdopts"""
-    opts, rests = c.parse_cmdopts(args)
+@spices("-h:      help",            # short opts (no argument)
+        "-f file: filename",        # short opts (argument required)
+	"-d[N]:   debug level",     # short opts (optional argument)
+	"--help:  help",            # long opts (no argument)
+	"--file=file: filename",    # long opts (argument required)
+	"--debug[=N]: debug level", # long opts (optional argument)
+	)
+def task_echo(c, *args, **kwargs):
+    """test of @spices"""
+    opts, rests = kwargs, args
     print "opts:", repr(opts)
     print "rests:", repr(rests)
 .--------------------
@@ -930,7 +930,7 @@ sh> [%= COMMAND %] -L
 Properties:
 
 Task recipes:
-  echo                : test of @cmdopts
+  echo                : test of @spices
     -h                    help
     -f file               filename
     -d[N]                 debug level
