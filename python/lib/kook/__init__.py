@@ -42,7 +42,7 @@ _stderr = sys.stderr
 
 def _debug(msg, level=1, depth=0):
     if _debug_level >= level:
-        write = _stderr.write
+        write = _stdout.write
         write(_dbg_prompt)
         if depth: write('+' * depth + ' ')
         write(msg)
@@ -51,7 +51,7 @@ def _debug(msg, level=1, depth=0):
 
 def _report_msg(msg, level=None):
     if not _quiet:
-        write = _stderr.write
+        write = _stdout.write
         write(_msg_prompt)
         if level: write('*' * level + ' ')
         write(msg)
@@ -60,7 +60,7 @@ def _report_msg(msg, level=None):
 
 def _report_cmd(cmd):
     if not _quiet:
-        write = _stderr.write
+        write = _stdout.write
         write(_cmd_prompt)
         write(cmd)
         if cmd[-1] != "\n": write("\n")

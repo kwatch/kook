@@ -85,10 +85,11 @@ def file_hello_o(c):
 """
         self._start(content, 'hello.o')
         ok('hello.o', isfile)
-        ok(_stdout(), '==', "invoked.\n")
         expected = ( "### * hello.o (func=file_hello_o)\n"
-                     "$ gcc -c hello.c\n$ echo invoked.\n" )
-        ok(_stderr(), '==', expected)
+                     "$ gcc -c hello.c\n$ echo invoked.\n"
+                     "invoked.\n" )
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
 
 
     def test_generic_file_cooking1(self):
@@ -101,10 +102,11 @@ def file_ext_o(c):
 """
         self._start(content, 'hello.o')
         ok('hello.o', isfile)
-        ok(_stdout(), '==', "invoked.\n")
         expected = ( "### * hello.o (func=file_ext_o)\n"
-                     "$ gcc -c hello.c\n$ echo invoked.\n" )
-        ok(_stderr(), '==', expected)
+                     "$ gcc -c hello.c\n$ echo invoked.\n"
+                     "invoked.\n" )
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
 
 
     def test_specific_task_cooking1(self):
@@ -115,10 +117,11 @@ def task_build(c):
 """
         self._start(content, 'build')
         ok('hello', isfile)
-        ok(_stdout(), '==', "invoked.\n")
         expected = ( "### * build (func=task_build)\n"
-                     "$ gcc -o hello hello.c\n$ echo invoked.\n" )
-        ok(_stderr(), '==', expected)
+                     "$ gcc -o hello hello.c\n$ echo invoked.\n"
+                     "invoked.\n" )
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
 
 
     def test_generic_task_cooking1(self):
@@ -130,10 +133,11 @@ def task_build(c):
 """
         self._start(content, 'build_hello')
         ok('hello', isfile)
-        ok(_stdout(), '==', "invoked.\n")
         expected = ( "### * build_hello (func=task_build)\n"
-                     "$ gcc -o hello hello.c\n$ echo invoked.\n" )
-        ok(_stderr(), '==', expected)
+                     "$ gcc -o hello hello.c\n$ echo invoked.\n"
+                     "invoked.\n" )
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
 
 
     def test_error_when_ingredients_not_found(self):
@@ -166,20 +170,20 @@ def file_ext_o(c):
         if os.path.exists("hello.h"): os.unlink("hello.h")
         self._start(content, "hello.o")
         ok("hello.o", isfile)
-        ok(_stdout(), '==', "")
         expected = ( "### * hello.o (func=file_ext_o)\n"
                      "$ gcc -c hello.c\n" )
-        ok(_stderr(), '==', expected)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
         ## when hello.h exists (and newer than product)
         _setup_stdio()
         time.sleep(1)
         write_file("hello.h", "#include <stdio.h>\n")
         self._start(content, "hello.o")
         ok("hello.o", isfile)
-        ok(_stdout(), '==', "")
         expected = ( "### * hello.o (func=file_ext_o)\n"
                      "$ gcc -c hello.c hello.h\n" )
-        ok(_stderr(), '==', expected)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
 
 
     def test_looped_cooking_tree1(self):
@@ -224,6 +228,7 @@ def task_build(c, *args, **kwargs):
 """
         self._start(content, "build", "-hf foo.txt", "-D999", "--help", "--debug", "--file=bar.txt", "aaa", "bbb")
         expected = """\
+### * build (func=task_build)
 opts={'D': 999, 'debug': True, 'f': ' foo.txt', 'file': 'bar.txt', 'h': True, 'help': True}
 rests=('aaa', 'bbb')
 opts['D']=999
@@ -234,7 +239,7 @@ opts['h']=True
 opts['help']=True
 """
         ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "### * build (func=task_build)\n")
+        ok(_stderr(), '==', "")
         ## command option error
         from kook.utils import CommandOptionError
         func = lambda: self._start(content, "build", "-f")
@@ -265,14 +270,14 @@ def file_ext_o(c):
         ## 1st
         self._start(content, "hello")
         ok("hello", isfile)
-        ok(_stdout(), '==', "")
         expected = (
             "### ** hello.o (func=file_ext_o)\n"
             "$ gcc -c hello.c\n"
             "### * hello (func=file_command)\n"
             "$ gcc -o hello hello.o\n"
         )
-        ok(_stderr(), '==', expected)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
         ## 2nd (content compared)
         old_utime = os.path.getmtime("hello")
         time.sleep(1)
@@ -281,14 +286,14 @@ def file_ext_o(c):
         self._start(content, "hello")
         ok(os.path.getmtime("hello"), '>', old_utime)
         ok("hello", isfile)
-        ok(_stdout(), '==', "")
         expected = (
             "### ** hello.o (func=file_ext_o)\n"
             "$ gcc -c hello.c\n"
             "### * hello (func=file_command)\n"
             "$ touch hello   # skipped\n"             # content compared and skipped
         )
-        ok(_stderr(), '==', expected)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
 
 
     def test_remove_produt_when_recipe_failed1(self):
@@ -307,13 +312,13 @@ def file_hello_txt(c):
         os.utime("hello.c", None)
         func = lambda: self._start(content, "hello.h")
         ok(func, 'raises', kook.KookCommandError)
-        ok(_stdout(), '==', "")
         expected = (
             "### * hello.h (func=file_hello_txt)\n"
             "$ gcc HOGE.c\n"
             "### * (remove hello.h because unexpected error raised (func=file_hello_txt))\n"
         )
-        ok(_stderr(), '==', expected)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
         ok("hello.h", isfile, False)         # product should be removed
 
 
@@ -343,7 +348,6 @@ def task_all(c):
         ## 1st
         self._start(content, "all")
         ok("hello", isfile)
-        ok(_stdout(), '==', "task_build() invoked.\ntask_all() invoked.\n")
         expected = (
             "### **** hello.o (func=file_ext_o)\n"
             "$ gcc -c hello.c\n"
@@ -352,27 +356,31 @@ def task_all(c):
             "$ gcc -o hello hello.o\n"
             "### ** build (func=task_build)\n"
             "$ echo task_build() invoked.\n"
+            "task_build() invoked.\n"
             "### * all (func=task_all)\n"
             "$ echo task_all() invoked.\n"
+            "task_all() invoked.\n"
         )
-        ok(_stderr(), '==', expected)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
         ## 2nd
         _setup_stdio()
         self._start(content, "all")
-        ok(_stdout(), '==', "task_build() invoked.\ntask_all() invoked.\n")
         expected = (
             "### ** build (func=task_build)\n"
             "$ echo task_build() invoked.\n"
+            "task_build() invoked.\n"
             "### * all (func=task_all)\n"
             "$ echo task_all() invoked.\n"
+            "task_all() invoked.\n"
         )
-        ok(_stderr(), '==', expected)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
         ## 3rd, content compared, if_exists()
         time.sleep(1)
         write_file("hello.h", "#include <stdio.h>\n")
         _setup_stdio()
         self._start(content, "all")
-        ok(_stdout(), '==', "task_build() invoked.\ntask_all() invoked.\n")
         expected = (
             "### **** hello.o (func=file_ext_o)\n"
             "$ gcc -c hello.c\n"
@@ -381,10 +389,13 @@ def task_all(c):
             "$ touch hello   # skipped\n"                   # skipped
             "### ** build (func=task_build)\n"
             "$ echo task_build() invoked.\n"
+            "task_build() invoked.\n"
             "### * all (func=task_all)\n"
             "$ echo task_all() invoked.\n"
+            "task_all() invoked.\n"
         )
-        ok(_stderr(), '==', expected)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
 
 
 if __name__ == '__main__':
