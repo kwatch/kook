@@ -34,25 +34,25 @@ class Kitchen(object):
             cookbook = Cookbook.new(cookbook)
         return cls(cookbook, **properties)
 
-    def _create_cooking_tree(self, target, cookables=None):
+    def _create_cooking_tree(self, target_product, cookables=None):
         if cookables is None: cookables = {}  # key: product name, value: cookable object
         cookbook = self.cookbook
-        def _create(_target):
+        def _create(target):
             exists = os.path.exists
-            if _target in cookables:
-                return cookables[_target]
+            if target in cookables:
+                return cookables[target]
             cookable = None
-            if cookbook.material_p(_target):
-                if not exists(_target):
-                    raise KookRecipeError("%s: material not found." % _target)
-                cookable = Material.new(_target)
+            if cookbook.material_p(target):
+                if not exists(target):
+                    raise KookRecipeError("%s: material not found." % target)
+                cookable = Material.new(target)
             else:
-                recipe = cookbook.find_recipe(_target)
-                if   recipe:           cookable = Cooking.new(_target, recipe)
-                elif exists(_target):  cookable = Material.new(_target)
-                else: raise KookRecipeError("%s: can't find any recipe to produce." % _target)
+                recipe = cookbook.find_recipe(target)
+                if   recipe:          cookable = Cooking.new(target, recipe)
+                elif exists(target):  cookable = Material.new(target)
+                else: raise KookRecipeError("%s: can't find any recipe to produce." % target)
             assert cookable is not None
-            cookables[_target] = cookable
+            cookables[target] = cookable
             if cookable.ingreds:
                 for ingred in cookable.ingreds:
                     if isinstance(ingred, IfExists):
@@ -60,14 +60,14 @@ class Kitchen(object):
                     child_cookable = _create(ingred)
                     cookable.children.append(child_cookable)
             return cookable
-        _create(target)
-        root = cookables[target]
+        _create(target_product)
+        root = cookables[target_product]
         return root   # cookable object
 
-    def _create_cooking_trees(self, targets):
+    def _create_cooking_trees(self, target_products):
         roots = []
         cookables = {}
-        for target in targets:
+        for target in target_products:
             root = self._create_cooking_tree(target, cookables)
             self._check_cooking_tree(root)
             roots.append(root)
