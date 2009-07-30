@@ -10,7 +10,12 @@
 #from kook.kitchen import IfExists
 from kook.utils import flatten
 
-__all__ = ('product', 'ingreds', 'byprods', 'coprods', 'priority', 'spices', 'cmdopts', 'if_exists', )
+__all__ = ('recipe', 'product', 'ingreds', 'byprods', 'coprods', 'priority', 'spices', 'cmdopts', 'if_exists', )
+
+
+def recipe(f):
+    f._kook_recipe = True
+    return f
 
 
 def product(name):
@@ -41,8 +46,8 @@ def coprods(*names):
     return deco
 
 
-def priority(level):
-    if not isinstance(leve, int):
+def priority(level):     # not used yet
+    if not isinstance(level, int):
         import kook
         raise kook.KookRecipeError("priority requires integer.")  # TODO: change backtrace
     def deco(f):
