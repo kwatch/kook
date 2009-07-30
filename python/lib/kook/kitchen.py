@@ -25,13 +25,13 @@ class IfExists(object):
 class Kitchen(object):
 
     def __init__(self, cookbook=None, **properties):
-        if kook.utils._is_str(cookbook):
-            cookbook = Cookbook.new(cookbook)
         self.cookbook = cookbook
         self.properties = properties
 
     @classmethod
     def new(cls, cookbook):
+        if kook.utils._is_str(cookbook):
+            cookbook = Cookbook.new(cookbook)
         return cls(cookbook)
 
     def _create_cooking_tree(self, target, cookables=None):
