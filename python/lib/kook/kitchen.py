@@ -200,7 +200,7 @@ class Cooking(Cookable):
         self.ingred  = ingreds and ingreds[0] or None
         self.byprod  = byprods and byprods[0] or None
         self.children = []       # child cookables
-        self.spices = spices
+        self.spices  = spices
         self.cooked  = None
         self.argv = ()
 
@@ -211,7 +211,7 @@ class Cooking(Cookable):
         func    = recipe.func
         ingreds = recipe.ingreds or ()
         byprods = recipe.byprods or ()
-        spices = recipe.spices or ()
+        spices  = recipe.spices or ()
         if recipe.pattern:
             matched = re.match(recipe.pattern, target)
             assert matched is not None
