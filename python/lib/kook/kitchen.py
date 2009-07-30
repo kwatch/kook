@@ -259,10 +259,10 @@ class Cooking(Cookable):
         for child in self.children:
             if not child.was_file_recipe:
                 return False
-        mtime =  os.stat(self.product)[os.path.stat.ST_MTIME]
+        mtime = os.path.getmtime(self.product)
         for child in self.children:
             assert os.path.exists(child.product)
-            if mtime < os.stat(child.product)[os.path.stat.ST_MTIME]:
+            if mtime < os.path.getmtime(child.product):
                 return False
         return True
 
