@@ -83,11 +83,18 @@ def file_hello_o(c):
     system('gcc -c %s' % c.ingred)
     echo("invoked.")
 """
-        self._start(content, 'hello.o')
-        ok('hello.o', isfile)
         expected = ( "### * hello.o (func=file_hello_o)\n"
                      "$ gcc -c hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
+        ## without @recipe
+        self._start(content, 'hello.o')
+        ok('hello.o', isfile)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+        ## with @recipe
+        self.after_each(); self.before_each()
+        self._start("@recipe\n" + content, 'hello.o')
+        ok('hello.o', isfile)
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
 
@@ -100,11 +107,18 @@ def file_ext_o(c):
     system('gcc -c %s' % c.ingred)
     echo("invoked.")
 """
-        self._start(content, 'hello.o')
-        ok('hello.o', isfile)
         expected = ( "### * hello.o (func=file_ext_o)\n"
                      "$ gcc -c hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
+        ## without @recipe
+        self._start(content, 'hello.o')
+        ok('hello.o', isfile)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+        ## with @recipe
+        self.after_each(); self.before_each()
+        self._start("@recipe\n" + content, 'hello.o')
+        ok('hello.o', isfile)
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
 
@@ -115,11 +129,18 @@ def task_build(c):
     system('gcc -o hello hello.c')
     echo("invoked.")
 """
-        self._start(content, 'build')
-        ok('hello', isfile)
         expected = ( "### * build (func=task_build)\n"
                      "$ gcc -o hello hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
+        ## without @recipe
+        self._start(content, 'build')
+        ok('hello', isfile)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+        ## with @recipe
+        self.after_each(); self.before_each()
+        self._start("@recipe\n" + content, 'build')
+        ok('hello', isfile)
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
 
@@ -131,11 +152,18 @@ def task_build(c):
     system('gcc -o %s %s.c' % (c.m[1], c.m[1]))
     echo("invoked.")
 """
-        self._start(content, 'build_hello')
-        ok('hello', isfile)
         expected = ( "### * build_hello (func=task_build)\n"
                      "$ gcc -o hello hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
+        ## without @recipe
+        self._start(content, 'build_hello')
+        ok('hello', isfile)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+        ## without @recipe
+        self.after_each(); self.before_each()
+        self._start("@recipe\n" + content, 'build_hello')
+        ok('hello', isfile)
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
 
