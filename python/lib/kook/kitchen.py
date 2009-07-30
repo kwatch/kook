@@ -9,9 +9,7 @@
 import sys, os, re
 
 import kook
-from kook.cookbook import *
-from kook.cookbook import FileRecipe
-#from kook.cookbook import Cookbook, FileRecipe
+from kook.cookbook import Cookbook
 from kook import KookError, KookRecipeError, _debug, _report_cmd, _report_msg
 from kook.utils import *
 
@@ -224,7 +222,7 @@ class Cooking(Cookable):
             matched = None
             m = None
         self = cls(product, func=func, ingreds=ingreds, byprods=byprods, spices=spices)
-        self.was_file_recipe = isinstance(recipe, FileRecipe)
+        self.was_file_recipe = recipe.kind == 'file'
         self.matched = matched
         self.m = m
         return self
