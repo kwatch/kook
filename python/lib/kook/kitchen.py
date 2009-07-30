@@ -36,37 +36,29 @@ class Kitchen(object):
     def new(cls, cookbook):
         return cls(cookbook)
 
-    def _create_cooking_from(self, target, recipe):
-        return Cooking.new(target, recipe)
-
-    def _create_material_from(self, target):
-        return Material(target)
-
     def _create_cooking_tree(self, target, cookables=None):
         if cookables is None: cookables = {}  # key: product name, value: cookable object
         cookbook = self.cookbook
         def _create(_target):
+            exists = os.path.exists
             if _target in cookables:
                 return cookables[_target]
             cookable = None
             if cookbook.material_p(_target):
-                if not os.path.exists(_target):
+                if not exists(_target):
                     raise KookRecipeError("%s: material not found." % _target)
-                cookable = self._create_material_from(_target)
+                cookable = Material.new(_target)
             else:
                 recipe = cookbook.find_recipe(_target)
-                if recipe:
-                    cookable = self._create_cooking_from(_target, recipe)
-                elif os.path.exists(_target):
-                    cookable = self._create_material_from(_target)
-                else:
-                    raise KookRecipeError("%s: can't find any recipe to produce." % _target)
+                if   recipe:           cookable = Cooking.new(_target, recipe)
+                elif exists(_target):  cookable = Material.new(_target)
+                else: raise KookRecipeError("%s: can't find any recipe to produce." % _target)
             assert cookable is not None
             cookables[_target] = cookable
             if cookable.ingreds:
                 for ingred in cookable.ingreds:
                     if isinstance(ingred, IfExists):
-                        if not os.path.exists(ingred.filename): continue
+                        if not exists(ingred.filename): continue
                     child_cookable = _create(ingred)
                     cookable.children.append(child_cookable)
             return cookable
