@@ -205,8 +205,8 @@ class Recipe(object):
 
     @classmethod
     def new(cls, func_name, func, _cls=None):
-        if _cls is None: _cls = cls
-        prefix = _cls.prefix
+        if _cls: cls = _cls
+        prefix = cls.prefix
         product = getattr(func, '_kook_product', None) or \
                   (func_name.startswith(prefix) and func_name[len(prefix):] or func_name)
         ingreds = getattr(func, '_kook_ingreds', ())
@@ -215,7 +215,7 @@ class Recipe(object):
         func    = func
         desc    = func.__doc__  ## can be empty string
         if desc is None: desc = _default_descs.get(product)
-        return _cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
+        return cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
 
     def __repr__(self):
         #return "<%s product=%s func=%s>" % (self.__class__.__name__, repr(self.product), self.get_func_name())
