@@ -83,16 +83,27 @@ class Cookbook(object):
                 if not isinstance(obj, (tuple, list)):
                     raise KookRecipeError("kook_materials: tuple or list expected.")
                 self.materials = obj
+            elif type(obj) == types.FunctionType and getattr(obj, '_kook_recipe', None) == True:
+                func = obj
+                if   name.startswith('task_'):  key1 = 'task'
+                elif name.startswith('file_'):  key1 = 'file'
+                else:
+                    key1 = getattr(func, '_kook_product', None) and 'file' or 'task'
+                klass = key1 == 'task' and TaskRecipe or FileRecipe
+                recipe = klass.new(name, func)
+                key2 = recipe.pattern and 'generic' or 'specific'
+                recipes[key1][key2].append(recipe)
+            ## for backward compatibility with 0.0.2: the following may be remove in the future
             elif type(obj) == types.FunctionType:
                 func = obj
-                if name.startswith('task_'):
-                    key1 = 'task'
-                    recipe = TaskRecipe.new(name, func)
-                elif name.startswith('file_'):
-                    key1 = 'file'
-                    recipe = FileRecipe.new(name, func)
+                if   name.startswith('task_'):  key1 = 'task'
+                elif name.startswith('file_'):  key1 = 'file'
                 else:
                     continue
+                #sys.stderr.write("[pykook] WARNING: %s(): use @recipe decorator.\n"
+                #                 "[pykook] See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n" % name)
+                klass = key1 == 'task' and TaskRecipe or FileRecipe
+                recipe = klass.new(name, func)
                 key2 = recipe.pattern and 'generic' or 'specific'
                 recipes[key1][key2].append(recipe)
         lambda1 = lambda recipe: recipe._func_linenum()
@@ -194,7 +205,8 @@ class Recipe(object):
     @classmethod
     def new(cls, func_name, func, prefix, _cls=None):
         if _cls is None: _cls = cls
-        product = getattr(func, '_kook_product', func_name[len(prefix):])
+        product = getattr(func, '_kook_product', None) or \
+                  (func_name.startswith(prefix) and func_name[len(prefix):] or func_name)
         ingreds = getattr(func, '_kook_ingreds', ())
         byprods = getattr(func, '_kook_byprods', ())
         spices = getattr(func, '_kook_spices', None)

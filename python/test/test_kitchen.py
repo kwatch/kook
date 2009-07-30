@@ -168,6 +168,44 @@ def task_build(c):
         ok(_stderr(), '==', "")
 
 
+    def test_recipe_decorator_without_task_prefix(self):
+        ## without 'task_' prefix
+        content = r"""\
+@recipe
+def build(c):
+    system('gcc -o hello hello.c')
+    echo("invoked.")
+"""
+        expected = ( "### * build (func=build)\n"
+                     "$ gcc -o hello hello.c\n$ echo invoked.\n"
+                     "invoked.\n" )
+        self._start(content, 'build')
+        ok('hello', isfile)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+
+
+    def test_recipe_decorator_without_file_prefix(self):
+        ## without 'file_' prefix
+        content = r"""
+@recipe
+@product('hello.o')
+def hello_o(c):
+    system('gcc -c hello.c')
+    echo("invoked.")
+"""[1:]
+        expected = r"""
+### * hello.o (func=hello_o)
+$ gcc -c hello.c
+$ echo invoked.
+invoked.
+"""[1:]
+        self._start(content, 'hello.o')
+        ok('hello.o', isfile)
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+
+
     def test_error_when_ingredients_not_found(self):
         content = r"""
 @product("*.o")
@@ -243,9 +281,10 @@ def task_all(c):
     def test_recipe_spices1(self):
         content = r"""
 import kook
+@recipe
 @spices("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
          "--help: help", "--debug[=N]: debug", "--file=filename: file")
-def task_build(c, *args, **kwargs):
+def build(c, *args, **kwargs):
     rests, opts = args, kwargs
     keys = list(opts.keys()); keys.sort()
     s = '{' + ', '.join([ "%s: %s" % (repr(k), repr(opts[k])) for k in keys ]) + '}'
@@ -256,7 +295,7 @@ def task_build(c, *args, **kwargs):
 """
         self._start(content, "build", "-hf foo.txt", "-D999", "--help", "--debug", "--file=bar.txt", "aaa", "bbb")
         expected = """\
-### * build (func=task_build)
+### * build (func=build)
 opts={'D': 999, 'debug': True, 'f': ' foo.txt', 'file': 'bar.txt', 'h': True, 'help': True}
 rests=('aaa', 'bbb')
 opts['D']=999
@@ -271,15 +310,15 @@ opts['help']=True
         ## command option error
         from kook.utils import CommandOptionError
         func = lambda: self._start(content, "build", "-f")
-        errmsg = "task_build(): -f: file required."
+        errmsg = "build(): -f: file required."
         ok(func, 'raises', CommandOptionError, errmsg)
         #
         func = lambda: self._start(content, "build", "-Dx")
-        errmsg = "task_build(): -Dx: integer required."
+        errmsg = "build(): -Dx: integer required."
         ok(func, 'raises', CommandOptionError, errmsg)
         #
         func = lambda: self._start(content, "build", "--debug=x")
-        errmsg = "task_build(): --debug=x: integer required."
+        errmsg = "build(): --debug=x: integer required."
         ok(func, 'raises', CommandOptionError, errmsg)
 
 
@@ -354,9 +393,10 @@ def file_hello_txt(c):
         content = r"""
 command = "hello"
 
+@recipe
 @ingreds(command)
-def task_build(c):
-    echo("task_build() invoked.")
+def build(c):
+    echo("build() invoked.")
 
 @product(command)
 @ingreds("%s.o" % command)
@@ -369,9 +409,10 @@ def file_ext_o(c):
     system(c%"gcc -c $(ingred)")
     system(c%"gcc -g -c $(1).c")
 
+@recipe
 @ingreds('build')
-def task_all(c):
-    echo("task_all() invoked.")
+def all(c):
+    echo("all() invoked.")
 """
         ## 1st
         self._start(content, "all")
@@ -382,12 +423,12 @@ def task_all(c):
             "$ gcc -g -c hello.c\n"
             "### *** hello (func=file_command)\n"
             "$ gcc -o hello hello.o\n"
-            "### ** build (func=task_build)\n"
-            "$ echo task_build() invoked.\n"
-            "task_build() invoked.\n"
-            "### * all (func=task_all)\n"
-            "$ echo task_all() invoked.\n"
-            "task_all() invoked.\n"
+            "### ** build (func=build)\n"
+            "$ echo build() invoked.\n"
+            "build() invoked.\n"
+            "### * all (func=all)\n"
+            "$ echo all() invoked.\n"
+            "all() invoked.\n"
         )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
@@ -395,12 +436,12 @@ def task_all(c):
         _setup_stdio()
         self._start(content, "all")
         expected = (
-            "### ** build (func=task_build)\n"
-            "$ echo task_build() invoked.\n"
-            "task_build() invoked.\n"
-            "### * all (func=task_all)\n"
-            "$ echo task_all() invoked.\n"
-            "task_all() invoked.\n"
+            "### ** build (func=build)\n"
+            "$ echo build() invoked.\n"
+            "build() invoked.\n"
+            "### * all (func=all)\n"
+            "$ echo all() invoked.\n"
+            "all() invoked.\n"
         )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
@@ -415,12 +456,12 @@ def task_all(c):
             "$ gcc -g -c hello.c\n"
             "### *** hello (func=file_command)\n"
             "$ touch hello   # skipped\n"                   # skipped
-            "### ** build (func=task_build)\n"
-            "$ echo task_build() invoked.\n"
-            "task_build() invoked.\n"
-            "### * all (func=task_all)\n"
-            "$ echo task_all() invoked.\n"
-            "task_all() invoked.\n"
+            "### ** build (func=build)\n"
+            "$ echo build() invoked.\n"
+            "build() invoked.\n"
+            "### * all (func=all)\n"
+            "$ echo all() invoked.\n"
+            "all() invoked.\n"
         )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
