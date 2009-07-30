@@ -72,49 +72,55 @@ class Cookbook(object):
         context['prop'] = self.prop
         self.context = context
         exec(code_obj, context, context)
+        ## masks
+        TASK     = 0x0
+        FILE     = 0x1
+        SPECIFIC = 0x0
+        GENERIC  = 0x2
         ## create recipes
-        recipes = {
-            'task': {'specific': [], 'generic': []},
-            'file': {'specific': [], 'generic': []},
-        }
+        recipes = (
+            [],    # SPECIFIC | TASK
+            [],    # SPECIFIC | FILE
+            [],    # GENERIC  | TASK
+            [],    # GNERIC   | FILE
+        )
         for name in context:         # dict.iteritems() is not available in Python 3.0
             obj = context.get(name)
+            flag = 0x0
             if name == 'kook_materials':
                 if not isinstance(obj, (tuple, list)):
                     raise KookRecipeError("kook_materials: tuple or list expected.")
                 self.materials = obj
             elif type(obj) == types.FunctionType and getattr(obj, '_kook_recipe', None) == True:
                 func = obj
-                if   name.startswith('task_'):  key1 = 'task'
-                elif name.startswith('file_'):  key1 = 'file'
+                if   name.startswith('task_'):  flag = TASK
+                elif name.startswith('file_'):  flag = FILE
                 else:
-                    key1 = getattr(func, '_kook_product', None) and 'file' or 'task'
-                klass = key1 == 'task' and TaskRecipe or FileRecipe
+                    flag = getattr(func, '_kook_product', None) and FILE or TASK
+                klass = flag == FILE and FileRecipe or TaskRecipe
                 recipe = klass.new(name, func)
-                key2 = recipe.pattern and 'generic' or 'specific'
-                recipes[key1][key2].append(recipe)
+                flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
+                recipes[flag].append(recipe)
             ## for backward compatibility with 0.0.2: the following may be remove in the future
             elif type(obj) == types.FunctionType:
                 func = obj
-                if   name.startswith('task_'):  key1 = 'task'
-                elif name.startswith('file_'):  key1 = 'file'
+                if   name.startswith('task_'):  flag = TASK
+                elif name.startswith('file_'):  flag = FILE
                 else:
                     continue
                 #sys.stderr.write("[pykook] WARNING: %s(): use @recipe decorator.\n"
                 #                 "[pykook] See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n" % name)
-                klass = key1 == 'task' and TaskRecipe or FileRecipe
+                klass = flag == FILE and FileRecipe or TaskRecipe
                 recipe = klass.new(name, func)
-                key2 = recipe.pattern and 'generic' or 'specific'
-                recipes[key1][key2].append(recipe)
+                flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
+                recipes[flag].append(recipe)
         lambda1 = lambda recipe: recipe._func_linenum()
-        recipes['task']['specific'].sort(key=lambda1)
-        recipes['task']['generic'].sort(key=lambda1)
-        recipes['file']['specific'].sort(key=lambda1)
-        recipes['file']['generic'].sort(key=lambda1)
-        self.specific_task_recipes = recipes['task']['specific']   ## TODO: use dict
-        self.generic_task_recipes  = recipes['task']['generic']    ## TODO: support priority
-        self.specific_file_recipes = recipes['file']['specific']   ## TODO: use dict
-        self.generic_file_recipes  = recipes['file']['generic']    ## TODO: support priority
+        for lst in recipes:
+            lst.sort(key=lambda1)
+        self.specific_task_recipes = recipes[SPECIFIC | TASK]   ## TODO: use dict
+        self.specific_file_recipes = recipes[SPECIFIC | FILE]   ## TODO: use dict
+        self.generic_task_recipes  = recipes[GENERIC  | TASK]   ## TODO: support priority
+        self.generic_file_recipes  = recipes[GENERIC  | FILE]   ## TODO: support priority
         _debug("specific task recipes: %s" % repr(self.specific_task_recipes), 2)
         _debug("generic  task recipes: %s" % repr(self.generic_task_recipes), 2)
         _debug("specific file recipes: %s" % repr(self.specific_file_recipes), 2)
