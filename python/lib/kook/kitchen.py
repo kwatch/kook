@@ -124,7 +124,7 @@ class Kitchen(object):
         ##
         roots = self._create_cooking_trees([target])
         root = roots[0]
-        assert isinstance(root, (Cooking, Material))
+        assert isinstance(root, Cookable)
         assert root.product == target
         _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
         if isinstance(root, Material):
