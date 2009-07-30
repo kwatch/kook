@@ -29,10 +29,10 @@ class Kitchen(object):
         self.properties = properties
 
     @classmethod
-    def new(cls, cookbook):
+    def new(cls, cookbook, **properties):
         if kook.utils._is_str(cookbook):
             cookbook = Cookbook.new(cookbook)
-        return cls(cookbook)
+        return cls(cookbook, **properties)
 
     def _create_cooking_tree(self, target, cookables=None):
         if cookables is None: cookables = {}  # key: product name, value: cookable object
