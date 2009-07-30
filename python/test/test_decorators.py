@@ -26,6 +26,8 @@ class KookDecoratorsTest(object):
             pass
         ok(hasattr(f, '_kook_product'), '==', True)
         ok(f._kook_product, '==', 'hello')
+        ok(hasattr(f, '_kook_recipe'), '==', True)
+        ok(f._kook_recipe, '==', True)
 
     def test_ingreds(self):
         @ingreds('foo', 'bar', 'baz')

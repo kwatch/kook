@@ -20,6 +20,7 @@ def recipe(f):
 
 def product(name):
     def deco(f):
+        f._kook_recipe  = True
         f._kook_product = name
         return f
     return deco
