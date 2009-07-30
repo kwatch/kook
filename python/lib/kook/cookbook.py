@@ -170,6 +170,7 @@ _re_pattern_type = type(re.compile('x'))
 class Recipe(object):
 
     kind = None
+    prefix = ''
 
     def __init__(self, product=None, ingreds=(), byprods=(), func=None, desc=None, spices=None):
         self.product = product
@@ -203,8 +204,9 @@ class Recipe(object):
         return kook.utils._get_codeobj(self.func).co_firstlineno
 
     @classmethod
-    def new(cls, func_name, func, prefix, _cls=None):
+    def new(cls, func_name, func, _cls=None):
         if _cls is None: _cls = cls
+        prefix = _cls.prefix
         product = getattr(func, '_kook_product', None) or \
                   (func_name.startswith(prefix) and func_name[len(prefix):] or func_name)
         ingreds = getattr(func, '_kook_ingreds', ())
@@ -225,23 +227,14 @@ class Recipe(object):
 
 class TaskRecipe(Recipe):
 
-    kind = 'task'
-
-    @classmethod
-    def new(cls, func_name, func):
-        recipe = Recipe.new(func_name, func, 'task_', _cls=TaskRecipe)
-        #if recipe.product[0] != ':':
-        #    recipe.product = ':' + recipe.product
-        return recipe
+    kind   = 'task'
+    prefix = 'task_'
 
 
 class FileRecipe(Recipe):
 
-    kind = 'file'
-
-    @classmethod
-    def new(cls, func_name, func):
-        return Recipe.new(func_name, func, 'file_', _cls=FileRecipe)
+    kind   = 'file'
+    prefix = 'file_'
 
 
 import kook.commands    ## don't move from here!
