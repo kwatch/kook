@@ -139,7 +139,7 @@ class Cookable(object):
 
 CONTENT_CHANGED = 3
 MTIME_UPDATED   = 2
-NOTHING         = 1
+NOT_INVOKED     = 1
 
 
 class Material(Cookable):
@@ -166,11 +166,11 @@ class Material(Cookable):
     def start2(self, depth=1, argv=(), parent_mtime=0):
         assert os.path.exists(self.product)
         if   parent_mtime == 0:
-            ret, msg = NOTHING, "material %s"
+            ret, msg = NOT_INVOKED, "material %s"
         elif parent_mtime < os.path.getmtime(self.product):
             ret, msg = CONTENT_CHANGED, "material %s (newer than product)"
         else:
-            ret, msg = NOTHING, "material %s (not newer than product)"
+            ret, msg = NOT_INVOKED, "material %s (not newer than product)"
         _debug(msg % self.product, 1, depth)
         self.cooked = ret
         return ret
@@ -303,7 +303,7 @@ class Cooking(Cookable):
                 return MTIME_UPDATED
             else:
                 _debug("skip %s (func=%s)" % (self.product, self.get_func_name()), 1, depth)
-                return NOTHING
+                return NOT_INVOKED
         ## exec recipe function
         assert self.func is not None
         try:
