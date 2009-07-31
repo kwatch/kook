@@ -120,10 +120,11 @@ class Kitchen(object):
         _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
         if isinstance(root, Material):
             raise KookError("%s: is a material (= a file to which no recipe matches)." % target)
-        if self.properties.get('compare-content') is False:
-            root.start(argv=argv, depth=1)
-        else:
-            root.start2(argv=argv, depth=1)
+        #if config.compare_contents:
+        #    root.start2(argv=argv, depth=1)
+        #else:
+        #    root.start(argv=argv, depth=1)
+        root.start2(argv=argv, depth=1)
 
 
 class Cookable(object):
@@ -351,7 +352,7 @@ class Cooking(Cookable):
                 if self.was_file_recipe and not os.path.exists(self.product):
                     raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
                 ## if new product file is same as old, return MTIME_UPDATED, else return CONTENT_CHANGED
-                if product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
+                if config.compare_contents and product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
                     ret, msg = MTIME_UPDATED,   "end %s (content not changed, mtime updated)"
                 else:
                     ret, msg = CONTENT_CHANGED, "end %s (content changed)"
