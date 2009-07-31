@@ -35,7 +35,7 @@ class Kitchen(object):
             cookbook = Cookbook.new(cookbook)
         return cls(cookbook, **properties)
 
-    def _create_cooking_tree(self, target_product, cookables=None):
+    def create_cooking_tree(self, target_product, cookables=None):
         if cookables is None: cookables = {}  # key: product name, value: cookable object
         cookbook = self.cookbook
         def _create(target):
@@ -65,16 +65,16 @@ class Kitchen(object):
         root = cookables[target_product]
         return root   # cookable object
 
-    def _create_cooking_trees(self, target_products):
+    def create_cooking_trees(self, target_products):
         roots = []
         cookables = {}
         for target in target_products:
-            root = self._create_cooking_tree(target, cookables)
-            self._check_cooking_tree(root)
+            root = self.create_cooking_tree(target, cookables)
+            self.check_cooking_tree(root)
             roots.append(root)
         return roots
 
-    def _check_cooking_tree(self, root):
+    def check_cooking_tree(self, root):
         def _traverse(cooking, route, visited):
             route.append(cooking.product)
             visited[cooking.product] = True
@@ -100,7 +100,7 @@ class Kitchen(object):
         assert len(visited) == 0
 
     def start_cooking(self, *argv):
-        #roots = self._create_cooking_trees(targets)
+        #roots = self.create_cooking_trees(targets)
         #for root in roots:
         #    _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
         #    assert isinstance(root, Cooking)
@@ -114,7 +114,7 @@ class Kitchen(object):
             if not target:
                 raise KookError('Kitchen#start_cooking(): no argv nor no kook_default_product.')
         ##
-        roots = self._create_cooking_trees([target])
+        roots = self.create_cooking_trees([target])
         root = roots[0]
         assert isinstance(root, Cookable)
         assert root.product == target
