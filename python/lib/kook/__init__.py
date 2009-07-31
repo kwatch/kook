@@ -29,29 +29,3 @@ class KookRecipeError(KookError):
 
 class KookCommandError(KookError):
     pass
-
-
-def _debug(msg, level=1, depth=0):
-    if config.debug_level >= level:
-        write = config.stdout.write
-        write(config.debug_prompt)
-        if depth: write('+' * depth + ' ')
-        write(msg)
-        if msg[-1] != "\n": write("\n")
-
-
-def _report_msg(msg, level=None):
-    if not config.quiet:
-        write = config.stdout.write
-        write(config.message_prompt)
-        if level: write('*' * level + ' ')
-        write(msg)
-        if msg[-1] != "\n": write("\n")
-
-
-def _report_cmd(cmd):
-    if not config.quiet:
-        write = config.stdout.write
-        write(config.command_prompt)
-        write(cmd)
-        if cmd[-1] != "\n": write("\n")

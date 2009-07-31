@@ -10,10 +10,11 @@ import sys, os, re
 import shutil
 #from glob import glob as _glob
 import kook
-from kook import _report_cmd, KookCommandError
+from kook import KookCommandError
 from kook.utils import *
 from kook.utils import glob2
 import kook.config as config
+from kook.misc import _report_cmd
 
 
 __all__ = (

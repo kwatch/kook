@@ -10,10 +10,10 @@ import sys, os, re
 
 import kook
 from kook.cookbook import Cookbook
-from kook import KookError, KookRecipeError, _debug, _report_cmd, _report_msg
+from kook import KookError, KookRecipeError
 from kook.utils import *
 import kook.config as config
-from kook.misc import ConditionalFile
+from kook.misc import ConditionalFile, _debug, _report_cmd, _report_msg
 
 __all__ = ('Kitchen', )
 

@@ -13,9 +13,8 @@ __all__ = ['Main']
 import sys, os, re, random
 import kook
 from kook import *
-from kook import _debug
-from kook.cookbook import *
-from kook.kitchen import *
+from kook.cookbook import Cookbook
+from kook.kitchen import Kitchen
 from kook.utils import *
 
 
