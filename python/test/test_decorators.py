@@ -73,16 +73,6 @@ class KookDecoratorsTest(object):
     def test_cmdopts(self):
         pass
 
-    def test_if_exists(self):
-        import kook.kitchen
-        ret = if_exists('foo.h', '*.h')
-        ok(ret, 'is a', list)
-        ok(len(ret), '==', 2)
-        ok(ret[0], 'is a', kook.kitchen.IfExists)
-        ok(ret[1], 'is a', kook.kitchen.IfExists)
-        ok(ret[0].filename, '==', 'foo.h')
-        ok(ret[1].filename, '==', '*.h')
-
 
 if __name__ == '__main__':
     oktest.invoke_tests('Test$')

@@ -244,9 +244,11 @@ class FileRecipe(Recipe):
 
 import kook.commands    ## don't move from here!
 import kook.decorators
+import kook.misc
 
 _default_context = dict( [ (x, getattr(kook.commands,   x)) for x in kook.commands.__all__ ] +
-                         [ (x, getattr(kook.decorators, x)) for x in kook.decorators.__all__ ] )
+                         [ (x, getattr(kook.decorators, x)) for x in kook.decorators.__all__ ] +
+                         [ (x, getattr(kook.misc,       x)) for x in kook.misc.__all__ ] )
 
 
 def create_context():

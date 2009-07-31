@@ -13,23 +13,9 @@ from kook.cookbook import Cookbook
 from kook import KookError, KookRecipeError, _debug, _report_cmd, _report_msg
 from kook.utils import *
 import kook.config as config
+from kook.misc import ConditionalFile
 
-__all__ = ('Kitchen', 'IfExists', )
-
-
-class ConditionalFile(object):
-
-    def __init__(self, filename):
-        self.filename = filename
-
-    def __call__(self, filename=None):
-        return None
-
-class IfExists(ConditionalFile):
-
-    def __call__(self, filename=None):
-        if filename is None: self.filename = filename
-        return os.path.exists(filename) and filename or None
+__all__ = ('Kitchen', )
 
 
 class Kitchen(object):
