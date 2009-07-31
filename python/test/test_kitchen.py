@@ -16,10 +16,9 @@ except ImportError:
 
 import kook
 from kook import *
-from kook.kitchen import *
-from kook.cookbook import *
-from kook.commands import *
-from kook.utils import read_file, write_file
+from kook.kitchen import Kitchen
+from kook.cookbook import Cookbook
+from kook.utils import read_file, write_file, CommandOptionError
 import kook.config as config
 
 
@@ -309,7 +308,6 @@ opts['help']=True
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
         ## command option error
-        from kook.utils import CommandOptionError
         func = lambda: self._start(content, "build", "-f")
         errmsg = "build(): -f: file required."
         ok(func, 'raises', CommandOptionError, errmsg)
