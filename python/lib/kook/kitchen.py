@@ -244,14 +244,12 @@ class Cooking(Cookable):
         if not self.was_file_recipe:  return False
         if not self.children:         return False
         if not os.path.exists(self.product): return False
+        getmtime = os.path.getmtime
+        mtime = getmtime(self.product)
         for child in self.children:
-            if not child.was_file_recipe:
-                return False
-        mtime = os.path.getmtime(self.product)
-        for child in self.children:
+            if not child.was_file_recipe:       return False
             assert os.path.exists(child.product)
-            if mtime < os.path.getmtime(child.product):
-                return False
+            if mtime < getmtime(child.product): return False
         return True
 
     def start(self, depth=1, argv=()):
@@ -284,13 +282,12 @@ class Cooking(Cookable):
         if not self.was_file_recipe:  return False
         if not self.children:         return False
         if not os.path.exists(self.product): return False
+        #getmtime = os.path.getmtime
+        #mtime = getmtime(self.product)
         #for child in self.children:
-        #    if not child.was_file_recipe:
-        #        return False
-        #mtime =  os.path.getmtime(self.product)
-        #for child in self.children:
+        #    if not child.was_file_recipe:       return False
         #    assert os.path.exists(child.product)
-        #    if mtime < os.path.getmtime(child.product)
+        #    if mtime < getmtime(child.product): return False
         #        return False
         if status == CONTENT_CHANGED: return False
         assert status <= MTIME_UPDATED
