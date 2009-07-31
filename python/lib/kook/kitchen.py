@@ -65,15 +65,6 @@ class Kitchen(object):
         root = cookables[target_product]
         return root   # cookable object
 
-    def create_cooking_trees(self, target_products):
-        roots = []
-        cookables = {}
-        for target in target_products:
-            root = self.create_cooking_tree(target, cookables)
-            self.check_cooking_tree(root)
-            roots.append(root)
-        return roots
-
     def check_cooking_tree(self, root):
         def _traverse(cooking, route, visited):
             route.append(cooking.product)
@@ -109,13 +100,13 @@ class Kitchen(object):
             if not target:
                 raise KookError('Kitchen#start_cooking(): no argv nor no kook_default_product.')
         ## create tree of cookable object
-        roots = self.create_cooking_trees([target])
-        root = roots[0]
+        root = self.create_cooking_tree(target)
+        self.check_cooking_tree(root)
         assert isinstance(root, Cookable)
         assert root.product == target
         _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
         if isinstance(root, Material):
-            raise KookError("%s: is a material (= a file to which no recipe matches)." % target)
+            raise KookError("%s: is a material (= a file to which no recipe matched)." % target)
         ## start cooking
         root.start(argv=argv, depth=1)
 
