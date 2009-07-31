@@ -100,11 +100,6 @@ class Kitchen(object):
         assert len(visited) == 0
 
     def start_cooking(self, *argv):
-        #roots = self.create_cooking_trees(targets)
-        #for root in roots:
-        #    _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
-        #    assert isinstance(root, Cooking)
-        #    root.start()
         ## target
         if argv:
             target = argv[0]
@@ -113,7 +108,7 @@ class Kitchen(object):
             target = self.cookbook.context.get('kook_default_product')
             if not target:
                 raise KookError('Kitchen#start_cooking(): no argv nor no kook_default_product.')
-        ##
+        ## create tree of cookable object
         roots = self.create_cooking_trees([target])
         root = roots[0]
         assert isinstance(root, Cookable)
@@ -121,6 +116,7 @@ class Kitchen(object):
         _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
         if isinstance(root, Material):
             raise KookError("%s: is a material (= a file to which no recipe matches)." % target)
+        ## start cooking
         root.start(argv=argv, depth=1)
 
 
