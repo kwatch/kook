@@ -128,6 +128,7 @@ class Cookable(object):
 
     product = None
     ingreds = ()
+    children = ()
 
     def start(self, depth=1, argv=()):
         raise NotImplementedError("%s.start(): not implemented yet." % self.__class__.__name__)
@@ -139,13 +140,6 @@ NOT_INVOKED     = 1
 
 
 class Material(Cookable):
-
-    func = None
-    ingreds = ()
-    byprods = ()
-    children = ()
-    cooked = None
-    is_material = True
 
     def __init__(self, filename):
         self.product = filename
@@ -163,13 +157,11 @@ class Material(Cookable):
         else:
             ret, msg = NOT_INVOKED, "material %s (not newer than product)"
         _debug(msg % self.product, 1, depth)
-        self.cooked = ret
+        #self.cooked = ret
         return ret
 
 
 class Cooking(Cookable):
-
-    is_material = False
 
     def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None):
         if product is None: product = recipe.product
