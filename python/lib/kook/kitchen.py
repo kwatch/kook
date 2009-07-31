@@ -12,6 +12,7 @@ import kook
 from kook.cookbook import Cookbook
 from kook import KookError, KookRecipeError, _debug, _report_cmd, _report_msg
 from kook.utils import *
+import kook.config as config
 
 __all__ = ('Kitchen', 'IfExists', )
 
@@ -265,7 +266,7 @@ class Cooking(Cookable):
         _debug("end %s" % self.product, 1, depth)
 
     def _can_skip(self):
-        if kook._forced:              return False
+        if config.forced:             return False
         if not self.was_file_recipe:  return False
         if not self.children:         return False
         if not os.path.exists(self.product): return False
@@ -367,7 +368,7 @@ class Cooking(Cookable):
             if product_mtime: os.unlink(tmp_filename)
 
     def _can_skip2(self):
-        if kook._forced:              return False
+        if config.forced:             return False
         if not self.was_file_recipe:  return False
         if not self.children:         return False
         if not os.path.exists(self.product): return False

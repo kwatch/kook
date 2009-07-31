@@ -57,13 +57,13 @@ class Main(object):
         if opts.get('V'):
             self.stdout.write(kook.__RELEASE__ + "\n")
             return 0
-        if opts.get('q'):  kook._quiet   = True
-        if opts.get('F'):  kook._forced  = True
+        if opts.get('q'):  config.quiet  = True
+        if opts.get('F'):  config.forced = True
         if opts.get('D'):
             v = str2int(opts['D'])    # notice that int(True) is 1
             if v is None:
                 raise CommandOptionError('-D%s: integer is required.' % opts['D'])
-            kook._debug_level = v
+            config.debug_level = v
         if opts.get('f'):
             arg = opts['f']
             if os.path.isdir(arg):
@@ -129,7 +129,7 @@ class Main(object):
             for recipe in recipes:
                 if show_all or recipe.desc:
                     write(format % (recipe.product, recipe.desc or ''))
-                    if kook._quiet or not recipe.spices: continue
+                    if config.quiet or not recipe.spices: continue
                     optparser = CommandOptionParser.new(recipe.spices)
                     for opt, desc in optparser.helps:
                         write(format2 % (opt, desc))
@@ -211,5 +211,5 @@ class Main(object):
                     kicker_command = "emacsclient -n +%s %s" % (linenum, filename)
                     os.system(kicker_command)
             ## re-raise exception when debug mode
-            if not isinstance(ex, ex_classes) or kook._debug_level > 0:
+            if not isinstance(ex, ex_classes) or config.debug_level > 0:
                 raise

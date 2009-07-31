@@ -20,21 +20,22 @@ from kook.kitchen import *
 from kook.cookbook import *
 from kook.commands import *
 from kook.utils import read_file, write_file
+import kook.config as config
 
 
 def _setup_stdio():
-    kook._stdout = StringIO()
-    kook._stderr = StringIO()
+    config.stdout = StringIO()
+    config.stderr = StringIO()
 
 def _teardown_stdio():
-    kook._stdout = sys.stdout
-    kook._stderr = sys.stderr
+    config.stdout = sys.stdout
+    config.stderr = sys.stderr
 
 def _stdout():
-    return kook._stdout.getvalue()
+    return config.stdout.getvalue()
 
 def _stderr():
-    return kook._stderr.getvalue()
+    return config.stderr.getvalue()
 
 
 HELLO_C = r"""
@@ -280,7 +281,7 @@ def task_all(c):
 
     def test_recipe_spices1(self):
         content = r"""
-import kook
+import kook.config as config
 @recipe
 @spices("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
          "--help: help", "--debug[=N]: debug", "--file=filename: file")
@@ -288,10 +289,10 @@ def build(c, *args, **kwargs):
     rests, opts = args, kwargs
     keys = list(opts.keys()); keys.sort()
     s = '{' + ', '.join([ "%s: %s" % (repr(k), repr(opts[k])) for k in keys ]) + '}'
-    kook._stdout.write("opts=%s\n" % s)
-    kook._stdout.write("rests=%s\n" % repr(rests))
+    config.stdout.write("opts=%s\n" % s)
+    config.stdout.write("rests=%s\n" % repr(rests))
     for key in sorted(opts.keys()):
-        kook._stdout.write("opts[%s]=%s\n" % (repr(key), opts[key]))
+        config.stdout.write("opts[%s]=%s\n" % (repr(key), opts[key]))
 """
         self._start(content, "build", "-hf foo.txt", "-D999", "--help", "--debug", "--file=bar.txt", "aaa", "bbb")
         expected = """\

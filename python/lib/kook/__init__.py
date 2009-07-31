@@ -16,6 +16,7 @@ __all__ = (
 
 import sys, os, re, types
 from kook.utils import *
+import kook.config as config
 
 
 class KookError(Exception):  # StandardError is not available in Python 3.0
@@ -41,9 +42,9 @@ _stderr = sys.stderr
 
 
 def _debug(msg, level=1, depth=0):
-    if _debug_level >= level:
-        write = _stdout.write
-        write(_dbg_prompt)
+    if config.debug_level >= level:
+        write = config.stdout.write
+        write(config.debug_prompt)
         if depth: write('+' * depth + ' ')
         write(msg)
         if msg[-1] != "\n": write("\n")
@@ -51,8 +52,8 @@ def _debug(msg, level=1, depth=0):
 
 def _report_msg(msg, level=None):
     if not _quiet:
-        write = _stdout.write
-        write(_msg_prompt)
+        write = config.stdout.write
+        write(config.message_prompt)
         if level: write('*' * level + ' ')
         write(msg)
         if msg[-1] != "\n": write("\n")
@@ -60,7 +61,7 @@ def _report_msg(msg, level=None):
 
 def _report_cmd(cmd):
     if not _quiet:
-        write = _stdout.write
-        write(_cmd_prompt)
+        write = config.stdout.write
+        write(config.command_prompt)
         write(cmd)
         if cmd[-1] != "\n": write("\n")
