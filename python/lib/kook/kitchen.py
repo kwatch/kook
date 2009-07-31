@@ -165,18 +165,14 @@ class Material(Cookable):
 
     def start2(self, depth=1, argv=(), parent_mtime=0):
         assert os.path.exists(self.product)
-        if parent_mtime == 0:
-            msg = "material %s"
-            ret = -999
+        if   parent_mtime == 0:
+            ret, msg = NOTHING, "material %s"
+        elif parent_mtime < os.path.getmtime(self.product):
+            ret, msg = CONTENT_CHANGED, "material %s (newer than product)"
         else:
-            mtime = os.path.getmtime(self.product)
-            if mtime > parent_mtime:
-                msg = "material %s (newer than product)"
-                ret = CONTENT_CHANGED
-            else:
-                msg = "material %s (not newer)"
-                ret = NOTHING
+            ret, msg = NOTHING, "material %s (not newer than product)"
         _debug(msg % self.product, 1, depth)
+        self.cooked = ret
         return ret
 
 
