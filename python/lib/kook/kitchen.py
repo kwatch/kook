@@ -111,7 +111,8 @@ class Kitchen(object):
             argv = argv[1:]
         else:
             target = self.cookbook.context.get('kook_default_product')
-            target = ':default'
+            if not target:
+                raise KookError('Kitchen#start_cooking(): no argv nor no kook_default_product.')
         ##
         roots = self._create_cooking_trees([target])
         root = roots[0]
@@ -215,13 +216,15 @@ class Cooking(Cookable):
             matched = None
             m = None
         self = cls(product, func=func, ingreds=ingreds, byprods=byprods, spices=spices)
+        self.recipe = recipe
         self.was_file_recipe = recipe.kind == 'file'
         self.matched = matched
         self.m = m
         return self
 
     def get_func_name(self):
-        return kook.utils._get_codeobj(self.func).co_name
+        #return kook.utils._get_codeobj(self.func).co_name
+        return self.recipe.name
 
     def _call_func_with(self, argv):
         if self.spices:
