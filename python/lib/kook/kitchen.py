@@ -201,7 +201,7 @@ class Cooking(Cookable):
         func    = recipe.func
         ingreds = recipe.ingreds or ()
         byprods = recipe.byprods or ()
-        spices  = recipe.spices or ()
+        spices  = recipe.spices  or ()
         if recipe.pattern:
             matched = re.match(recipe.pattern, target)
             assert matched is not None
@@ -238,14 +238,10 @@ class Cooking(Cookable):
             self.func(self, *argv)
 
     def can_skip(self):
-        if _forced:
-            return False
-        if not self.was_file_recipe:
-            return False
-        if not self.children:
-            return False
-        if not os.path.exists(self.product):
-            return False
+        if kook._forced:              return False
+        if not self.was_file_recipe:  return False
+        if not self.children:         return False
+        if not os.path.exists(self.product): return False
         for child in self.children:
             if not child.was_file_recipe:
                 return False
@@ -282,14 +278,10 @@ class Cooking(Cookable):
         _debug("end %s" % self.product, 1, depth)
 
     def can_skip2(self, status):
-        if kook._forced:
-            return False
-        if not self.was_file_recipe:
-            return False
-        if not self.children:
-            return False
-        if not os.path.exists(self.product):
-            return False
+        if kook._forced:              return False
+        if not self.was_file_recipe:  return False
+        if not self.children:         return False
+        if not os.path.exists(self.product): return False
         #for child in self.children:
         #    if not child.was_file_recipe:
         #        return False
@@ -298,8 +290,7 @@ class Cooking(Cookable):
         #    assert os.path.exists(child.product)
         #    if mtime < os.path.getmtime(child.product)
         #        return False
-        if status == CONTENT_CHANGED:
-            return False
+        if status == CONTENT_CHANGED: return False
         assert status <= MTIME_UPDATED
         return True
 
