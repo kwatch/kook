@@ -100,7 +100,7 @@ def task_clean(c):
     pass
 
 
-kook_default_product = 'default'
+kook_default_product = 'test'
 
 @product('default')
 @ingreds('package')
