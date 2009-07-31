@@ -7,15 +7,14 @@
 ###
 
 
-__all__ = ['Main']
+__all__ = ('Main', )
 
 
 import sys, os, re, random
-import kook
-from kook import *
 from kook.cookbook import Cookbook
 from kook.kitchen import Kitchen
-from kook.utils import *
+import kook.config as config
+from kook.utils import CommandOptionParser, CommandOptionError, read_file, str2int
 
 
 class Main(object):
