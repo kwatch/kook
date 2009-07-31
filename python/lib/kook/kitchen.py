@@ -203,6 +203,7 @@ class Cooking(Cookable):
         byprods = recipe.byprods or ()
         spices  = recipe.spices  or ()
         if recipe.pattern:
+            ## replace '$(1)', '$(2)', ..., and remove IfExists object which don't exist
             matched = re.match(recipe.pattern, target)
             assert matched is not None
             pat = r'\$\((\d+)\)'
@@ -211,9 +212,11 @@ class Cooking(Cookable):
                 arr = []
                 for item in items:
                     if isinstance(item, IfExists):
-                        item = re.sub(pat, repl, item.filename)
-                        if not os.path.exists(item): continue
-                    arr.append(re.sub(pat, repl, item))
+                        filename = re.sub(pat, repl, item.filename)
+                        if os.path.exists(filename):
+                            arr.append(filename)
+                    else:
+                        arr.append(re.sub(pat, repl, item))
                 return tuple(arr)
             if ingreds:  ingreds = convert(ingreds)
             if byprods:  byprods = convert(byprods)
