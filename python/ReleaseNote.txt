@@ -3,7 +3,7 @@
 
 .$ [ANN] pyKook 0.0.2 - a simple build tool similar to Make or Ant
 
-Hi all,
+Hi,
 
 I have released pyKook 0.0.2.
 http://pypi.python.org/pypi/Kook/0.0.2
@@ -28,6 +28,9 @@ For example:
 
 Cookbook (= Makefile) is written in pure Python.
 You can write any statements or expressions in cookbook.
+
+NOTICE: pyKook is under alpha release. Spec and features may be changed
+in the future without previous announcement.
 
 
 Example
