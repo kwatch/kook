@@ -224,13 +224,6 @@ class Cooking(Cookable):
         self.m = m
         return self
 
-    def _call_func_with(self, argv):
-        if self.spices:
-            opts, rests = self.parse_cmdopts(argv)
-            self.recipe.func(self, *rests, **opts)
-        else:
-            self.recipe.func(self, *argv)
-
     ##
     ## invoke recipe function.
     ##
@@ -299,7 +292,7 @@ class Cooking(Cookable):
                 s = self.was_file_recipe and 'create' or 'perform'
                 _debug("%s %s (func=%s)" % (s, self.product, self.recipe.name), 1, depth)
                 _report_msg("%s (func=%s)" % (self.product, self.recipe.name), depth)
-                self._call_func_with(argv)
+                self._invoke_recipe_with(argv)
                 ## check whether product file created or not
                 if self.was_file_recipe and not os.path.exists(self.product):
                     raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.recipe.name, ))
@@ -326,6 +319,13 @@ class Cooking(Cookable):
         if not self.children:         return False
         if not os.path.exists(self.product): return False
         return True
+
+    def _invoke_recipe_with(self, argv):
+        if self.spices:
+            opts, rests = self.parse_cmdopts(argv)
+            self.recipe.func(self, *rests, **opts)
+        else:
+            self.recipe.func(self, *argv)
 
     ## utility method for convenience
     def __mod__(self, string):
