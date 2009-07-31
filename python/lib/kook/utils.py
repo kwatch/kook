@@ -389,6 +389,26 @@ class CommandOptionParser(object):
 #
 
 
+def has_same_content(filename1, filename2, blocksize=1*1024*1024):   # 1MB
+    assert os.path.exists(filename1)
+    assert os.path.exists(filename2)
+    if os.path.getsize(filename1) != os.path.getsize(filename2):
+        return False
+    f1 = open(filename1, "rb")
+    try:
+        f2 = open(filename2, "rb")
+        try:
+            while True:
+                s1 = f1.read(blocksize)
+                s2 = f2.read(blocksize)
+                if not s1 and not s2: return True
+                if s1 != s2:          return False
+        finally:
+            f2.close()
+    finally:
+        f1.close()
+
+
 ## compatibility for Python 2.x and 3.0
 
 if python2:

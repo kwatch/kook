@@ -320,7 +320,7 @@ class Cooking(Cookable):
                 if self.was_file_recipe and not os.path.exists(self.product):
                     raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
                 self.cooked = True
-                if product_mtime and self._has_same_content(self.product, tmp_filename):
+                if product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
                     ret = MTIME_UPDATED
                     msg = "end %s (content not changed, mtime updated)"
                 else:
@@ -355,26 +355,6 @@ class Cooking(Cookable):
         if status == CONTENT_CHANGED: return False
         assert status <= MTIME_UPDATED
         return True
-
-    def _has_same_content(self, filename1, filename2):
-        assert os.path.exists(filename1)
-        assert os.path.exists(filename2)
-        if os.path.getsize(filename1) != os.path.getsize(filename2):
-            return False
-        f1 = open(filename1, "rb")
-        try:
-            f2 = open(filename2, "rb")
-            try:
-                size = 1*1024*1024    # 1MB
-                while True:
-                    s1 = f1.read(size)
-                    s2 = f2.read(size)
-                    if not s1 and not s2: return True
-                    if s1 != s2:          return False
-            finally:
-                f2.close()
-        finally:
-            f1.close()
 
     ## utility method for convenience
     def __mod__(self, string):
