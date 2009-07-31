@@ -19,6 +19,13 @@ __all__ = ('Kitchen', )
 
 
 class Kitchen(object):
+    """read recipes from cookbook, create cooking objects for recipes, and invoke them.
+    ex.
+      cookbook = Cookbook.new('Kookbook.py')
+      kitchen = Kitchen.new(cookbook)
+      argv = ['hello.o', '-h', '-v']
+      kitchen.start_cooking(*argv)    # recipe is invoked and 'hello.o' will be created
+    """
 
     def __init__(self, cookbook=None, **properties):
         self.cookbook = cookbook
@@ -31,6 +38,7 @@ class Kitchen(object):
         return cls(cookbook, **properties)
 
     def create_cooking_tree(self, target_product, cookables=None):
+        """create tree of Cooking and Material. raises error if recipe or material not found."""
         if cookables is None: cookables = {}  # key: product name, value: cookable object
         cookbook = self.cookbook
         def _create(target):
@@ -65,6 +73,7 @@ class Kitchen(object):
         return root   # cookable object
 
     def check_cooking_tree(self, root):
+        """raise KookRecipeError if tree has a loop."""
         def _traverse(cooking, route, visited):
             route.append(cooking.product)
             visited[cooking.product] = True
@@ -111,6 +120,7 @@ class Kitchen(object):
 
 
 class Cookable(object):
+    """abstract class for Cooking and Material."""
 
     product = None
     ingreds = ()
@@ -120,12 +130,13 @@ class Cookable(object):
         raise NotImplementedError("%s.start(): not implemented yet." % self.__class__.__name__)
 
 
-CONTENT_CHANGED = 3
-MTIME_UPDATED   = 2
-NOT_INVOKED     = 1
+CONTENT_CHANGED = 3     # recipe is invoked, and product content is changed when recipe is FileRecipe
+MTIME_UPDATED   = 2     # file content of product is not changed (recipe may be invoked or not)
+NOT_INVOKED     = 1     # recipe is not invoked (= skipped), for example product is newer than all ingredients
 
 
 class Material(Cookable):
+    """represents material file."""
 
     def __init__(self, filename):
         self.product = filename
@@ -148,6 +159,7 @@ class Material(Cookable):
 
 
 class Cooking(Cookable):
+    """represens recipe invocation. in other words, Recipe is 'definition', Cooking is 'execution'."""
 
     def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None):
         if product is None: product = recipe.product
@@ -167,16 +179,15 @@ class Cooking(Cookable):
 
     @classmethod
     def new(cls, target, recipe):
-        ## TODO: generic recipe support
         product = target
         ingreds = recipe.ingreds or ()
         byprods = recipe.byprods or ()
         spices  = recipe.spices  or ()
         if recipe.pattern:
-            ## replace '$(1)', '$(2)', ..., and remove IfExists object which don't exist
+            ## convert generic recipe into specific values
             matched = re.match(recipe.pattern, target)
             assert matched is not None
-            pat = r'\$\((\d+)\)'
+            pat = r'\$\((\d+)\)'   # replace '$(1)', '$(2)', ...
             repl = lambda m: matched.group(int(m.group(1)))
             def convert(items):
                 arr = []
@@ -200,8 +211,6 @@ class Cooking(Cookable):
         return self
 
     ##
-    ## invoke recipe function.
-    ##
     ## pseudo-code:
     ##
     ##   if CONENT_CHANGED in self.children:
@@ -219,6 +228,7 @@ class Cooking(Cookable):
     ##     return NOT_INVOKED
     ##
     def cook(self, depth=1, argv=(), parent_mtime=0):
+        """invoke recipe function."""
         is_file_recipe = self.recipe.kind == 'file'
         ## return if already cooked
         if self.cooked:
@@ -290,9 +300,9 @@ class Cooking(Cookable):
             if product_mtime: os.unlink(tmp_filename)
 
     def _can_skip(self):
-        if config.forced:             return False
+        if config.forced:              return False
         if self.recipe.kind == 'task': return False
-        if not self.children:         return False
+        if not self.children:          return False
         if not os.path.exists(self.product): return False
         return True
 
