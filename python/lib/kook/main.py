@@ -23,9 +23,6 @@ class Main(object):
         if argv is None: argv = sys.argv
         self.command = os.path.basename(argv[0])
         self.args = argv[1:]
-        self.stdin  = sys.stdin
-        self.stdout = sys.stdout
-        self.stderr = sys.stderr
 
     optdef_strs = (
         "-h:      help",
@@ -49,11 +46,11 @@ class Main(object):
         #print "*** debug: command option: opts=%s, longopts=%s, rests=%s" % (repr(opts), repr(longopts), repr(rests))
         ## handle options
         if opts.get('h') or longopts.get('help') is True:
-            self.stdout.write("pykook - build tool like Make, Rake, Ant, or Cook\n")
-            self.stdout.write(optparser.help())
+            config.stdout.write("pykook - build tool like Make, Rake, Ant, or Cook\n")
+            config.stdout.write(optparser.help())
             return 0
         if opts.get('V'):
-            self.stdout.write(kook.__RELEASE__ + "\n")
+            config.stdout.write(kook.__RELEASE__ + "\n")
             return 0
         if opts.get('q'):  config.quiet  = True
         if opts.get('F'):  config.forced = True
@@ -92,7 +89,7 @@ class Main(object):
         if not rests:
             default_product = cookbook.default_product()
             if not default_product:
-                write = self.stderr.write
+                write = config.stderr.write
                 write("*** %s: target is not given\n" % self.command)
                 write("*** '%s -l' or '%s -L' show recipes and properties.\n" % (self.command, self.command))
                 write("*** (or set 'kook_default_product' in your kookbook.)\n")
@@ -109,7 +106,7 @@ class Main(object):
         format  = "  %-20s: %s\n"
         #format2 = "    %-18s:   %s\n"
         format2 = "    %-20s  %s\n"
-        write = self.stdout.write
+        write = config.stdout.write
         ## properties
         write("Properties:\n")
         for prop_name, prop_value in cookbook.all_properties():
@@ -176,11 +173,11 @@ class Main(object):
             ex_classes = (CommandOptionError, kook.KookCommandError, kook.KookRecipeError)   # or (CommandOptionError, KookError)
             if isinstance(ex, ex_classes):
                 if not isinstance(ex, CommandOptionError):
-                    self.stderr.write("*** ERROR\n")
-                self.stderr.write(self.command + ": " + str(ex) + "\n")
+                    config.stderr.write("*** ERROR\n")
+                config.stderr.write(self.command + ": " + str(ex) + "\n")
             ## system() failed
             if isinstance(ex, kook.KookCommandError):
-                #self.stderr.write(self.command + ": " + str(ex) + "\n")
+                #config.stderr.write(self.command + ": " + str(ex) + "\n")
                 traceback_obj = sys.exc_info()[2]
                 import traceback
                 found = False
@@ -190,7 +187,7 @@ class Main(object):
                         found = True
                         break
                 if found:
-                    self.stderr.write("%s:%s: %s\n" % (filename, linenum, message))
+                    config.stderr.write("%s:%s: %s\n" % (filename, linenum, message))
                 else:
                     traceback.print_tb(traceback_obj, file=sys.stderr)
             ## kick emacsclient when $E defined
