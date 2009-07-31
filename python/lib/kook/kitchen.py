@@ -180,7 +180,6 @@ class Cooking(Cookable):
         if spices  is None: spices  = recipe.spices
         self.recipe  = recipe
         self.product = product
-        self.func    = recipe.func
         self.ingreds = ingreds
         self.byprods = byprods
         self.ingred  = ingreds and ingreds[0] or None
@@ -228,9 +227,9 @@ class Cooking(Cookable):
     def _call_func_with(self, argv):
         if self.spices:
             opts, rests = self.parse_cmdopts(argv)
-            self.func(self, *rests, **opts)
+            self.recipe.func(self, *rests, **opts)
         else:
-            self.func(self, *argv)
+            self.recipe.func(self, *argv)
 
     ##
     ## invoke recipe function.
@@ -288,7 +287,7 @@ class Cooking(Cookable):
                 assert child_status == CONTENT_CHANGED
                 pass    # don't skip recipe invocation
         ## invoke recipe function
-        assert self.func is not None
+        assert self.recipe.func is not None
         try:
             try:
                 ## if product file exists, rename it to temporary filename
