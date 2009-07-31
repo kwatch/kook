@@ -173,9 +173,14 @@ class Cooking(Cookable):
     is_material = False
     was_file_recipe = None
 
-    def __init__(self, product, func, ingreds=(), byprods=(), spices=()):
+    def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None):
+        if product is None: product = recipe.product
+        if ingreds is None: ingreds = recipe.ingreds
+        if byprods is None: byprods = recipe.byprods
+        if spices  is None: spices  = recipe.spices
+        self.recipe  = recipe
         self.product = product
-        self.func    = func
+        self.func    = recipe.func
         self.ingreds = ingreds
         self.byprods = byprods
         self.ingred  = ingreds and ingreds[0] or None
@@ -189,7 +194,6 @@ class Cooking(Cookable):
     def new(cls, target, recipe):
         ## TODO: generic recipe support
         product = target
-        func    = recipe.func
         ingreds = recipe.ingreds or ()
         byprods = recipe.byprods or ()
         spices  = recipe.spices  or ()
@@ -215,8 +219,7 @@ class Cooking(Cookable):
         else:
             matched = None
             m = None
-        self = cls(product, func=func, ingreds=ingreds, byprods=byprods, spices=spices)
-        self.recipe = recipe
+        self = cls(recipe, product=product, ingreds=ingreds, byprods=byprods, spices=spices)
         self.was_file_recipe = recipe.kind == 'file'
         self.matched = matched
         self.m = m
