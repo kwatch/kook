@@ -176,6 +176,7 @@ class Cooking(Cookable):
         self.spices  = spices
         self.cooked  = None
         self.argv = ()
+        self._r = 'func=%s' % recipe.name
 
     @classmethod
     def new(cls, target, recipe):
@@ -252,14 +253,14 @@ class Cooking(Cookable):
         if self._can_skip():
             if child_status == MTIME_UPDATED:
                 assert os.path.exists(self.product)
-                _report_msg("%s (func=%s)" % (self.product, self.recipe.name), depth)
-                _debug("touch and skip %s (func=%s)" % (self.product, self.recipe.name), 1, depth)
+                _report_msg("%s (%s)" % (self.product, self._r), depth)
+                _debug("touch and skip %s (%s)" % (self.product, self._r), 1, depth)
                 _report_cmd("touch %s   # skipped" % self.product)
                 os.utime(self.product, None)    # update mtime of product file to current timestamp
                 self.cooked = MTIME_UPDATED
                 return MTIME_UPDATED    # skip recipe invocation
             elif child_status == NOT_INVOKED:
-                _debug("skip %s (func=%s)" % (self.product, self.recipe.name), 1, depth)
+                _debug("skip %s (%s)" % (self.product, self._r), 1, depth)
                 self.cooked = NOT_INVOKED
                 return NOT_INVOKED          # skip recipe invocation
             else:
@@ -276,8 +277,8 @@ class Cooking(Cookable):
                     os.rename(self.product, tmp_filename)
                 ## invoke recipe
                 s = is_file_recipe and 'create' or 'perform'
-                _debug("%s %s (func=%s)" % (s, self.product, self.recipe.name), 1, depth)
-                _report_msg("%s (func=%s)" % (self.product, self.recipe.name), depth)
+                _debug("%s %s (%s)" % (s, self.product, self._r), 1, depth)
+                _report_msg("%s (%s)" % (self.product, self._r), depth)
                 self._invoke_recipe_with(argv)
                 ## check whether product file created or not
                 if is_file_recipe and not os.path.exists(self.product):
@@ -293,7 +294,7 @@ class Cooking(Cookable):
                 ex = sys.exc_info()[1]
                 ## if product file exists, remove it when error raised
                 if product_mtime:
-                    _report_msg("(remove %s because unexpected error raised (func=%s))" % (self.product, self.recipe.name), depth)
+                    _report_msg("(remove %s because unexpected error raised (%s))" % (self.product, self._r), depth)
                     if os.path.isfile(self.product): os.unlink(self.product)
                 raise
         finally:
@@ -326,7 +327,7 @@ class Cooking(Cookable):
                 if name == 'product':  return self.product[index]
                 if name in frame.f_locals:  return frame.f_locals[name]
                 if name in frame.f_globals: return frame.f_globals[name]
-                raise NameError("$(%s[%d]): unknown name. (func=%s)" % (name, index, self.recipe.name, ))
+                raise NameError("$(%s[%d]): unknown name. (%s)" % (name, index, self._r, ))
             else:
                 if re.match(r'^\d+$', name):
                     if self.matched is None:
@@ -341,16 +342,16 @@ class Cooking(Cookable):
                 if name == 'coprods':  return ' '.join(self.coprods)
                 if name in frame.f_locals:  return str(frame.f_locals[name])
                 if name in frame.f_globals: return str(frame.f_globals[name])
-                raise NameError("$(%s): unknown name. (func=%s)" % (name, self.recipe.name, ))
+                raise NameError("$(%s): unknown name. (%s)" % (name, self._r, ))
         return re.sub(r'\$\((\w+)(?:\[(\d+)\])?\)', repl, string)
 
     ## utility method for convenience
     def parse_cmdopts(self, argv):
         parser = config.cmdopt_parser_class(self.spices)
-        _debug("parse_cmdopts() (func=%s): spices=%s" % (self.recipe.name, repr(parser.spices)), 2)
+        _debug("parse_cmdopts() (%s): spices=%s" % (self._r, repr(parser.spices)), 2)
         try:
             opts, rests = parser.parse(argv)
-            _debug("parse_cmdopts() (func=%s): opts=%s, rests=%s" % (self.recipe.name, repr(opts), repr(rests)), 2)
+            _debug("parse_cmdopts() (%s): opts=%s, rests=%s" % (self._r, repr(opts), repr(rests)), 2)
             return opts, rests
         except CommandOptionError:
             ex = sys.exc_info()[1]
