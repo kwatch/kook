@@ -31,16 +31,6 @@ class KookCommandError(KookError):
     pass
 
 
-_quiet      = False
-_forced     = False
-_debug_level = 0
-_cmd_prompt = '$ '
-_msg_prompt = '### '
-_dbg_prompt = '*** debug: '
-_stdout = sys.stdout
-_stderr = sys.stderr
-
-
 def _debug(msg, level=1, depth=0):
     if config.debug_level >= level:
         write = config.stdout.write
@@ -51,7 +41,7 @@ def _debug(msg, level=1, depth=0):
 
 
 def _report_msg(msg, level=None):
-    if not _quiet:
+    if not config.quiet:
         write = config.stdout.write
         write(config.message_prompt)
         if level: write('*' * level + ' ')
@@ -60,7 +50,7 @@ def _report_msg(msg, level=None):
 
 
 def _report_cmd(cmd):
-    if not _quiet:
+    if not config.quiet:
         write = config.stdout.write
         write(config.command_prompt)
         write(cmd)
