@@ -146,7 +146,6 @@ class Material(Cookable):
     children = ()
     cooked = None
     is_material = True
-    was_file_recipe = True
 
     def __init__(self, filename):
         self.product = filename
@@ -171,7 +170,6 @@ class Material(Cookable):
 class Cooking(Cookable):
 
     is_material = False
-    was_file_recipe = None
 
     def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None):
         if product is None: product = recipe.product
@@ -219,7 +217,6 @@ class Cooking(Cookable):
             matched = None
             m = None
         self = cls(recipe, product=product, ingreds=ingreds, byprods=byprods, spices=spices)
-        self.was_file_recipe = recipe.kind == 'file'
         self.matched = matched
         self.m = m
         return self
@@ -244,13 +241,14 @@ class Cooking(Cookable):
     ##     return NOT_INVOKED
     ##
     def start(self, depth=1, argv=(), parent_mtime=0):
+        is_file_recipe = self.recipe.kind == 'file'
         ## return if already cooked
         if self.cooked:
             _debug("pass %s (already cooked)" % self.product, 1, depth)
             return self.cooked
         ## get mtime of product file if it exists
         _debug("begin %s" % self.product, 1, depth)
-        if self.was_file_recipe and os.path.exists(self.product):
+        if is_file_recipe and os.path.exists(self.product):
             product_mtime = os.path.getmtime(self.product)  # exist
         else:
             product_mtime = 0    # product doesn't exist
@@ -289,12 +287,12 @@ class Cooking(Cookable):
                     tmp_filename = os.path.join(os.path.dirname(self.product), tmp_basename)
                     os.rename(self.product, tmp_filename)
                 ## invoke recipe
-                s = self.was_file_recipe and 'create' or 'perform'
+                s = is_file_recipe and 'create' or 'perform'
                 _debug("%s %s (func=%s)" % (s, self.product, self.recipe.name), 1, depth)
                 _report_msg("%s (func=%s)" % (self.product, self.recipe.name), depth)
                 self._invoke_recipe_with(argv)
                 ## check whether product file created or not
-                if self.was_file_recipe and not os.path.exists(self.product):
+                if is_file_recipe and not os.path.exists(self.product):
                     raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.recipe.name, ))
                 ## if new product file is same as old, return MTIME_UPDATED, else return CONTENT_CHANGED
                 if config.compare_contents and product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
@@ -315,7 +313,7 @@ class Cooking(Cookable):
 
     def _can_skip(self):
         if config.forced:             return False
-        if not self.was_file_recipe:  return False
+        if self.recipe.kind == 'task': return False
         if not self.children:         return False
         if not os.path.exists(self.product): return False
         return True
