@@ -133,6 +133,9 @@ class Cookable(object):
     def start(self, depth=1, argv=()):
         raise NotImplementedError("%s.start(): not implemented yet." % self.__class__.__name__)
 
+    def start2(self, depth=1, argv=(), product_timestamp=0):
+        raise NotImplementedError("%s.start2(): not implemented yet." % self.__class__.__name__)
+
 
 CONTENT_CHANGED = 2
 MTIME_UPDATED   = 1
