@@ -120,11 +120,7 @@ class Kitchen(object):
         _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
         if isinstance(root, Material):
             raise KookError("%s: is a material (= a file to which no recipe matches)." % target)
-        #if config.compare_contents:
-        #    root.start2(argv=argv, depth=1)
-        #else:
-        #    root.start(argv=argv, depth=1)
-        root.start2(argv=argv, depth=1)
+        root.start(argv=argv, depth=1)
 
 
 class Cookable(object):
@@ -134,9 +130,6 @@ class Cookable(object):
 
     def start(self, depth=1, argv=()):
         raise NotImplementedError("%s.start(): not implemented yet." % self.__class__.__name__)
-
-    def start2(self, depth=1, argv=(), product_timestamp=0):
-        raise NotImplementedError("%s.start2(): not implemented yet." % self.__class__.__name__)
 
 
 CONTENT_CHANGED = 3
@@ -161,11 +154,7 @@ class Material(Cookable):
     def new(cls, filename):
         return cls(filename)
 
-    def start(self, depth=1, argv=()):
-        _debug("material %s" % self.product, 1, depth)
-        return True
-
-    def start2(self, depth=1, argv=(), parent_mtime=0):
+    def start(self, depth=1, argv=(), parent_mtime=0):
         assert os.path.exists(self.product)
         if   parent_mtime == 0:
             ret, msg = NOT_INVOKED, "material %s"
@@ -241,44 +230,6 @@ class Cooking(Cookable):
         else:
             self.func(self, *argv)
 
-    def start(self, depth=1, argv=()):
-        if self.cooked:
-            _debug("pass %s (already cooked)" % self.product, 1, depth)
-            return
-        ## exec recipes of ingredients
-        _debug("begin %s" % self.product, 1, depth)
-        if self.children:
-            for child in self.children:
-                child.start(depth+1)
-        ## skip if product is newer than ingredients
-        if self._can_skip():
-            _debug("skip %s (func=%s)" % (self.product, self.get_func_name()), 1, depth)
-            return
-        ## exec recipe function
-        assert self.func is not None
-        s = self.was_file_recipe and 'create' or 'perform'
-        _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
-        _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
-        #self.func(self, *argv)
-        self._call_func_with(argv)
-        if self.was_file_recipe and not os.path.exists(self.product):
-            raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
-        self.cooked = True
-        _debug("end %s" % self.product, 1, depth)
-
-    def _can_skip(self):
-        if config.forced:             return False
-        if not self.was_file_recipe:  return False
-        if not self.children:         return False
-        if not os.path.exists(self.product): return False
-        getmtime = os.path.getmtime
-        mtime = getmtime(self.product)
-        for child in self.children:
-            if not child.was_file_recipe:       return False
-            assert os.path.exists(child.product)
-            if mtime < getmtime(child.product): return False
-        return True
-
     ##
     ## invoke recipe function.
     ##
@@ -298,7 +249,7 @@ class Cooking(Cookable):
     ##     # not invoke recipe function
     ##     return NOT_INVOKED
     ##
-    def start2(self, depth=1, argv=(), parent_mtime=0):
+    def start(self, depth=1, argv=(), parent_mtime=0):
         ## return if already cooked
         if self.cooked:
             _debug("pass %s (already cooked)" % self.product, 1, depth)
@@ -313,12 +264,12 @@ class Cooking(Cookable):
         child_status = NOT_INVOKED
         if self.children:
             for child in self.children:
-                ret = child.start2(depth+1, (), product_mtime)
+                ret = child.start(depth+1, (), product_mtime)
                 assert ret is not None
                 if ret > child_status:  child_status = ret
         assert child_status in (CONTENT_CHANGED, MTIME_UPDATED, NOT_INVOKED)
         ## there are some cases to skip recipe invocation (ex. product is newer than ingredients)
-        if self._can_skip2():
+        if self._can_skip():
             if child_status == MTIME_UPDATED:
                 assert os.path.exists(self.product)
                 _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
@@ -368,18 +319,11 @@ class Cooking(Cookable):
         finally:
             if product_mtime: os.unlink(tmp_filename)
 
-    def _can_skip2(self):
+    def _can_skip(self):
         if config.forced:             return False
         if not self.was_file_recipe:  return False
         if not self.children:         return False
         if not os.path.exists(self.product): return False
-        #getmtime = os.path.getmtime
-        #mtime = getmtime(self.product)
-        #for child in self.children:
-        #    if not child.was_file_recipe:       return False
-        #    assert os.path.exists(child.product)
-        #    if mtime < getmtime(child.product): return False
-        #        return False
         return True
 
     ## utility method for convenience
