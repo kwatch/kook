@@ -108,7 +108,7 @@ class Kitchen(object):
         if isinstance(root, Material):
             raise KookError("%s: is a material (= a file to which no recipe matched)." % target)
         ## start cooking
-        root.start(argv=argv, depth=1)
+        root.cook(argv=argv, depth=1)
 
 
 class Cookable(object):
@@ -117,7 +117,7 @@ class Cookable(object):
     ingreds = ()
     children = ()
 
-    def start(self, depth=1, argv=()):
+    def cook(self, depth=1, argv=()):
         raise NotImplementedError("%s.start(): not implemented yet." % self.__class__.__name__)
 
 
@@ -135,7 +135,7 @@ class Material(Cookable):
     def new(cls, filename):
         return cls(filename)
 
-    def start(self, depth=1, argv=(), parent_mtime=0):
+    def cook(self, depth=1, argv=(), parent_mtime=0):
         assert os.path.exists(self.product)
         if   parent_mtime == 0:
             ret, msg = NOT_INVOKED, "material %s"
@@ -219,7 +219,7 @@ class Cooking(Cookable):
     ##     # not invoke recipe function
     ##     return NOT_INVOKED
     ##
-    def start(self, depth=1, argv=(), parent_mtime=0):
+    def cook(self, depth=1, argv=(), parent_mtime=0):
         is_file_recipe = self.recipe.kind == 'file'
         ## return if already cooked
         if self.cooked:
@@ -235,7 +235,7 @@ class Cooking(Cookable):
         child_status = NOT_INVOKED
         if self.children:
             for child in self.children:
-                ret = child.start(depth+1, (), product_mtime)
+                ret = child.cook(depth+1, (), product_mtime)
                 assert ret is not None
                 if ret > child_status:  child_status = ret
         assert child_status in (CONTENT_CHANGED, MTIME_UPDATED, NOT_INVOKED)
