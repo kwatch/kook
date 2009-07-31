@@ -7,6 +7,7 @@
 ###
 
 import sys as _sys
+import kook.utils as _utils
 
 quiet            = False
 forced           = False
@@ -15,5 +16,6 @@ command_prompt   = '$ '
 message_prompt   = '### '
 debug_prompt     = '*** debug: '
 compare_contents = True
+cmdopt_parser_class = _utils.CommandOptionParser
 stdout           = _sys.stdout
 stderr           = _sys.stderr

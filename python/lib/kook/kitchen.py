@@ -336,7 +336,7 @@ class Cooking(Cookable):
 
     ## utility method for convenience
     def parse_cmdopts(self, argv):
-        parser = CommandOptionParser(self.spices)
+        parser = config.cmdopt_parser_class(self.spices)
         _debug("parse_cmdopts() (func=%s): spices=%s" % (self.recipe.name, repr(parser.spices)), 2)
         try:
             opts, rests = parser.parse(argv)
