@@ -84,7 +84,7 @@ def file_hello_o(c):
     system('gcc -c %s' % c.ingred)
     echo("invoked.")
 """
-        expected = ( "### * hello.o (func=file_hello_o)\n"
+        expected = ( "### * hello.o (recipe=file_hello_o)\n"
                      "$ gcc -c hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -108,7 +108,7 @@ def file_ext_o(c):
     system('gcc -c %s' % c.ingred)
     echo("invoked.")
 """
-        expected = ( "### * hello.o (func=file_ext_o)\n"
+        expected = ( "### * hello.o (recipe=file_ext_o)\n"
                      "$ gcc -c hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -130,7 +130,7 @@ def task_build(c):
     system('gcc -o hello hello.c')
     echo("invoked.")
 """
-        expected = ( "### * build (func=task_build)\n"
+        expected = ( "### * build (recipe=task_build)\n"
                      "$ gcc -o hello hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -153,7 +153,7 @@ def task_build(c):
     system('gcc -o %s %s.c' % (c.m[1], c.m[1]))
     echo("invoked.")
 """
-        expected = ( "### * build_hello (func=task_build)\n"
+        expected = ( "### * build_hello (recipe=task_build)\n"
                      "$ gcc -o hello hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -177,7 +177,7 @@ def build(c):
     system('gcc -o hello hello.c')
     echo("invoked.")
 """
-        expected = ( "### * build (func=build)\n"
+        expected = ( "### * build (recipe=build)\n"
                      "$ gcc -o hello hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         self._start(content, 'build')
@@ -196,7 +196,7 @@ def hello_o(c):
     echo("invoked.")
 """[1:]
         expected = r"""
-### * hello.o (func=hello_o)
+### * hello.o (recipe=hello_o)
 $ gcc -c hello.c
 $ echo invoked.
 invoked.
@@ -237,7 +237,7 @@ def file_ext_o(c):
         if os.path.exists("hello.h"): os.unlink("hello.h")
         self._start(content, "hello.o")
         ok("hello.o", isfile)
-        expected = ( "### * hello.o (func=file_ext_o)\n"
+        expected = ( "### * hello.o (recipe=file_ext_o)\n"
                      "$ gcc -c hello.c\n" )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
@@ -247,7 +247,7 @@ def file_ext_o(c):
         write_file("hello.h", "#include <stdio.h>\n")
         self._start(content, "hello.o")
         ok("hello.o", isfile)
-        expected = ( "### * hello.o (func=file_ext_o)\n"
+        expected = ( "### * hello.o (recipe=file_ext_o)\n"
                      "$ gcc -c hello.c hello.h\n" )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
@@ -296,7 +296,7 @@ def build(c, *args, **kwargs):
 """
         self._start(content, "build", "-hf foo.txt", "-D999", "--help", "--debug", "--file=bar.txt", "aaa", "bbb")
         expected = """\
-### * build (func=build)
+### * build (recipe=build)
 opts={'D': 999, 'debug': True, 'f': ' foo.txt', 'file': 'bar.txt', 'h': True, 'help': True}
 rests=('aaa', 'bbb')
 opts['D']=999
@@ -339,9 +339,9 @@ def file_ext_o(c):
         self._start(content, "hello")
         ok("hello", isfile)
         expected = (
-            "### ** hello.o (func=file_ext_o)\n"
+            "### ** hello.o (recipe=file_ext_o)\n"
             "$ gcc -c hello.c\n"
-            "### * hello (func=file_command)\n"
+            "### * hello (recipe=file_command)\n"
             "$ gcc -o hello hello.o\n"
         )
         ok(_stdout(), '==', expected)
@@ -355,9 +355,9 @@ def file_ext_o(c):
         ok(os.path.getmtime("hello"), '>', old_utime)
         ok("hello", isfile)
         expected = (
-            "### ** hello.o (func=file_ext_o)\n"
+            "### ** hello.o (recipe=file_ext_o)\n"
             "$ gcc -c hello.c\n"
-            "### * hello (func=file_command)\n"
+            "### * hello (recipe=file_command)\n"
             "$ touch hello   # skipped\n"             # content compared and skipped
         )
         ok(_stdout(), '==', expected)
@@ -381,9 +381,9 @@ def file_hello_txt(c):
         func = lambda: self._start(content, "hello.h")
         ok(func, 'raises', kook.KookCommandError)
         expected = (
-            "### * hello.h (func=file_hello_txt)\n"
+            "### * hello.h (recipe=file_hello_txt)\n"
             "$ gcc HOGE.c\n"
-            "### * (remove hello.h because unexpected error raised (func=file_hello_txt))\n"
+            "### * (remove hello.h because unexpected error raised (recipe=file_hello_txt))\n"
         )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
@@ -419,15 +419,15 @@ def all(c):
         self._start(content, "all")
         ok("hello", isfile)
         expected = (
-            "### **** hello.o (func=file_ext_o)\n"
+            "### **** hello.o (recipe=file_ext_o)\n"
             "$ gcc -c hello.c\n"
             "$ gcc -g -c hello.c\n"
-            "### *** hello (func=file_command)\n"
+            "### *** hello (recipe=file_command)\n"
             "$ gcc -o hello hello.o\n"
-            "### ** build (func=build)\n"
+            "### ** build (recipe=build)\n"
             "$ echo build() invoked.\n"
             "build() invoked.\n"
-            "### * all (func=all)\n"
+            "### * all (recipe=all)\n"
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
@@ -437,10 +437,10 @@ def all(c):
         _setup_stdio()
         self._start(content, "all")
         expected = (
-            "### ** build (func=build)\n"
+            "### ** build (recipe=build)\n"
             "$ echo build() invoked.\n"
             "build() invoked.\n"
-            "### * all (func=all)\n"
+            "### * all (recipe=all)\n"
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
@@ -452,15 +452,15 @@ def all(c):
         _setup_stdio()
         self._start(content, "all")
         expected = (
-            "### **** hello.o (func=file_ext_o)\n"
+            "### **** hello.o (recipe=file_ext_o)\n"
             "$ gcc -c hello.c\n"
             "$ gcc -g -c hello.c\n"
-            "### *** hello (func=file_command)\n"
+            "### *** hello (recipe=file_command)\n"
             "$ touch hello   # skipped\n"                   # skipped
-            "### ** build (func=build)\n"
+            "### ** build (recipe=build)\n"
             "$ echo build() invoked.\n"
             "build() invoked.\n"
-            "### * all (func=all)\n"
+            "### * all (recipe=all)\n"
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )

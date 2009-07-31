@@ -176,7 +176,7 @@ class Cooking(Cookable):
         self.spices  = spices
         self.cooked  = None
         self.argv = ()
-        self._r = 'func=%s' % recipe.name
+        self._r = 'recipe=%s' % recipe.name
 
     @classmethod
     def new(cls, target, recipe):
