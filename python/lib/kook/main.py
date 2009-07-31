@@ -81,7 +81,7 @@ class Main(object):
                     del props[name]
         if longopts:
             props.update(longopts)
-        ## cookbook
+        ## create cookbook
         bookname = opts.get('f', 'Kookbook.py')
         if not os.path.isfile(bookname):
             raise CommandOptionError("%s: not found." % bookname)
@@ -90,8 +90,7 @@ class Main(object):
         if opts.get('l') or opts.get('L'):
             self._list_recipes(cookbook, opts)
             return 0
-        ## start cooking
-        kitchen = Kitchen.new(cookbook)
+        ## get default product if no argument
         if not rests:
             default_product = cookbook.default_product()
             if not default_product:
@@ -101,6 +100,8 @@ class Main(object):
                 write("*** (or set 'kook_default_product' in your kookbook.)\n")
                 return 1
             rests = [default_product]
+        ## start cooking
+        kitchen = Kitchen.new(cookbook)
         kitchen.start_cooking(*rests)
         ##
         return 0
@@ -147,8 +148,10 @@ class Main(object):
     TIPS = (
         "you can set 'kook_default_product' variable in your kookbook.",
         "you can override properties with '--propname=propvalue'.",
+        "it is able to separate properties into 'Properties.py' file.",
+        "try 'kk' command which is shortcat for 'pykook' command.",
         "'@ingreds(\"$(1).c\", if_exists(\"$(1).h\"))' is a friend of C programmer.",
-        "'c%\"gcc $(ingreds[0])\"' is more natural than '\"gcc %s\" % c.ingreds[0]'.",
+        "'c%\"gcc $(ingred)\"' is more natural than '\"gcc %s\" % c.ingreds[0]'.",
     )
 
     def get_tip(self, default_product):
