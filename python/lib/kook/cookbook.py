@@ -136,7 +136,7 @@ class Cookbook(object):
             for recipe in recipes:
                 if recipe.match(target):
                     _debug("Cookbook#find_recipe(): target=%s, func=%s, product=%s" % \
-                               (repr(target), recipe.get_func_name(), repr(recipe.product), ), 2)
+                               (repr(target), recipe.name, repr(recipe.product), ), 2)
                     return recipe
         return None
         #if target.startswith(':'):
@@ -148,12 +148,12 @@ class Cookbook(object):
         #for recipe in specific_recipes:    ## TODO: use dict
         #    if recipe.match(target):
         #        _debug("find_recipe(): target=%s, func=%s, product=%s" % \
-        #                   (repr(target), recipe.get_func_name(), repr(recipe.product), ), 2)
+        #                   (repr(target), recipe.name, repr(recipe.product), ), 2)
         #        return recipe
         #for recipe in generic_recipes:
         #    if recipe.match(target):
         #        _debug("find_recipe(): target=%s, func=%s, product=%s" % \
-        #                   (repr(target), recipe.get_func_name(), repr(recipe.product), ), 2)
+        #                   (repr(target), recipe.name, repr(recipe.product), ), 2)
         #        return recipe
         #return None
 
@@ -205,9 +205,6 @@ class Recipe(object):
         else:
             return self.product == target
 
-    def get_func_name(self):
-        return kook.utils._get_codeobj(self.func).co_name
-
     def _func_linenum(self):
         return kook.utils._get_codeobj(self.func).co_firstlineno
 
@@ -226,8 +223,8 @@ class Recipe(object):
         return cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
 
     def __repr__(self):
-        #return "<%s product=%s func=%s>" % (self.__class__.__name__, repr(self.product), self.get_func_name())
-        return "<%s:%s:%s>" % (self.__class__.__name__, repr(self.product), self.get_func_name())
+        #return "<%s product=%s func=%s>" % (self.__class__.__name__, repr(self.product), self.name)
+        return "<%s:%s:%s>" % (self.__class__.__name__, repr(self.product), self.name)
 
 
 ## TODO: define SpecificRecipe and GenericRecipe instead of TaskRecipe and FileRecipe?
