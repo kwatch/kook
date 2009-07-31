@@ -148,7 +148,7 @@ class Material(Cookable):
     ingreds = ()
     byprods = ()
     children = ()
-    cooked = True
+    cooked = None
     is_material = True
     was_file_recipe = True
 
@@ -277,70 +277,96 @@ class Cooking(Cookable):
             if mtime < getmtime(child.product): return False
         return True
 
+    ##
+    ## invoke recipe function.
+    ##
+    ## pseudo-code:
+    ##
+    ##   if CONENT_CHANGED in self.children:
+    ##     invoke recipe
+    ##     if new content is same as old:
+    ##       return MTIME_UPDATED
+    ##     else:
+    ##       return CONTENT_CHANGED
+    ##   elif MTIME_UPDATED in self.children:
+    ##     # not invoke recipe function
+    ##     touch product file
+    ##     return MTIME_UPDATED
+    ##   else:
+    ##     # not invoke recipe function
+    ##     return NOT_INVOKED
+    ##
     def start2(self, depth=1, argv=(), parent_mtime=0):
+        ## return if already cooked
         if self.cooked:
             _debug("pass %s (already cooked)" % self.product, 1, depth)
-            return
-        ## exec recipes of ingredients
+            return self.cooked
+        ## get mtime of product file if it exists
         _debug("begin %s" % self.product, 1, depth)
         if self.was_file_recipe and os.path.exists(self.product):
-            product_mtime = os.path.getmtime(self.product)
+            product_mtime = os.path.getmtime(self.product)  # exist
         else:
-            product_mtime = 0
-        status = 0
+            product_mtime = 0    # product doesn't exist
+        ## invoke ingredients' recipes
+        child_status = NOT_INVOKED
         if self.children:
             for child in self.children:
                 ret = child.start2(depth+1, (), product_mtime)
-                if ret is not None and ret > status:  status = ret
-        ## skip if product is newer than ingredients
-        if self._can_skip2(status):
-            if status == MTIME_UPDATED:
+                assert ret is not None
+                if ret > child_status:  child_status = ret
+        assert child_status in (CONTENT_CHANGED, MTIME_UPDATED, NOT_INVOKED)
+        ## there are some cases to skip recipe invocation (ex. product is newer than ingredients)
+        if self._can_skip2():
+            if child_status == MTIME_UPDATED:
                 assert os.path.exists(self.product)
                 _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
                 _debug("touch and skip %s (func=%s)" % (self.product, self.get_func_name()), 1, depth)
                 _report_cmd("touch %s   # skipped" % self.product)
-                os.utime(self.product, None)
-                return MTIME_UPDATED
-            else:
+                os.utime(self.product, None)    # update mtime of product file to current timestamp
+                self.cooked = MTIME_UPDATED
+                return MTIME_UPDATED    # skip recipe invocation
+            elif child_status == NOT_INVOKED:
                 _debug("skip %s (func=%s)" % (self.product, self.get_func_name()), 1, depth)
-                return NOT_INVOKED
-        ## exec recipe function
+                self.cooked = NOT_INVOKED
+                return NOT_INVOKED          # skip recipe invocation
+            else:
+                assert child_status == CONTENT_CHANGED
+                pass    # don't skip recipe invocation
+        ## invoke recipe function
         assert self.func is not None
         try:
             try:
+                ## if product file exists, rename it to temporary filename
                 if product_mtime:
                     tmp_basename = ".kook.%s.kook" % os.path.basename(self.product)
                     tmp_filename = os.path.join(os.path.dirname(self.product), tmp_basename)
-                    os.rename(self.product, tmp_filename)             # rename old product
+                    os.rename(self.product, tmp_filename)
+                ## invoke recipe
                 s = self.was_file_recipe and 'create' or 'perform'
                 _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
                 _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
-                #self.func(self, *argv)
                 self._call_func_with(argv)
+                ## check whether product file created or not
                 if self.was_file_recipe and not os.path.exists(self.product):
                     raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
-                self.cooked = True
+                ## if new product file is same as old, return MTIME_UPDATED, else return CONTENT_CHANGED
                 if product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
-                    ret = MTIME_UPDATED
-                    msg = "end %s (content not changed, mtime updated)"
+                    ret, msg = MTIME_UPDATED,   "end %s (content not changed, mtime updated)"
                 else:
-                    ret = CONTENT_CHANGED
-                    msg = "end %s (content changed)"
+                    ret, msg = CONTENT_CHANGED, "end %s (content changed)"
                 _debug(msg % self.product, 1, depth)
+                return ret
             except Exception:
                 ex = sys.exc_info()[1]
+                ## if product file exists, remove it when error raised
                 if product_mtime:
                     _report_msg("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), depth)
-                    #_debug("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), 1, depth)
-                    if os.path.isfile(self.product):
-                        os.unlink(self.product)
+                    if os.path.isfile(self.product): os.unlink(self.product)
                 raise
         finally:
-            if product_mtime:
-                os.unlink(tmp_filename)                           # remove old product
-        return ret
+            if product_mtime: os.unlink(tmp_filename)
 
-    def _can_skip2(self, status):
+    def _can_skip2(self):
         if kook._forced:              return False
         if not self.was_file_recipe:  return False
         if not self.children:         return False
@@ -352,8 +378,6 @@ class Cooking(Cookable):
         #    assert os.path.exists(child.product)
         #    if mtime < getmtime(child.product): return False
         #        return False
-        if status == CONTENT_CHANGED: return False
-        assert status <= MTIME_UPDATED
         return True
 
     ## utility method for convenience
