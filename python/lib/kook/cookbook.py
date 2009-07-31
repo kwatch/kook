@@ -177,6 +177,7 @@ class Recipe(object):
 
     kind = None
     prefix = ''
+    name = None
 
     def __init__(self, product=None, ingreds=(), byprods=(), func=None, desc=None, spices=None):
         self.product = product
@@ -184,7 +185,8 @@ class Recipe(object):
         self.byprods = byprods
         self.func    = func
         self.desc    = desc
-        self.spices = spices
+        self.spices  = spices
+        self.name    = func and kook.utils._get_codeobj(self.func).co_name or None
         if not product:
             self.pattern = None
         elif type(product) is _re_pattern_type:
