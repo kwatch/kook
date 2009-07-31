@@ -192,9 +192,9 @@ class CommandOptionParser(object):
     def __init__(self, optdef_strs=()):
         self.parse_spices(optdef_strs)
 
-    @classmethod
-    def new(cls, optdef_strs=()):
-        return cls(optdef_strs)
+    #@classmethod
+    #def new(cls, optdef_strs=()):
+    #    return cls(optdef_strs)
 
     def parse_spices(self, optdef_strs):
         helps = []

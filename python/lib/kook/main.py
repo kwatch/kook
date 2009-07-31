@@ -46,7 +46,7 @@ class Main(object):
 
     def invoke(self):
         ## parse command-line options
-        optparser = CommandOptionParser.new(self.optdef_strs)
+        optparser = CommandOptionParser(self.optdef_strs)
         opts, longopts, rests = optparser.parse2(self.args, command=self.command)
         #print "*** debug: command option: opts=%s, longopts=%s, rests=%s" % (repr(opts), repr(longopts), repr(rests))
         ## handle options
@@ -130,7 +130,7 @@ class Main(object):
                 if show_all or recipe.desc:
                     write(format % (recipe.product, recipe.desc or ''))
                     if config.quiet or not recipe.spices: continue
-                    optparser = CommandOptionParser.new(recipe.spices)
+                    optparser = CommandOptionParser(recipe.spices)
                     for opt, desc in optparser.helps:
                         write(format2 % (opt, desc))
             write("\n")
