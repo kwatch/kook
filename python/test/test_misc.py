@@ -22,3 +22,6 @@ class KookMiscTest(object):
         ok(ret[0].filename, '==', 'foo.h')
         ok(ret[1].filename, '==', '*.h')
 
+
+if __name__ == '__main__':
+    oktest.invoke_tests('Test$')
