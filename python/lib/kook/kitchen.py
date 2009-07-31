@@ -222,10 +222,6 @@ class Cooking(Cookable):
         self.m = m
         return self
 
-    def get_func_name(self):
-        #return kook.utils._get_codeobj(self.func).co_name
-        return self.recipe.name
-
     def _call_func_with(self, argv):
         if self.spices:
             opts, rests = self.parse_cmdopts(argv)
@@ -275,14 +271,14 @@ class Cooking(Cookable):
         if self._can_skip():
             if child_status == MTIME_UPDATED:
                 assert os.path.exists(self.product)
-                _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
-                _debug("touch and skip %s (func=%s)" % (self.product, self.get_func_name()), 1, depth)
+                _report_msg("%s (func=%s)" % (self.product, self.recipe.name), depth)
+                _debug("touch and skip %s (func=%s)" % (self.product, self.recipe.name), 1, depth)
                 _report_cmd("touch %s   # skipped" % self.product)
                 os.utime(self.product, None)    # update mtime of product file to current timestamp
                 self.cooked = MTIME_UPDATED
                 return MTIME_UPDATED    # skip recipe invocation
             elif child_status == NOT_INVOKED:
-                _debug("skip %s (func=%s)" % (self.product, self.get_func_name()), 1, depth)
+                _debug("skip %s (func=%s)" % (self.product, self.recipe.name), 1, depth)
                 self.cooked = NOT_INVOKED
                 return NOT_INVOKED          # skip recipe invocation
             else:
@@ -299,12 +295,12 @@ class Cooking(Cookable):
                     os.rename(self.product, tmp_filename)
                 ## invoke recipe
                 s = self.was_file_recipe and 'create' or 'perform'
-                _debug("%s %s (func=%s)" % (s, self.product, self.get_func_name()), 1, depth)
-                _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
+                _debug("%s %s (func=%s)" % (s, self.product, self.recipe.name), 1, depth)
+                _report_msg("%s (func=%s)" % (self.product, self.recipe.name), depth)
                 self._call_func_with(argv)
                 ## check whether product file created or not
                 if self.was_file_recipe and not os.path.exists(self.product):
-                    raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.get_func_name(), ))
+                    raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.recipe.name, ))
                 ## if new product file is same as old, return MTIME_UPDATED, else return CONTENT_CHANGED
                 if config.compare_contents and product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
                     ret, msg = MTIME_UPDATED,   "end %s (content not changed, mtime updated)"
@@ -316,7 +312,7 @@ class Cooking(Cookable):
                 ex = sys.exc_info()[1]
                 ## if product file exists, remove it when error raised
                 if product_mtime:
-                    _report_msg("(remove %s because unexpected error raised (func=%s))" % (self.product, self.get_func_name()), depth)
+                    _report_msg("(remove %s because unexpected error raised (func=%s))" % (self.product, self.recipe.name), depth)
                     if os.path.isfile(self.product): os.unlink(self.product)
                 raise
         finally:
@@ -342,11 +338,11 @@ class Cooking(Cookable):
                 if name == 'product':  return self.product[index]
                 if name in frame.f_locals:  return frame.f_locals[name]
                 if name in frame.f_globals: return frame.f_globals[name]
-                raise NameError("$(%s[%d]): unknown name. (func=%s)" % (name, index, self.get_func_name(), ))
+                raise NameError("$(%s[%d]): unknown name. (func=%s)" % (name, index, self.recipe.name, ))
             else:
                 if re.match(r'^\d+$', name):
                     if self.matched is None:
-                        raise KookRecipeError("$(%s) is specified but %s() is not a generic recipe." % (name, self.get_func_name(), ))
+                        raise KookRecipeError("$(%s) is specified but %s() is not a generic recipe." % (name, self.recipe.name, ))
                     return self.matched.group(int(name))
                 #elif name in ('product', 'ingreds', 'coprods') : return getattr(self, name)
                 #elif name in ('ingred', 'byprod') : return getattr(self, name+'s')[0]
@@ -357,17 +353,17 @@ class Cooking(Cookable):
                 if name == 'coprods':  return ' '.join(self.coprods)
                 if name in frame.f_locals:  return str(frame.f_locals[name])
                 if name in frame.f_globals: return str(frame.f_globals[name])
-                raise NameError("$(%s): unknown name. (func=%s)" % (name, self.get_func_name(), ))
+                raise NameError("$(%s): unknown name. (func=%s)" % (name, self.recipe.name, ))
         return re.sub(r'\$\((\w+)(?:\[(\d+)\])?\)', repl, string)
 
     ## utility method for convenience
     def parse_cmdopts(self, argv):
         parser = CommandOptionParser.new(self.spices)
-        _debug("parse_cmdopts() (func=%s): spices=%s" % (self.get_func_name(), repr(parser.spices)), 2)
+        _debug("parse_cmdopts() (func=%s): spices=%s" % (self.recipe.name, repr(parser.spices)), 2)
         try:
             opts, rests = parser.parse(argv)
-            _debug("parse_cmdopts() (func=%s): opts=%s, rests=%s" % (self.get_func_name(), repr(opts), repr(rests)), 2)
+            _debug("parse_cmdopts() (func=%s): opts=%s, rests=%s" % (self.recipe.name, repr(opts), repr(rests)), 2)
             return opts, rests
         except CommandOptionError:
             ex = sys.exc_info()[1]
-            raise CommandOptionError("%s(): %s" % (self.get_func_name(), str(ex), ))
+            raise CommandOptionError("%s(): %s" % (self.recipe.name, str(ex), ))
