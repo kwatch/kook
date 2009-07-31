@@ -239,19 +239,6 @@ class Cooking(Cookable):
         else:
             self.func(self, *argv)
 
-    def can_skip(self):
-        if kook._forced:              return False
-        if not self.was_file_recipe:  return False
-        if not self.children:         return False
-        if not os.path.exists(self.product): return False
-        getmtime = os.path.getmtime
-        mtime = getmtime(self.product)
-        for child in self.children:
-            if not child.was_file_recipe:       return False
-            assert os.path.exists(child.product)
-            if mtime < getmtime(child.product): return False
-        return True
-
     def start(self, depth=1, argv=()):
         if self.cooked:
             _debug("pass %s (already cooked)" % self.product, 1, depth)
@@ -262,7 +249,7 @@ class Cooking(Cookable):
             for child in self.children:
                 child.start(depth+1)
         ## skip if product is newer than ingredients
-        if self.can_skip():
+        if self._can_skip():
             _debug("skip %s (func=%s)" % (self.product, self.get_func_name()), 1, depth)
             return
         ## exec recipe function
@@ -277,20 +264,17 @@ class Cooking(Cookable):
         self.cooked = True
         _debug("end %s" % self.product, 1, depth)
 
-    def can_skip2(self, status):
+    def _can_skip(self):
         if kook._forced:              return False
         if not self.was_file_recipe:  return False
         if not self.children:         return False
         if not os.path.exists(self.product): return False
-        #getmtime = os.path.getmtime
-        #mtime = getmtime(self.product)
-        #for child in self.children:
-        #    if not child.was_file_recipe:       return False
-        #    assert os.path.exists(child.product)
-        #    if mtime < getmtime(child.product): return False
-        #        return False
-        if status == CONTENT_CHANGED: return False
-        assert status <= MTIME_UPDATED
+        getmtime = os.path.getmtime
+        mtime = getmtime(self.product)
+        for child in self.children:
+            if not child.was_file_recipe:       return False
+            assert os.path.exists(child.product)
+            if mtime < getmtime(child.product): return False
         return True
 
     def start2(self, depth=1, argv=(), parent_mtime=0):
@@ -309,7 +293,7 @@ class Cooking(Cookable):
                 ret = child.start2(depth+1, (), product_mtime)
                 if ret is not None and ret > status:  status = ret
         ## skip if product is newer than ingredients
-        if self.can_skip2(status):
+        if self._can_skip2(status):
             if status == MTIME_UPDATED:
                 assert os.path.exists(self.product)
                 _report_msg("%s (func=%s)" % (self.product, self.get_func_name()), depth)
@@ -355,6 +339,22 @@ class Cooking(Cookable):
             if product_mtime:
                 os.unlink(tmp_filename)                           # remove old product
         return ret
+
+    def _can_skip2(self, status):
+        if kook._forced:              return False
+        if not self.was_file_recipe:  return False
+        if not self.children:         return False
+        if not os.path.exists(self.product): return False
+        #getmtime = os.path.getmtime
+        #mtime = getmtime(self.product)
+        #for child in self.children:
+        #    if not child.was_file_recipe:       return False
+        #    assert os.path.exists(child.product)
+        #    if mtime < getmtime(child.product): return False
+        #        return False
+        if status == CONTENT_CHANGED: return False
+        assert status <= MTIME_UPDATED
+        return True
 
     def _has_same_content(self, filename1, filename2):
         assert os.path.exists(filename1)
