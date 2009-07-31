@@ -34,21 +34,21 @@ class KookDecoratorsTest(object):
         def f(c):
             pass
         ok(hasattr(f, '_kook_ingreds'), '==', True)
-        ok(f._kook_ingreds, '==', ['foo', 'bar', 'baz'])
+        ok(f._kook_ingreds, '==', ('foo', 'bar', 'baz'))
 
     def test_byrpods(self):
         @byprods('foo', 'bar', 'baz')
         def f(c):
             pass
         ok(hasattr(f, '_kook_byprods'), '==', True)
-        ok(f._kook_byprods, '==', ['foo', 'bar', 'baz'])
+        ok(f._kook_byprods, '==', ('foo', 'bar', 'baz'))
 
     def test_coprods(self):
         @coprods('foo', 'bar', 'baz')
         def f(c):
             pass
         ok(hasattr(f, '_kook_coprods'), '==', True)
-        ok(f._kook_coprods, '==', ['foo', 'bar', 'baz'])
+        ok(f._kook_coprods, '==', ('foo', 'bar', 'baz'))
 
     def test_priority(self):
         @priority(123)

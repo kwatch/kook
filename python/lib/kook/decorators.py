@@ -28,21 +28,21 @@ def product(name):
 
 def ingreds(*names):
     def deco(f):
-        f._kook_ingreds = flatten(names)
+        f._kook_ingreds = tuple(flatten(names))
         return f
     return deco
 
 
 def byprods(*names):
     def deco(f):
-        f._kook_byprods = flatten(names)
+        f._kook_byprods = tuple(flatten(names))
         return f
     return deco
 
 
 def coprods(*names):
     def deco(f):
-        f._kook_coprods = flatten(names)
+        f._kook_coprods = tuple(flatten(names))
         return f
     return deco
 
@@ -59,7 +59,7 @@ def priority(level):     # not used yet
 
 def spices(*names):
     def deco(f):
-        f._kook_spices = names
+        f._kook_spices = tuple(flatten(names))
         return f
     return deco
 
