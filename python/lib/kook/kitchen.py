@@ -17,10 +17,19 @@ import kook.config as config
 __all__ = ('Kitchen', 'IfExists', )
 
 
-class IfExists(object):
-    """represents conditional dependency."""
-    def __init__(self, material_filename):
-        self.filename = material_filename
+class ConditionalFile(object):
+
+    def __init__(self, filename):
+        self.filename = filename
+
+    def __call__(self, filename=None):
+        return None
+
+class IfExists(ConditionalFile):
+
+    def __call__(self, filename=None):
+        if filename is None: self.filename = filename
+        return os.path.exists(filename) and filename or None
 
 
 class Kitchen(object):
@@ -56,8 +65,12 @@ class Kitchen(object):
             cookables[target] = cookable
             if cookable.ingreds:
                 for ingred in cookable.ingreds:
-                    if isinstance(ingred, IfExists):
-                        if not exists(ingred.filename): continue
+                    if isinstance(ingred, ConditionalFile):
+                        filename = ingred()
+                        if not filename: continue
+                        ingred = filename
+                    #if isinstance(ingred, IfExists):
+                    #    if not exists(ingred.filename): continue
                     child_cookable = _create(ingred)
                     cookable.children.append(child_cookable)
             return cookable
@@ -182,10 +195,10 @@ class Cooking(Cookable):
             def convert(items):
                 arr = []
                 for item in items:
-                    if isinstance(item, IfExists):
+                    if isinstance(item, ConditionalFile):
                         filename = re.sub(pat, repl, item.filename)
-                        if os.path.exists(filename):
-                            arr.append(filename)
+                        filename = item.__call__(filename)
+                        if filename: arr.append(filename)
                     else:
                         arr.append(re.sub(pat, repl, item))
                 return tuple(arr)

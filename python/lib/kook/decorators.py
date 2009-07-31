@@ -72,6 +72,6 @@ def cmdopts(*names):
 
 
 def if_exists(*args):
-    import kook
+    import kook.kitchen
     #return kook.kitchen.IfExists(*args)
     return [ kook.kitchen.IfExists(arg) for arg in flatten(args) ]
