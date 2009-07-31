@@ -137,9 +137,9 @@ class Cookable(object):
         raise NotImplementedError("%s.start2(): not implemented yet." % self.__class__.__name__)
 
 
-CONTENT_CHANGED = 2
-MTIME_UPDATED   = 1
-NOTHING         = 0
+CONTENT_CHANGED = 3
+MTIME_UPDATED   = 2
+NOTHING         = 1
 
 
 class Material(Cookable):
