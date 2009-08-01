@@ -77,13 +77,14 @@ class KookKitchenTest(object):
 
     def test_specific_file_cooking1(self):
         content = r"""\
+@recipe
 @product('hello.o')
 @ingreds('hello.c', 'hello.h')
-def file_hello_o(c):
+def hello_o(c):
     system('gcc -c %s' % c.ingred)
     echo("invoked.")
 """
-        expected = ( "### * hello.o (recipe=file_hello_o)\n"
+        expected = ( "### * hello.o (recipe=hello_o)\n"
                      "$ gcc -c hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -101,13 +102,14 @@ def file_hello_o(c):
 
     def test_generic_file_cooking1(self):
         content = r"""\
+@recipe
 @product('*.o')
 @ingreds('$(1).c', '$(1).h')
-def file_ext_o(c):
+def ext_o(c):
     system('gcc -c %s' % c.ingred)
     echo("invoked.")
 """
-        expected = ( "### * hello.o (recipe=file_ext_o)\n"
+        expected = ( "### * hello.o (recipe=ext_o)\n"
                      "$ gcc -c hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -125,11 +127,12 @@ def file_ext_o(c):
 
     def test_specific_task_cooking1(self):
         content = r"""\
-def task_build(c):
+@recipe
+def build(c):
     system('gcc -o hello hello.c')
     echo("invoked.")
 """
-        expected = ( "### * build (recipe=task_build)\n"
+        expected = ( "### * build (recipe=build)\n"
                      "$ gcc -o hello hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -147,12 +150,13 @@ def task_build(c):
 
     def test_generic_task_cooking1(self):
         content = r"""\
+@recipe(kind="task")
 @product('build_*')
-def task_build(c):
+def build(c):
     system('gcc -o %s %s.c' % (c.m[1], c.m[1]))
     echo("invoked.")
 """
-        expected = ( "### * build_hello (recipe=task_build)\n"
+        expected = ( "### * build_hello (recipe=build)\n"
                      "$ gcc -o hello hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -168,49 +172,50 @@ def task_build(c):
         ok(_stderr(), '==', "")
 
 
-    def test_recipe_decorator_without_task_prefix(self):
-        ## without 'task_' prefix
-        content = r"""\
-@recipe
-def build(c):
-    system('gcc -o hello hello.c')
-    echo("invoked.")
-"""
-        expected = ( "### * build (recipe=build)\n"
-                     "$ gcc -o hello hello.c\n$ echo invoked.\n"
-                     "invoked.\n" )
-        self._start(content, 'build')
-        ok('hello', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
-
-
-    def test_recipe_decorator_without_file_prefix(self):
-        ## without 'file_' prefix
-        content = r"""
-@recipe
-@product('hello.o')
-def hello_o(c):
-    system('gcc -c hello.c')
-    echo("invoked.")
-"""[1:]
-        expected = r"""
-### * hello.o (recipe=hello_o)
-$ gcc -c hello.c
-$ echo invoked.
-invoked.
-"""[1:]
-        self._start(content, 'hello.o')
-        ok('hello.o', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+#    def test_recipe_decorator_without_task_prefix(self):
+#        ## without 'task_' prefix
+#        content = r"""\
+#@recipe
+#def build(c):
+#    system('gcc -o hello hello.c')
+#    echo("invoked.")
+#"""
+#        expected = ( "### * build (recipe=build)\n"
+#                     "$ gcc -o hello hello.c\n$ echo invoked.\n"
+#                     "invoked.\n" )
+#        self._start(content, 'build')
+#        ok('hello', isfile)
+#        ok(_stdout(), '==', expected)
+#        ok(_stderr(), '==', "")
+#
+#
+#    def test_recipe_decorator_without_file_prefix(self):
+#        ## without 'file_' prefix
+#        content = r"""
+#@recipe
+#@product('hello.o')
+#def hello_o(c):
+#    system('gcc -c hello.c')
+#    echo("invoked.")
+#"""[1:]
+#        expected = r"""
+#### * hello.o (recipe=hello_o)
+#$ gcc -c hello.c
+#$ echo invoked.
+#invoked.
+#"""[1:]
+#        self._start(content, 'hello.o')
+#        ok('hello.o', isfile)
+#        ok(_stdout(), '==', expected)
+#        ok(_stderr(), '==', "")
 
 
     def test_error_when_ingredients_not_found(self):
         content = r"""
+@recipe
 @product("*.o")
 @ingreds("$(1).c", "$(1).h")    # *.h not found
-def file_ext_o(c):
+def ext_o(c):
     system(c%"gcc -c $(ingred)")
 """
         if os.path.isfile("hello.h"): os.unlink("hello.h")
@@ -223,9 +228,10 @@ def file_ext_o(c):
 
     def test_if_exists1(self):
         content = r"""
+@recipe
 @product("*.o")
 @ingreds("$(1).c", if_exists("$(1).h"))    # *.h may not exist
-def file_ext_o(c):
+def ext_o(c):
     if len(c.ingreds) == 2:
         system(c%"gcc -c $(ingreds[0]) $(ingreds[1])")
     else:
@@ -236,7 +242,7 @@ def file_ext_o(c):
         if os.path.exists("hello.h"): os.unlink("hello.h")
         self._start(content, "hello.o")
         ok("hello.o", isfile)
-        expected = ( "### * hello.o (recipe=file_ext_o)\n"
+        expected = ( "### * hello.o (recipe=ext_o)\n"
                      "$ gcc -c hello.c\n" )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
@@ -246,7 +252,7 @@ def file_ext_o(c):
         write_file("hello.h", "#include <stdio.h>\n")
         self._start(content, "hello.o")
         ok("hello.o", isfile)
-        expected = ( "### * hello.o (recipe=file_ext_o)\n"
+        expected = ( "### * hello.o (recipe=ext_o)\n"
                      "$ gcc -c hello.c hello.h\n" )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
@@ -254,23 +260,27 @@ def file_ext_o(c):
 
     def test_looped_cooking_tree1(self):
         content = r"""
+@recipe
 @product("hello")
 @ingreds("hello.o")
 def file_hello(c):
     system(c%"gcc -o $(product) $(ingred)")
 
+@recipe
 @product("*.o")
 @ingreds("$(1).c")
 def file_ext_o(c):
     system(c%"gcc -c $(ingred)")
 
+@recipe
 @product("*.c")
 @ingreds("$(1)")            # looped ("$(1)" == "hello")
 def file_ext_c(c):
     system(c%"cp $(ingred) $(product)")
 
+@recipe
 @ingreds("hello")
-def task_all(c):
+def all(c):
     pass
 """
         func = lambda: self._start(content, "all")
@@ -323,11 +333,13 @@ opts['help']=True
 
     def test_content_compared1(self):
         content = r"""
+@recipe
 @product("hello")
 @ingreds("hello.o")
 def file_command(c):
     system(c%"gcc -o $(product) $(ingred)")
 
+@recipe
 @product("*.o")
 @ingreds("$(1).c")
 def file_ext_o(c):
@@ -364,6 +376,7 @@ def file_ext_o(c):
 
     def test_remove_produt_when_recipe_failed1(self):
         content = r"""
+@recipe
 @product('hello.h')
 @ingreds('hello.c')
 def file_hello_txt(c):
@@ -397,20 +410,23 @@ command = "hello"
 def build(c):
     echo("build() invoked.")
 
+@recipe
 @product(command)
 @ingreds("%s.o" % command)
 def file_command(c):
     system(c%"gcc -o $(product) $(ingred)")
 
+@recipe
 @product("*.o")
 @ingreds("$(1).c", if_exists("$(1).h"))
 def file_ext_o(c):
     system(c%"gcc -c $(ingred)")
     system(c%"gcc -g -c $(1).c")
 
-@recipe
+@recipe(kind='task')
+@product('all')
 @ingreds('build')
-def all(c):
+def create_all(c):
     echo("all() invoked.")
 """
         ## 1st
@@ -425,7 +441,7 @@ def all(c):
             "### ** build (recipe=build)\n"
             "$ echo build() invoked.\n"
             "build() invoked.\n"
-            "### * all (recipe=all)\n"
+            "### * all (recipe=create_all)\n"
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
@@ -438,7 +454,7 @@ def all(c):
             "### ** build (recipe=build)\n"
             "$ echo build() invoked.\n"
             "build() invoked.\n"
-            "### * all (recipe=all)\n"
+            "### * all (recipe=create_all)\n"
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
@@ -458,7 +474,7 @@ def all(c):
             "### ** build (recipe=build)\n"
             "$ echo build() invoked.\n"
             "build() invoked.\n"
-            "### * all (recipe=all)\n"
+            "### * all (recipe=create_all)\n"
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
