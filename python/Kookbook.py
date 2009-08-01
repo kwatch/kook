@@ -15,7 +15,7 @@ script_file     = ["pykook", "kk"]
 library_files   = [ "lib/*.py" ]
 
 
-@product("package")
+@recipe
 def task_package(c):
     """create package"""
     ## remove files
@@ -66,7 +66,8 @@ def task_package(c):
         system(c%"tar -xzf $(dir).tar.gz")
 
 
-def task_uninstall(c):
+@recipe
+def uninstall(c):
     site_packages_dir = None
     for path in sys.path:
         if os.path.basename(path) == 'site-packages':
@@ -88,7 +89,8 @@ def task_uninstall(c):
             #edit(filename, by=repl)
 
 
-def task_test(c):
+@recipe
+def test(c):
     from glob import glob
     with chdir('test') as d:
         #system("python test_all.py 2>&1 >  test.log")
@@ -96,15 +98,17 @@ def task_test(c):
             system("python " + fname)
 
 
-def task_clean(c):
+@recipe
+def clean(c):
     pass
 
 
 kook_default_product = 'test'
 
-@product('default')
+
+@recipe
 @ingreds('package')
-def task_default(c):
+def default(c):
     pass
     #rm_rf("dist")
     #system("python setup.py sdist")
@@ -113,12 +117,13 @@ def task_default(c):
     #    system(c%"ls $(package)-$(release)/")
 
 
-@product('doc')
+@recipe
 @ingreds('doc/users-guide.html', 'doc/docstyle.css')
-def task_doc(c):
+def doc(c):
     """make document"""
     pass
 
+@recipe
 @product('doc/users-guide.html')
 @ingreds('doc/users-guide.txt')
 #@byprods('doc/users-guide.toc.html')
@@ -131,12 +136,14 @@ def file_users_guide_html(c):
     rm(c%"$(product).tmp")
     mv(c.byprod, "doc")
 
+@recipe
 @product('doc/users-guide.txt')
 @ingreds('../doc/users-guide.eruby')
 def file_users_guide_txt(c):
     os.path.isdir('doc') or mkdir('doc')
     system(c%"erubis -E PercentLine -p '\\[% %\\]' $(ingred) > $(product)")
 
+@recipe
 @product('doc/docstyle.css')
 @ingreds('../doc/docstyle.css')
 def file_users_guide_css(c):
