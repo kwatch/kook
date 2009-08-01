@@ -80,11 +80,11 @@ class KookKitchenTest(object):
 @recipe
 @product('hello.o')
 @ingreds('hello.c', 'hello.h')
-def hello_o(c):
+def file_hello_o(c):
     system('gcc -c %s' % c.ingred)
     echo("invoked.")
 """
-        expected = ( "### * hello.o (recipe=hello_o)\n"
+        expected = ( "### * hello.o (recipe=file_hello_o)\n"
                      "$ gcc -c hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -105,11 +105,11 @@ def hello_o(c):
 @recipe
 @product('*.o')
 @ingreds('$(1).c', '$(1).h')
-def ext_o(c):
+def file_ext_o(c):
     system('gcc -c %s' % c.ingred)
     echo("invoked.")
 """
-        expected = ( "### * hello.o (recipe=ext_o)\n"
+        expected = ( "### * hello.o (recipe=file_ext_o)\n"
                      "$ gcc -c hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe
@@ -215,7 +215,7 @@ def build(c):
 @recipe
 @product("*.o")
 @ingreds("$(1).c", "$(1).h")    # *.h not found
-def ext_o(c):
+def file_ext_o(c):
     system(c%"gcc -c $(ingred)")
 """
         if os.path.isfile("hello.h"): os.unlink("hello.h")
@@ -231,7 +231,7 @@ def ext_o(c):
 @recipe
 @product("*.o")
 @ingreds("$(1).c", if_exists("$(1).h"))    # *.h may not exist
-def ext_o(c):
+def file_ext_o(c):
     if len(c.ingreds) == 2:
         system(c%"gcc -c $(ingreds[0]) $(ingreds[1])")
     else:
@@ -242,7 +242,7 @@ def ext_o(c):
         if os.path.exists("hello.h"): os.unlink("hello.h")
         self._start(content, "hello.o")
         ok("hello.o", isfile)
-        expected = ( "### * hello.o (recipe=ext_o)\n"
+        expected = ( "### * hello.o (recipe=file_ext_o)\n"
                      "$ gcc -c hello.c\n" )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
@@ -252,7 +252,7 @@ def ext_o(c):
         write_file("hello.h", "#include <stdio.h>\n")
         self._start(content, "hello.o")
         ok("hello.o", isfile)
-        expected = ( "### * hello.o (recipe=ext_o)\n"
+        expected = ( "### * hello.o (recipe=file_ext_o)\n"
                      "$ gcc -c hello.c hello.h\n" )
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
@@ -423,10 +423,9 @@ def file_ext_o(c):
     system(c%"gcc -c $(ingred)")
     system(c%"gcc -g -c $(1).c")
 
-@recipe(kind='task')
-@product('all')
+@recipe
 @ingreds('build')
-def create_all(c):
+def task_all(c):
     echo("all() invoked.")
 """
         ## 1st
@@ -441,7 +440,7 @@ def create_all(c):
             "### ** build (recipe=build)\n"
             "$ echo build() invoked.\n"
             "build() invoked.\n"
-            "### * all (recipe=create_all)\n"
+            "### * all (recipe=task_all)\n"
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
@@ -454,7 +453,7 @@ def create_all(c):
             "### ** build (recipe=build)\n"
             "$ echo build() invoked.\n"
             "build() invoked.\n"
-            "### * all (recipe=create_all)\n"
+            "### * all (recipe=task_all)\n"
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
@@ -474,7 +473,7 @@ def create_all(c):
             "### ** build (recipe=build)\n"
             "$ echo build() invoked.\n"
             "build() invoked.\n"
-            "### * all (recipe=create_all)\n"
+            "### * all (recipe=task_all)\n"
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )

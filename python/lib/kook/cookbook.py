@@ -7,6 +7,7 @@
 ###
 
 import os, re, types
+from kook import KookRecipeError
 from kook.misc import _debug
 from kook.utils import *
 import kook.config as config
@@ -100,12 +101,15 @@ class Cookbook(object):
                         if   kind == 'file':  flag = FILE
                         elif kind == 'task':  flag = TASK
                         else:
-                            raise KookRecipeError("%s: _kook_kind should be 'task' or 'file'." % repr(kind))
+                            raise KookRecipeError("%s(: )%s: _kook_kind should be 'task' or 'file'." % (name, repr(kind)))
                     else:
                         if   name.startswith('file_'):  flag = FILE
                         elif name.startswith('task_'):  flag = TASK
                         else:
-                            flag = getattr(func, '_kook_product', None) and FILE or TASK
+                            #flag = getattr(func, '_kook_product', None) and FILE or TASK
+                            if getattr(func, '_kook_product', None):
+                                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
+                            flag = TASK   # regard as task recipe when prefix is not specified
                 else:
                     ## for backward compatibility with 0.0.2: the following may be removed in the future
                     if   name.startswith('file_'):  flag = FILE
