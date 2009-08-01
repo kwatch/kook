@@ -9,6 +9,7 @@
 import os, re, types
 from kook.misc import _debug
 from kook.utils import *
+import kook.config as config
 
 #__all__ = ('Cookbook', 'Recipe', 'TaskRecipe', 'FileRecipe', )
 __all__ = ('Cookbook', )
@@ -111,8 +112,8 @@ class Cookbook(object):
                 elif name.startswith('file_'):  flag = FILE
                 else:
                     continue
-                #sys.stderr.write("[pykook] WARNING: %s(): use @recipe decorator.\n"
-                #                 "[pykook] See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n" % name)
+                #config.stderr.write("[pykook] WARNING: %s(): use @recipe decorator.\n"
+                #                    "[pykook] See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n" % name)
                 klass = flag == FILE and FileRecipe or TaskRecipe
                 recipe = klass.new(name, func)
                 flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
