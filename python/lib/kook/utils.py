@@ -414,12 +414,16 @@ def has_same_content(filename1, filename2, blocksize=1*1024*1024):   # 1MB
 if python2:
     def _is_str(obj):
         return isinstance(obj, (str, unicode))  # unicode is not defined in Python 3.0
-    def _get_codeobj(func):
-        return func.func_code
+    def get_funcname(func):
+        return func.func_name
+    def get_funclineno(func):
+        return func.func_code.co_firstlineno
 elif python3:
     def _is_str(obj):
         return isinstance(obj, str)
-    def _get_codeobj(func):
-        return func.__code__
+    def get_funcname(func):
+        return func.__code__.co_name
+    def get_funclineno(func):
+        return func.__code__.co_firstlineno
 
 

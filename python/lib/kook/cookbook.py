@@ -122,7 +122,7 @@ class Cookbook(object):
                 recipe = klass.new(name, func)
                 flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
                 recipes[flag].append(recipe)
-        lambda1 = lambda recipe: recipe._func_linenum()
+        lambda1 = lambda recipe: kook.utils.get_funclineno(recipe.func)
         for lst in recipes:
             lst.sort(key=lambda1)
         self.specific_task_recipes = recipes[SPECIFIC | TASK]   ## TODO: use dict
@@ -194,7 +194,7 @@ class Recipe(object):
         self.func    = func
         self.desc    = desc
         self.spices  = spices
-        self.name    = func and kook.utils._get_codeobj(self.func).co_name or None
+        self.name    = func and kook.utils.get_funcname(self.func) or None
         if not product:
             self.pattern = None
         elif type(product) is _re_pattern_type:
@@ -212,9 +212,6 @@ class Recipe(object):
             return re.match(self.pattern, target)
         else:
             return self.product == target
-
-    def _func_linenum(self):
-        return kook.utils._get_codeobj(self.func).co_firstlineno
 
     @classmethod
     def new(cls, func_name, func, _cls=None):
