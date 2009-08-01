@@ -150,13 +150,13 @@ def build(c):
 
     def test_generic_task_cooking1(self):
         content = r"""\
-@recipe(kind="task")
+@recipe
 @product('build_*')
-def build(c):
+def task_build(c):
     system('gcc -o %s %s.c' % (c.m[1], c.m[1]))
     echo("invoked.")
 """
-        expected = ( "### * build_hello (recipe=build)\n"
+        expected = ( "### * build_hello (recipe=task_build)\n"
                      "$ gcc -o hello hello.c\n$ echo invoked.\n"
                      "invoked.\n" )
         ## without @recipe

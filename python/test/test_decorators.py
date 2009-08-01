@@ -19,30 +19,30 @@ class KookDecoratorsTest(object):
             pass
         ok(hasattr(f, '_kook_recipe'), '==', True)
         ok(f._kook_recipe, '==', True)
-        ok(hasattr(f, '_kook_kind'), '==', False)
-        #
-        @recipe(kind='task')
-        def f(c):
-            pass
-        ok(hasattr(f, '_kook_recipe'), '==', True)
-        ok(f._kook_recipe, '==', True)
-        ok(hasattr(f, '_kook_kind'), '==', True)
-        ok(f._kook_kind, '==', 'task')
-        #
-        @recipe(kind='file')
-        def f(c):
-            pass
-        ok(hasattr(f, '_kook_recipe'), '==', True)
-        ok(f._kook_recipe, '==', True)
-        ok(hasattr(f, '_kook_kind'), '==', True)
-        ok(f._kook_kind, '==', 'file')
-        #
-        @recipe()
-        def f(c):
-            pass
-        ok(hasattr(f, '_kook_recipe'), '==', True)
-        ok(f._kook_recipe, '==', True)
-        ok(hasattr(f, '_kook_kind'), '==', False)
+        #ok(hasattr(f, '_kook_kind'), '==', False)
+        ##
+        #@recipe(kind='task')
+        #def f(c):
+        #    pass
+        #ok(hasattr(f, '_kook_recipe'), '==', True)
+        #ok(f._kook_recipe, '==', True)
+        #ok(hasattr(f, '_kook_kind'), '==', True)
+        #ok(f._kook_kind, '==', 'task')
+        ##
+        #@recipe(kind='file')
+        #def f(c):
+        #    pass
+        #ok(hasattr(f, '_kook_recipe'), '==', True)
+        #ok(f._kook_recipe, '==', True)
+        #ok(hasattr(f, '_kook_kind'), '==', True)
+        #ok(f._kook_kind, '==', 'file')
+        ##
+        #@recipe()
+        #def f(c):
+        #    pass
+        #ok(hasattr(f, '_kook_recipe'), '==', True)
+        #ok(f._kook_recipe, '==', True)
+        #ok(hasattr(f, '_kook_kind'), '==', False)
 
 
     def test_product(self):

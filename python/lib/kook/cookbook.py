@@ -96,13 +96,13 @@ class Cookbook(object):
             elif type(obj) == types.FunctionType:
                 func = obj
                 if getattr(func, '_kook_recipe', None) == True:      # added by @recipe decorator
-                    if hasattr(func, '_kook_kind'):
-                        kind = getattr(func, '_kook_kind')
-                        if   kind == 'file':  flag = FILE
-                        elif kind == 'task':  flag = TASK
-                        else:
-                            raise KookRecipeError("%s(: )%s: _kook_kind should be 'task' or 'file'." % (name, repr(kind)))
-                    else:
+                    #if hasattr(func, '_kook_kind'):
+                    #    kind = getattr(func, '_kook_kind')
+                    #    if   kind == 'file':  flag = FILE
+                    #    elif kind == 'task':  flag = TASK
+                    #    else:
+                    #        raise KookRecipeError("%s(: )%s: _kook_kind should be 'task' or 'file'." % (name, repr(kind)))
+                    #else:
                         if   name.startswith('file_'):  flag = FILE
                         elif name.startswith('task_'):  flag = TASK
                         else:
