@@ -112,8 +112,8 @@ class Cookbook(object):
                     elif name.startswith('task_'):  flag = TASK
                     else:
                         continue
-                    #config.stderr.write("[pykook] WARNING: %s(): use @recipe decorator.\n"
-                    #                    "[pykook] See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n" % name)
+                    config.stderr.write(config.warning_prompt + "%s(): use @recipe decorator.\n" % name)
+                    config.stderr.write(config.warning_prompt + "See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n")
                 klass = flag == FILE and FileRecipe or TaskRecipe
                 recipe = klass.new(name, func)
                 flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
