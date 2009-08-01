@@ -11,6 +11,7 @@ __all__ = ('Main', )
 
 
 import sys, os, re, random
+from kook import KookCommandError, KookRecipeError
 from kook.cookbook import Cookbook
 from kook.kitchen import Kitchen
 import kook.config as config
@@ -170,13 +171,13 @@ class Main(object):
         except Exception:
             ex = sys.exc_info()[1]
             ## show command option error
-            ex_classes = (CommandOptionError, kook.KookCommandError, kook.KookRecipeError)   # or (CommandOptionError, KookError)
+            ex_classes = (CommandOptionError, KookCommandError, KookRecipeError)   # or (CommandOptionError, KookError)
             if isinstance(ex, ex_classes):
                 if not isinstance(ex, CommandOptionError):
                     config.stderr.write("*** ERROR\n")
                 config.stderr.write(self.command + ": " + str(ex) + "\n")
             ## system() failed
-            if isinstance(ex, kook.KookCommandError):
+            if isinstance(ex, KookCommandError):
                 #config.stderr.write(self.command + ": " + str(ex) + "\n")
                 traceback_obj = sys.exc_info()[2]
                 import traceback
