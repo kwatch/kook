@@ -14,6 +14,7 @@ forced           = False
 debug_level      = 0
 command_prompt   = '$ '
 message_prompt   = '### '
+warning_prompt   = '*** WARNING: '
 debug_prompt     = '*** debug: '
 compare_contents = True
 cmdopt_parser_class = _utils.CommandOptionParser
