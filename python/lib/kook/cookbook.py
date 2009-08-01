@@ -92,32 +92,28 @@ class Cookbook(object):
                 if not isinstance(obj, (tuple, list)):
                     raise KookRecipeError("kook_materials: tuple or list expected.")
                 self.materials = obj
-            elif type(obj) == types.FunctionType and getattr(obj, '_kook_recipe', None) == True:
+            elif type(obj) == types.FunctionType:
                 func = obj
-                if hasattr(func, '_kook_kind'):
-                    kind = getattr(func, '_kook_kind')
-                    if   kind == 'file':  flag = FILE
-                    elif kind == 'task':  flag = TASK
+                if getattr(func, '_kook_recipe', None) == True:      # added by @recipe decorator
+                    if hasattr(func, '_kook_kind'):
+                        kind = getattr(func, '_kook_kind')
+                        if   kind == 'file':  flag = FILE
+                        elif kind == 'task':  flag = TASK
+                        else:
+                            raise KookRecipeError("%s: _kook_kind should be 'task' or 'file'." % repr(kind))
                     else:
-                        raise KookRecipeError("%s: _kook_kind should be 'task' or 'file'." % repr(kind))
+                        if   name.startswith('file_'):  flag = FILE
+                        elif name.startswith('task_'):  flag = TASK
+                        else:
+                            flag = getattr(func, '_kook_product', None) and FILE or TASK
                 else:
+                    ## for backward compatibility with 0.0.2: the following may be removed in the future
                     if   name.startswith('file_'):  flag = FILE
                     elif name.startswith('task_'):  flag = TASK
                     else:
-                        flag = getattr(func, '_kook_product', None) and FILE or TASK
-                klass = flag == FILE and FileRecipe or TaskRecipe
-                recipe = klass.new(name, func)
-                flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
-                recipes[flag].append(recipe)
-            ## for backward compatibility with 0.0.2: the following may be remove in the future
-            elif type(obj) == types.FunctionType:
-                func = obj
-                if   name.startswith('task_'):  flag = TASK
-                elif name.startswith('file_'):  flag = FILE
-                else:
-                    continue
-                #config.stderr.write("[pykook] WARNING: %s(): use @recipe decorator.\n"
-                #                    "[pykook] See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n" % name)
+                        continue
+                    #config.stderr.write("[pykook] WARNING: %s(): use @recipe decorator.\n"
+                    #                    "[pykook] See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n" % name)
                 klass = flag == FILE and FileRecipe or TaskRecipe
                 recipe = klass.new(name, func)
                 flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
