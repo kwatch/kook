@@ -13,9 +13,23 @@ from kook.utils import flatten
 __all__ = ('recipe', 'product', 'ingreds', 'byprods', 'coprods', 'priority', 'spices', 'cmdopts', )
 
 
-def recipe(f):
-    f._kook_recipe = True
-    return f
+def recipe(func=None, kind=None):
+    if func is not None:
+        func._kook_recipe = True
+        return func
+    elif kind is not None:
+        if kind not in ('task', 'file'):
+            raise TypeError("@recipe(): kind should be 'task' or 'file'.")
+        def deco(f):
+            f._kook_recipe = True
+            f._kook_kind = kind
+            return f
+        return deco
+    else:
+        def deco(f):
+            f._kook_recipe = True
+            return f
+        return deco
 
 
 def product(name):
