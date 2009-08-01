@@ -96,11 +96,15 @@ class Cookbook(object):
                 func = obj
                 if hasattr(func, '_kook_kind'):
                     kind = getattr(func, '_kook_kind')
-                    if kind not in ('task', 'file'):
+                    if   kind == 'file':  flag = FILE
+                    elif kind == 'task':  flag = TASK
+                    else:
                         raise KookRecipeError("%s: _kook_kind should be 'task' or 'file'." % repr(kind))
-                    flag = kind == 'file' and FILE or TASK
                 else:
-                    flag = getattr(func, '_kook_product', None) and FILE or TASK
+                    if   name.startswith('file_'):  flag = FILE
+                    elif name.startswith('task_'):  flag = TASK
+                    else:
+                        flag = getattr(func, '_kook_product', None) and FILE or TASK
                 klass = flag == FILE and FileRecipe or TaskRecipe
                 recipe = klass.new(name, func)
                 flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
