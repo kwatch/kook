@@ -258,7 +258,7 @@ class CommandOptionParser(object):
                     opts[name] = True
                 elif spices[name] is True:     # --name[=arg]
                     opts[name] = arg is None and True or arg
-                elif spices[name] is 1:        # --name[=N]
+                elif spices[name] == 1:        # --name[=N]
                     if arg and str2int(arg) is None:
                         raise CommandOptionError("%s: integer required." % cmd_arg)
                     opts[name] = arg is None and True or str2int(arg)
@@ -286,7 +286,7 @@ class CommandOptionParser(object):
                     elif spices[ch] is True:   # -x[arg]
                         opts[ch] = optchars[j+1:] or True
                         break
-                    elif spices[ch] is 1:      # -x[N]
+                    elif spices[ch] == 1:      # -x[N]
                         arg = optchars[j+1:]
                         if arg and str2int(arg) is None:
                             raise CommandOptionError("-%s%s: integer required." % (ch, arg))
