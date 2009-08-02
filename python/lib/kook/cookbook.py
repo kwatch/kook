@@ -168,18 +168,6 @@ class Cookbook(object):
         #        return recipe
         #return None
 
-    def start(self, depth=1, args=()):
-        _debug("material %s" % self.product, 1, depth)
-        return True
-
-    def start2(self, depth=1, args=(), parent_mtime=0):
-        assert os.path.exists(self.product)
-        if parent_mtime == 0:
-            msg = "material %s"
-            ret = -999
-        else:
-            mtime = os.path.getmtime(self.product)
-
 
 _re_pattern_type = type(re.compile('x'))
 
