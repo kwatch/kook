@@ -122,7 +122,10 @@ class Cookbook(object):
                 recipe = klass.new(name, func)
                 flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
                 recipes[flag].append(recipe)
-        lambda1 = lambda recipe: kook.utils.get_funclineno(recipe.func)
+        #lambda1 = lambda recipe: kook.utils.get_funclineno(recipe.func)
+          #=> SyntaxError: unqualified exec is not allowed in function 'load' it contains a nested function with free variables
+        def lambda1(recipe, get_funclineno=kook.utils.get_funclineno):
+            return get_funclineno(recipe.func)
         for lst in recipes:
             lst.sort(key=lambda1)
         self.specific_task_recipes = recipes[SPECIFIC | TASK]   ## TODO: use dict
