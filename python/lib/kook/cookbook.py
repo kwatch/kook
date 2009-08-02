@@ -222,6 +222,24 @@ class Recipe(object):
         #return "<%s product=%s func=%s>" % (self.__class__.__name__, repr(self.product), self.name)
         return "<%s:%s:%s>" % (self.__class__.__name__, repr(self.product), self.name)
 
+    def _inspect(self, depth=1):
+        buf = []
+        buf.extend(("#<", self.__class__.__name__, "\n"))
+        keys = list(self.__dict__.keys())
+        keys.sort()
+        space = '  ' * depth
+        for key in keys:
+            buf.append(space)
+            val = self.__dict__[key]
+            if isinstance(val, types.FunctionType):
+                buf.append("%s=<function %s>" % (key, kook.utils.get_funcname(val)))
+            else:
+                buf.append("%s=%s" % (key, repr(val)))
+            buf.append(",\n")
+        if buf[-1] == ",\n": buf.pop()
+        buf.append(">")
+        return "".join(buf)
+
 
 ## TODO: define SpecificRecipe and GenericRecipe instead of TaskRecipe and FileRecipe?
 
