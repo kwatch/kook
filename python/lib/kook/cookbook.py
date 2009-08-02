@@ -92,7 +92,7 @@ class Cookbook(object):
             flag = 0x0
             if name == 'kook_materials':
                 if not isinstance(obj, (tuple, list)):
-                    raise KookRecipeError("kook_materials: tuple or list expected.")
+                    raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(obj))
                 self.materials = obj
             elif type(obj) == types.FunctionType:
                 func = obj
