@@ -68,6 +68,7 @@ class Cookbook(object):
 
     def load(self, content, bookname='(kook)', properties={}):  ## TODO: refactoring
         ## eval content
+        self.bookname = bookname
         code_obj = compile(content, bookname, 'exec')
         context = create_context()
         if properties: context.update(properties)
