@@ -170,7 +170,7 @@ class Cookbook(object):
         #return None
 
 
-_re_pattern_type = type(re.compile('x'))
+_re_pattern_type = type(re.compile('dummy'))
 
 
 class Recipe(object):
