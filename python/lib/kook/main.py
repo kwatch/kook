@@ -10,8 +10,8 @@
 __all__ = ('Main', )
 
 
-import sys, os, re, random
-from kook import KookCommandError, KookRecipeError
+import sys, os, re
+from kook import KookCommandError, KookRecipeError, __RELEASE__
 from kook.cookbook import Cookbook
 from kook.kitchen import Kitchen
 import kook.config as config
@@ -51,7 +51,7 @@ class Main(object):
             config.stdout.write(optparser.help())
             return 0
         if opts.get('V'):
-            config.stdout.write(kook.__RELEASE__ + "\n")
+            config.stdout.write(__RELEASE__ + "\n")
             return 0
         if opts.get('q'):  config.quiet  = True
         if opts.get('F'):  config.forced = True

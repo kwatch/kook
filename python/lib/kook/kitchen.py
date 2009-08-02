@@ -8,10 +8,9 @@
 
 import sys, os, re
 
-import kook
 from kook.cookbook import Cookbook
 from kook import KookError, KookRecipeError
-from kook.utils import *
+import kook.utils
 import kook.config as config
 from kook.misc import ConditionalFile, _debug, _report_cmd, _report_msg
 
@@ -126,7 +125,7 @@ class Cookable(object):
     ingreds = ()
     children = ()
 
-    def cook(self, depth=1, argv=()):
+    def cook(self, depth=1, argv=(), parent_mtime=0):
         raise NotImplementedError("%s.start(): not implemented yet." % self.__class__.__name__)
 
 
@@ -291,7 +290,6 @@ class Cooking(Cookable):
                 _debug(msg % self.product, 1, depth)
                 return ret
             except Exception:
-                ex = sys.exc_info()[1]
                 ## if product file exists, remove it when error raised
                 if product_mtime:
                     _report_msg("(remove %s because unexpected error raised (%s))" % (self.product, self._r), depth)
@@ -339,7 +337,7 @@ class Cooking(Cookable):
                 if name == 'ingred':   return self.ingreds[0]
                 if name == 'byprod':   return self.byprods[0]
                 if name == 'ingreds':  return ' '.join(self.ingreds)
-                if name == 'coprods':  return ' '.join(self.coprods)
+                #if name == 'coprods':  return ' '.join(self.coprods)
                 if name in frame.f_locals:  return str(frame.f_locals[name])
                 if name in frame.f_globals: return str(frame.f_globals[name])
                 raise NameError("$(%s): unknown name. (%s)" % (name, self._r, ))
@@ -353,6 +351,6 @@ class Cooking(Cookable):
             opts, rests = parser.parse(argv)
             _debug("parse_cmdopts() (%s): opts=%s, rests=%s" % (self._r, repr(opts), repr(rests)), 2)
             return opts, rests
-        except CommandOptionError:
+        except kook.utils.CommandOptionError:
             ex = sys.exc_info()[1]
-            raise CommandOptionError("%s(): %s" % (self.recipe.name, str(ex), ))
+            raise kook.utils.CommandOptionError("%s(): %s" % (self.recipe.name, str(ex), ))

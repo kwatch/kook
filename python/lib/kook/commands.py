@@ -284,7 +284,7 @@ class Chdir(object):
         self.cwd = os.getcwd()
         os.chdir(self.dirname)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback):   # type and value is not used
         _prepare(['-', '  # back to '+self.cwd], self.cmd)
         os.chdir(self.cwd)
 

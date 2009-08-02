@@ -9,7 +9,7 @@
 import os, re, types
 from kook import KookRecipeError
 from kook.misc import _debug
-from kook.utils import *
+import kook.utils
 import kook.config as config
 
 #__all__ = ('Cookbook', 'Recipe', 'TaskRecipe', 'FileRecipe', )
@@ -62,8 +62,8 @@ class Cookbook(object):
         ## read file
         self.bookname = filename
         if not os.path.isfile(filename):
-            raise ArgumentError("%s: not found." % filename)
-        content = read_file(filename)
+            raise kook.utils.ArgumentError("%s: not found." % filename)
+        content = kook.utils.read_file(filename)
         self.load(content, filename, properties)
 
     def load(self, content, bookname='(kook)', properties={}):  ## TODO: refactoring
@@ -95,7 +95,7 @@ class Cookbook(object):
                 self.materials = obj
             elif type(obj) == types.FunctionType:
                 func = obj
-                if getattr(func, '_kook_recipe', None) == True:      # added by @recipe decorator
+                if getattr(func, '_kook_recipe', None):      # added by @recipe decorator
                     #if hasattr(func, '_kook_kind'):
                     #    kind = getattr(func, '_kook_kind')
                     #    if   kind == 'file':  flag = FILE
@@ -190,8 +190,8 @@ class Recipe(object):
             self.pattern = None
         elif type(product) is _re_pattern_type:
             self.pattern = product
-        elif has_metachars(product):
-            self.pattern = meta2rexp(product)
+        elif kook.utils.has_metachars(product):
+            self.pattern = kook.utils.meta2rexp(product)
         else:
             self.pattern = None
 
@@ -213,7 +213,6 @@ class Recipe(object):
         ingreds = getattr(func, '_kook_ingreds', ())
         byprods = getattr(func, '_kook_byprods', ())
         spices  = getattr(func, '_kook_spices', None)
-        func    = func
         desc    = func.__doc__  ## can be empty string
         if desc is None: desc = _default_descs.get(product)
         return cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)

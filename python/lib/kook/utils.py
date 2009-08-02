@@ -233,7 +233,7 @@ class CommandOptionParser(object):
         opts, longopts, rests = self._parse(cmd_args, command, check_longopts=False)
         return opts, longopts, rests
 
-    def _parse(self, cmd_args, command=None, check_longopts=True):
+    def _parse(self, cmd_args, command=None, check_longopts=True): ## command is currently not used
         spices = self.spices
         i = 0
         N = len(cmd_args)
@@ -315,7 +315,7 @@ class CommandOptionParser(object):
         rests = cmd_args[i:]
         return check_longopts and (opts, rests) or (opts, longopts, rests)
 
-    def help(self, command=None, format="  %-20s: %s\n"):
+    def help(self, command=None, format="  %-20s: %s\n"): ## command is currently not used
         return "".join( format % (optdef_str, desc) for optdef_str, desc in self.helps if desc )
 
 
