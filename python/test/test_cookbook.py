@@ -202,6 +202,7 @@ def file_html(c):
         book.load(input)
         recipe = book.generic_file_recipes[0]
         ok(recipe.pattern, 'is a', type(re.compile('dummy')))
+        ok(recipe.pattern.pattern, '==', r'.*\.html')
 
     def test_load__materials(self):
         input = r"""
