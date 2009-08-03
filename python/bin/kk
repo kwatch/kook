@@ -1,6 +1,6 @@
 #!/bin/sh
 
-n=`/bin/ls Kookbook.* | wc -l`
+n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
 
 if [ $n -eq 0 ]; then
 	echo "No kookbook found."
