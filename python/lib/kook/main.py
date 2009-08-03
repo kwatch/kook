@@ -167,7 +167,7 @@ class Main(object):
     def main(self):
         try:
             status = self.invoke()
-            sys.exit(status)
+            return status
         except Exception:
             ex = sys.exc_info()[1]
             ## show command option error
@@ -209,3 +209,5 @@ class Main(object):
             ## re-raise exception when debug mode
             if not isinstance(ex, ex_classes) or config.debug_level > 0:
                 raise
+            status = 1
+            return status

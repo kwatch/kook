@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 import kook.main
-kook.main.Main().main()
+status = kook.main.Main().main()
+sys.exit(status)
+
