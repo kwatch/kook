@@ -17,10 +17,10 @@ case $kookbook in
 	;;
 *.pl)	plkook $@
 	;;
-*.php)	phpkook $@
-	;;
-*.js)	phpkook $@
-	;;
+#*.php)	phpkook $@
+#	;;
+#*.js)	jskook $@
+#	;;
 *.yaml)	kook $@
 	;;
 esac
