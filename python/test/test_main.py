@@ -13,7 +13,7 @@ try:
 except ImportError:
     from io import StringIO            # 3.x
 
-from kook.main import Main
+from kook.main import MainCommand, MainApplication
 import kook.config as config
 from kook.utils import write_file
 
@@ -32,12 +32,18 @@ def _stdout():
 def _stderr():
     return config.stderr.getvalue()
 
-def _main(argv):
+def _main_command(argv):
+    return _main(MainCommand, argv)
+
+def _main_app(argv):
+    return _main(MainApplication, argv)
+
+def _main(klass, argv):
     if isinstance(argv, str):
         argv = argv.split(' ')
     _setup_stdio()
     try:
-        status  = Main(argv).main()
+        status  = klass(argv).main()
         soutput = config.stdout.getvalue()
         eoutput = config.stderr.getvalue()
     finally:
@@ -46,6 +52,9 @@ def _main(argv):
 
 def _write(content, bookname='Kookbook.py'):
     write_file(bookname, content)
+
+def _del_tips(s):
+    return re.sub(r'\n\(Tips:.*)\n', "\n", s)
 
 
 HELLO_C = r"""
@@ -65,7 +74,7 @@ char *command = "hello";
 """
 
 
-class KookMainTest(object):
+class KookMainCommandTest(object):
 
 
     def before_each(self):
@@ -83,21 +92,15 @@ class KookMainTest(object):
             for x in self.byprods:
                 os.unlink(x)
 
-    def _start(self, content, *targets):
-        kookbook = Cookbook()
-        kookbook.load(content)
-        kitchen = Kitchen(kookbook)
-        kitchen.start_cooking(*targets)
-        return kitchen
 
     def test_init(self):
         argv = ['/usr/local/bin/pykook', '-h', '-f', 'foo.py']
-        obj = Main(argv)
+        obj = MainCommand(argv)
         ok(obj.command, '==', 'pykook')
         ok(obj.args, '==', ['-h', '-f', 'foo.py'])
 
     def test_nokookbook(self):  # 'Kookbook.py' not found
-        soutput, eoutput, status = _main("pykook")
+        soutput, eoutput, status = _main_command("pykook")
         ok(soutput, '==', "")
         ok(eoutput, '==', "pykook: Kookbook.py: not found.\n")
         ok(status, '==', 1)
@@ -111,7 +114,7 @@ class KookMainTest(object):
 *** 'pykook -l' or 'pykook -L' show recipes and properties.
 *** (or set 'kook_default_product' in your kookbook.)
 """[1:]
-        soutput, eoutput, status = _main("pykook")
+        soutput, eoutput, status = _main_command("pykook")
         ok(soutput, '==', "")
         ok(eoutput, '==', expected)
         ok(status, '==', 1)
@@ -131,18 +134,18 @@ pykook - build tool like Make, Rake, Ant, or Cook
   --name              : property name and value(=True)
 """[1:]
         ## -h
-        soutput, eoutput, status = _main("pykook -h")
+        soutput, eoutput, status = _main_command("pykook -h")
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
         ok(status, '==', 0)
         ## --help
-        soutput, eoutput, status = _main("pykook --help")
+        soutput, eoutput, status = _main_command("pykook --help")
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
         ok(status, '==', 0)
 
     def test_version(self): # -V
-        soutput, eoutput, status = _main("pykook -V")
+        soutput, eoutput, status = _main_command("pykook -V")
         ok(soutput, '=~', r'^\d+\.\d+\.\d+$')
         ok(eoutput, '==', "")
         ok(status, '==', 0)
@@ -165,7 +168,7 @@ def task_echo(c):
 $ echo YES
 YES
 """[1:]
-        soutput, eoutput, status = _main("pykook echo")
+        soutput, eoutput, status = _main_command("pykook echo")
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
         ## with -D
@@ -179,7 +182,7 @@ YES
 """[1:]
         try:
             ok(config.debug_level, '==', 0)
-            soutput, eoutput, status = _main("pykook -D echo")
+            soutput, eoutput, status = _main_command("pykook -D echo")
             ok(config.debug_level, '==', 1)
             ok(soutput, '==', expected)
             ok(eoutput, '==', "")
@@ -202,7 +205,7 @@ YES
 """[1:]
         try:
             ok(config.debug_level, '==', 0)
-            soutput, eoutput, status = _main("pykook -D2 echo")
+            soutput, eoutput, status = _main_command("pykook -D2 echo")
             ok(config.debug_level, '==', 2)
             ok(soutput, '==', expected)
             ok(eoutput, '==', "")
@@ -222,7 +225,7 @@ def task_echo(c):
 """[1:]
         _write(input)
         ## without '-q'
-        soutput, eoutput, status = _main("pykook echo")
+        soutput, eoutput, status = _main_command("pykook echo")
         expected = r"""
 ### * echo (recipe=task_echo)
 $ echo YES
@@ -236,7 +239,7 @@ YES
 """[1:]
         try:
             ok(config.quiet, '==', False)
-            soutput, eoutput, status = _main("pykook -q echo")
+            soutput, eoutput, status = _main_command("pykook -q echo")
             ok(config.quiet, '==', True)
             ok(soutput, '==', expected)
             ok(eoutput, '==', "")
@@ -262,7 +265,7 @@ def task_print(c):
 $ echo No
 No
 """[1:]
-        soutput, eoutput, status = _main("pykook print")
+        soutput, eoutput, status = _main_command("pykook print")
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
         ## with -f
@@ -271,11 +274,11 @@ No
 $ echo Yes
 Yes
 """[1:]
-        soutput, eoutput, status = _main("pykook -f Kookbook2.py print")
+        soutput, eoutput, status = _main_command("pykook -f Kookbook2.py print")
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
         ## if not found
-        soutput, eoutput, status = _main("pykook -f Kookbook3.py print")
+        soutput, eoutput, status = _main_command("pykook -f Kookbook3.py print")
         ok(soutput, '==', "")
         ok(eoutput, '==', "pykook: -f Kookbook3.py: not found.\n")
 
@@ -292,7 +295,7 @@ def file_html(c):
         write_file("index.txt", "foobar")
         self.byprods = ('index.txt', 'index.html', )
         ## recipe should not be invoked because product is newer
-        soutput, eoutput, status = _main("pykook index.html")
+        soutput, eoutput, status = _main_command("pykook index.html")
         ok(soutput, '==', "")
         ok(eoutput, '==', "")
         ## recipe should be invoked when -F specified
@@ -302,7 +305,7 @@ $ cp index.txt index.html
 """[1:]
         try:
             ok(config.forced, '==', False)
-            soutput, eoutput, status = _main("pykook -F index.html")
+            soutput, eoutput, status = _main_command("pykook -F index.html")
             ok(config.forced, '==', True)
             ok(soutput, '==', expected)
             ok(eoutput, '==', "")
@@ -357,12 +360,12 @@ kook_default_product: all
 """[1:]
         expected = re.sub(r'\n\(Tips:.*\n', '\n', expected)
         ## -l
-        soutput, eoutput, status = _main("pykook -l")
+        soutput, eoutput, status = _main_command("pykook -l")
         soutput  = re.sub(r'\n\(Tips:.*\n', '\n', soutput)
         ok(soutput, '==', re.sub(r'\n  \*\.o.*\n', '\n', expected))
         ok(eoutput, '==', "")
         ## -L
-        soutput, eoutput, status = _main("pykook -L")
+        soutput, eoutput, status = _main_command("pykook -L")
         soutput  = re.sub(r'\n\(Tips:.*\n', '\n', soutput)
         expected = re.sub(r'\n\(Tips:.*\n', '\n', expected)
         ok(soutput, '==', expected)
@@ -383,7 +386,7 @@ $ echo CC=tcc, VERBOSE=True
 CC=tcc, VERBOSE=True
 """[1:]
         ## '--CC=tcc' overrides property value, '--verbose' is regards as '--verbose=True'
-        soutput, eoutput, status = _main("pykook --CC=tcc --verbose echo")
+        soutput, eoutput, status = _main_command("pykook --CC=tcc --verbose echo")
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
 
@@ -412,7 +415,7 @@ CC=tcc
 $ echo VERBOSE=False
 VERBOSE=False
 """[1:]
-        soutput, eoutput, status = _main("pykook echo")
+        soutput, eoutput, status = _main_command("pykook echo")
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
         ## Properties.py is reflected to output of '-l' or '-L'
@@ -428,7 +431,7 @@ File recipes:
 
 (Tips: you can set 'kook_default_product' variable in your kookbook.)
 """[1:]
-        soutput, eoutput, status = _main("pykook -L")
+        soutput, eoutput, status = _main_command("pykook -L")
         soutput  = re.sub(r'\n\(Tips:.*\n', '\n', soutput)
         expected = re.sub(r'\n\(Tips:.*\n', '\n', expected)
         ok(soutput, '==', expected)
@@ -441,7 +444,7 @@ CC=g++
 $ echo VERBOSE=32
 VERBOSE=32
 """[1:]
-        soutput, eoutput, status = _main("pykook --CC=g++ --VERBOSE=32 echo")
+        soutput, eoutput, status = _main_command("pykook --CC=g++ --VERBOSE=32 echo")
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
 
@@ -455,7 +458,7 @@ def task_cmd(c, *args, **kwargs):
 """[1:]
         _write(input)
         ## specify options
-        soutput, eoutput, status = _main("pykook cmd -vhf file.txt -i2 foo bar")
+        soutput, eoutput, status = _main_command("pykook cmd -vhf file.txt -i2 foo bar")
         expected = r"""
 ### * cmd (recipe=task_cmd)
 $ echo args=('foo', 'bar')
@@ -480,11 +483,161 @@ File recipes:
 
 (Tips: '@ingreds("$(1).c", if_exists("$(1).h"))' is a friend of C programmer.)
 """[1:]
-        soutput, eoutput, status = _main("pykook -L")
+        soutput, eoutput, status = _main_command("pykook -L")
         soutput  = re.sub(r'\n\(Tips:.*\n', '\n', soutput)
         expected = re.sub(r'\n\(Tips:.*\n', '\n', expected)
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
+
+
+SCRIPT = r"""
+kook_desc = "helper script"
+CC = prop('CC', 'gcc')
+CFLAGS = prop('CFLAGS', '-g -Wall')
+
+@recipe
+@spices("-d dir: install dir", "--prefix=path: install path")
+def setup(c, *args, **kwargs):
+    "setup configuration"
+    echo("setup(): args=%s, kwargs=%s" % (args, kwargs))
+
+@recipe
+@spices("--cflags=opts: compiler options")
+def build(c, *args, **kwargs):
+    "compile files"
+    echo("build(): args=%s, kwargs=%s" % (args, kwargs))
+
+@recipe
+def install(c, *args):
+    "install files"
+    echo("build(): args=%s" % args)
+
+@recipe
+def debug(c):
+    echo("CC=%s, CFLAGS=%s" % (CC, CFLAGS))
+
+#@recipe
+#def model(c, *args, **kwargs):
+#    if not args:
+#        from kook.utils import CommandOptionError
+#        raise CommandOptionError("model: model name is required.")
+#    for arg in args:
+#        echo("creating %s class ... done." % arg)
+"""[1:]
+
+APPNAME = 'hello'
+
+
+class KookMainApplicationTest(object):
+
+    @classmethod
+    def before_all(self):
+        write_file(APPNAME, SCRIPT)
+        from stat import S_IXUSR, S_IRUSR, S_IWUSR
+        os.chmod(APPNAME, S_IXUSR | S_IRUSR | S_IWUSR)
+
+    @classmethod
+    def after_all(self):
+        if os.path.isfile(APPNAME): os.unlink(APPNAME)
+
+    def before_each(self):
+        #_setup_stdio()
+        pass
+
+    def after_each(self):
+        #_teardown_stdio()
+        if hasattr(self, 'byprods'):
+            for x in self.byprods:
+                os.unlink(x)
+
+
+    def test_init(self):
+        argv = ["pykook", "-X", APPNAME, "-h"]
+        app = MainApplication(argv)
+        ok(app.command, '==', None)
+        ok(app.args, '==', argv[1:])
+
+    def test_help_all(self): # -h
+        expected = r"""
+hello - helper script
+
+sub-commands:
+  setup           : setup configuration
+  build           : compile files
+  install         : install files
+
+(Type 'hello -h subcommand' to show options of sub-commands.)
+"""[1:]
+        soutput, eoutput, status = _main_app("pykook -X %s -h" % APPNAME)
+        ok(soutput, '==', expected)
+        ok(eoutput, '==', "")
+
+    def test_help_subcommand(self): # -h command
+        #
+        expected = r"""
+hello setup - setup configuration
+  -d dir               : install dir
+  --prefix=path        : install path
+"""[1:]
+        soutput, eoutput, status = _main_app("pykook -X %s -h setup" % APPNAME)
+        ok(soutput, '==', expected)
+        ok(eoutput, '==', "")
+        #
+        expected = r"""
+hello build - compile files
+  --cflags=opts        : compiler options
+"""[1:]
+        soutput, eoutput, status = _main_app("pykook -X %s -h build" % APPNAME)
+        ok(soutput, '==', expected)
+        ok(eoutput, '==', "")
+        #
+        expected = r"""
+hello install - install files
+"""[1:]
+        soutput, eoutput, status = _main_app("pykook -X %s -h install" % APPNAME)
+        ok(soutput, '==', expected)
+        ok(eoutput, '==', "")
+
+    def test_no_subommand(self): #
+        expected = "%s: sub-command is required (try '-h' to show all sub-commands).\n" % APPNAME
+        soutput, eoutput, status = _main_app("pykook -X %s" % APPNAME)
+        ok(soutput, '==', "")
+        ok(eoutput, '==', expected)
+
+    def test_subcommand(self):
+        command = "pykook -X %s setup" % APPNAME
+        expected = r"""
+setup(): args=(), kwargs={}
+"""[1:]
+        soutput, eoutput, status = _main_app(command)
+        ok(soutput, '==', expected)
+        ok(eoutput, '==', "")
+        #
+        command = "pykook -X %s setup aaa bbb" % APPNAME
+        expected = r"""
+setup(): args=('aaa', 'bbb'), kwargs={}
+"""[1:]
+        soutput, eoutput, status = _main_app(command)
+        ok(soutput, '==', expected)
+        ok(eoutput, '==', "")
+        #
+        command = "pykook -X %s setup -d/tmp --prefix=/usr/local aaa bbb" % APPNAME
+        expected = r"""
+setup(): args=('aaa', 'bbb'), kwargs={'prefix': '/usr/local', 'd': '/tmp'}
+"""[1:]
+        soutput, eoutput, status = _main_app(command)
+        ok(soutput, '==', expected)
+        ok(eoutput, '==', "")
+
+    def test_invalid_subcommand_option(self):
+        command = "pykook -X %s setup -j" % APPNAME
+        expected = r"""
+hello: setup(): -j: unknown command option.
+"""[1:]
+        soutput, eoutput, status = _main_app(command)
+        ok(soutput, '==', "")
+        ok(eoutput, '==', expected)
+
 
 
 if __name__ == '__main__':
