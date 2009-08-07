@@ -606,34 +606,33 @@ hello install - install files
 
     def test_subcommand(self):
         command = "pykook -X %s setup" % APPNAME
-        expected = r"""
-setup(): args=(), kwargs={}
-"""[1:]
+        expected = "setup(): args=(), kwargs={}\n"
         soutput, eoutput, status = _main_app(command)
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
         #
         command = "pykook -X %s setup aaa bbb" % APPNAME
-        expected = r"""
-setup(): args=('aaa', 'bbb'), kwargs={}
-"""[1:]
+        expected = "setup(): args=('aaa', 'bbb'), kwargs={}\n"
         soutput, eoutput, status = _main_app(command)
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
         #
         command = "pykook -X %s setup -d/tmp --prefix=/usr/local aaa bbb" % APPNAME
-        expected = r"""
-setup(): args=('aaa', 'bbb'), kwargs={'prefix': '/usr/local', 'd': '/tmp'}
-"""[1:]
+        expected = "setup(): args=('aaa', 'bbb'), kwargs={'prefix': '/usr/local', 'd': '/tmp'}\n"
         soutput, eoutput, status = _main_app(command)
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
 
-    def test_invalid_subcommand_option(self):
+    def test_unknown_subcommand_option(self):
         command = "pykook -X %s setup -j" % APPNAME
-        expected = r"""
-hello: setup(): -j: unknown command option.
-"""[1:]
+        expected = "%s: setup(): -j: unknown command option.\n" % APPNAME
+        soutput, eoutput, status = _main_app(command)
+        ok(soutput, '==', "")
+        ok(eoutput, '==', expected)
+
+    def test_unknown_global_option(self):
+        command = "pykook -j %s setup" % APPNAME
+        expected = "-j: unknown command option.\n"
         soutput, eoutput, status = _main_app(command)
         ok(soutput, '==', "")
         ok(eoutput, '==', expected)

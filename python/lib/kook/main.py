@@ -233,7 +233,8 @@ class MainApplication(MainObject):
 
     def __init__(self, argv=None):
         if argv is None: argv = sys.argv
-        #self.command = os.path.basename(argv[0])
+        #shebang_p = len(argv) >= 3 and argv[1] == '-X'
+        #self.command = shebang_p and os.path.basename(argv[2]) or None
         self.command = None
         self.args = argv[1:]
 
@@ -346,6 +347,9 @@ class MainApplication(MainObject):
             status = self.invoke()
         except CommandOptionError:
             ex = sys.exc_info()[1]
-            config.stderr.write(self.command + ": " + str(ex) + "\n")
+            if self.command:
+                config.stderr.write(self.command + ": " + str(ex) + "\n")
+            else:
+                config.stderr.write(str(ex) + "\n")
             status = 1
         return status
