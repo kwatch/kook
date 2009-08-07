@@ -9,10 +9,26 @@ from oktest import *
 import sys, os, re, time, shutil
 from os.path import isfile, isdir, getmtime
 from glob import glob
+try:
+    from StringIO import StringIO      # 2.x
+except ImportError:
+    from io import StringIO            # 3.x
+
 
 from kook.commands import *
 from kook.utils import read_file, write_file
+import kook.config as config
 
+def _setup_stdio():
+    config.stdout = StringIO()
+    config.stderr = StringIO()
+
+def _teardown_stdio():
+    config.stdout = sys.stdout
+    config.stderr = sys.stderr
+
+def _getvalues():
+    return (config.stdout.getvalue(), config.stderr.getvalue())
 
 HELLO_C = """\
 #include <stdio.h>
@@ -35,6 +51,9 @@ class KookCommandsTest(object):
 
 
     def before_each(self):
+        config.stdout = StringIO()
+        config.stderr = StringIO()
+        #
         write_file('hello.c', HELLO_C)
         write_file('hello.h', HELLO_H)
         t = time.time() - 99
@@ -51,6 +70,9 @@ class KookCommandsTest(object):
         os.utime('hello.d/src/include/hello2.h', (t, t))
 
     def after_each(self):
+        config.stdout = sys.stdout
+        config.stderr = sys.stderr
+        #
         for f in glob('hello*'):
             if os.path.isdir(f):
                 shutil.rmtree(f)
