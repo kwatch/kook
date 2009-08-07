@@ -420,7 +420,7 @@ if python2:
         return func.func_code.co_firstlineno
 elif python3:
     def _is_str(obj):
-        return isinstance(obj, str)
+        return isinstance(obj, (str, bytes))
     def get_funcname(func):
         return func.__code__.co_name
     def get_funclineno(func):
