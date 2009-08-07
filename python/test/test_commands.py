@@ -83,22 +83,6 @@ class KookCommandsTest(object):
         ok('hello.d/src2/include/hello.h', isfile)
         #ok(getmtime('hello.d/src2/include/hello.h'), '==', getmtime('hello.d/src/include/hello.h')) # BUG
 
-    def test_glob2(self):
-        from kook.utils import glob2
-        expected = ["hello.d/src/include/hello.h", "hello.d/src/include/hello2.h"]
-        ok(glob2("hello.d/**/*.h"), '==', expected)
-        expected = ["hello.h", "hello.d/src/include/hello.h", "hello.d/src/include/hello2.h"]
-        ok(glob2("**/*.h"), '==', expected)
-        expected = [
-            "hello.d/src",
-            "hello.d/src/include",
-            "hello.d/src/lib",
-            "hello.d/src/include/hello.h",
-            "hello.d/src/include/hello2.h",
-            "hello.d/src/lib/hello.c",
-        ]
-        ok(glob2("hello.d/**/*"), '==', expected)
-
 
 if __name__ == '__main__':
     oktest.invoke_tests('Test$')
