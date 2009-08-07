@@ -18,5 +18,7 @@ warning_prompt   = '*** WARNING: '
 debug_prompt     = '*** debug: '
 compare_contents = True
 cmdopt_parser_class = _utils.CommandOptionParser
+properties_filename = 'Properties.py'
+cookbook_filename   = 'Kookbook.py'
 stdout           = _sys.stdout
 stderr           = _sys.stderr
