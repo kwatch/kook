@@ -68,8 +68,8 @@ class Main(object):
                 raise CommandOptionError("-f %s: not found." % arg)
         ## property file
         props = {}
-        if os.path.isfile("Properties.py"):
-            content = read_file("Properties.py")
+        if os.path.isfile(config.properties_filename):
+            content = read_file(config.properties_filename)
             #exec content in props, props
             exec(content, props, props)
             for name in list(props.keys()):
@@ -78,7 +78,7 @@ class Main(object):
         if longopts:
             props.update(longopts)
         ## create cookbook
-        bookname = opts.get('f', 'Kookbook.py')
+        bookname = opts.get('f', config.cookbook_filename)
         if not os.path.isfile(bookname):
             raise CommandOptionError("%s: not found." % bookname)
         cookbook = Cookbook.new(bookname, props)
@@ -182,9 +182,10 @@ class Main(object):
                 traceback_obj = sys.exc_info()[2]
                 import traceback
                 found = False
+                bookname = config.cookbook_filename
                 for tupl in reversed(traceback.extract_tb(traceback_obj)):
                     filename, linenum, func_name, message = tupl
-                    if filename.endswith('Kookbook.py'):
+                    if filename.endswith(bookname):
                         found = True
                         break
                 if found:
