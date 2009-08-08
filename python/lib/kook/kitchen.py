@@ -40,7 +40,7 @@ class Kitchen(object):
         """create tree of Cooking and Material. raises error if recipe or material not found."""
         if cookables is None: cookables = {}  # key: product name, value: cookable object
         cookbook = self.cookbook
-        def _create(target):
+        def _create(target, parent_product):
             exists = os.path.exists
             if target in cookables:
                 return cookables[target]
@@ -53,7 +53,11 @@ class Kitchen(object):
                 recipe = cookbook.find_recipe(target)
                 if   recipe:          cookable = Cooking.new(target, recipe)
                 elif exists(target):  cookable = Material.new(target)
-                else: raise KookRecipeError("%s: can't find any recipe to produce." % target)
+                else:
+                    if parent_product:
+                        raise KookRecipeError("%s: no such recipe or material (required for %s)." % (target, repr(parent_product)))
+                    else:
+                        raise KookRecipeError("%s: no such recipe or material." % target)
             assert cookable is not None
             cookables[target] = cookable
             if cookable.ingreds:
@@ -65,10 +69,10 @@ class Kitchen(object):
                         ingred = filename
                     #if isinstance(ingred, IfExists):
                     #    if not exists(ingred.filename): continue
-                    child_cookable = _create(ingred)
+                    child_cookable = _create(ingred, target)
                     cookable.children.append(child_cookable)
             return cookable
-        _create(target_product)
+        _create(target_product, None)
         root = cookables[target_product]
         return root   # cookable object
 
