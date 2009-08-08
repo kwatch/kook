@@ -86,24 +86,40 @@ class KookCommandsTest(object):
         cp('hello.c', 'hello2.c')
         ok('hello2.c', isfile, True)
         ok(getmtime('hello2.c'), '>', getmtime('hello.c'))
+        #
+        sout, serr = _getvalues()
+        ok(sout, '==', "$ cp hello.c hello2.c\n")
+        ok(serr, '==', "")
 
     def test_cp_p(self):
         ok('hello2.c', isfile, False)
         cp_p('hello.c', 'hello2.c')
         ok('hello2.c', isfile, True)
         ok(getmtime('hello2.c'), '==', getmtime('hello.c'))
+        #
+        sout, serr = _getvalues()
+        ok(sout, '==', "$ cp -p hello.c hello2.c\n")
+        ok(serr, '==', "")
 
     def test_cp_r(self):
         ok('hello.d/src2', isfile, False)
         cp_r('hello.d/src', 'hello.d/src2')
         ok('hello.d/src2/include/hello.h', isfile, True)
         ok(getmtime('hello.d/src2/include/hello.h'), '>', getmtime('hello.d/src/include/hello.h'))
+        #
+        sout, serr = _getvalues()
+        ok(sout, '==', "$ cp -r hello.d/src hello.d/src2\n")
+        ok(serr, '==', "")
 
     def test_cp_pr(self):
         ok('hello.d/src2', isfile, False)
-        cp_r('hello.d/src', 'hello.d/src2')
+        cp_pr('hello.d/src', 'hello.d/src2')
         ok('hello.d/src2/include/hello.h', isfile)
-        #ok(getmtime('hello.d/src2/include/hello.h'), '==', getmtime('hello.d/src/include/hello.h')) # BUG
+        ok(getmtime('hello.d/src2/include/hello.h'), '==', getmtime('hello.d/src/include/hello.h')) # BUG
+        #
+        sout, serr = _getvalues()
+        ok(sout, '==', "$ cp -pr hello.d/src hello.d/src2\n")
+        ok(serr, '==', "")
 
 
 if __name__ == '__main__':
