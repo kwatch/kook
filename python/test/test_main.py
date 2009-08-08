@@ -111,7 +111,7 @@ class KookMainCommandTest(object):
         _write(input)
         expected = r"""
 *** pykook: target is not given
-*** 'pykook -l' or 'pykook -L' show recipes and properties.
+*** 'pykook -l' or 'pykook -L' shows recipes and properties.
 *** (or set 'kook_default_product' in your kookbook.)
 """[1:]
         soutput, eoutput, status = _main_command("pykook")

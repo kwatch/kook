@@ -36,11 +36,11 @@ class MainObject(object):
             filename = config.properties_filename
         props = {}
         if os.path.isfile(filename):
-            content = read_file(config.properties_filename)
+            content = read_file(filename)
             #exec content in props, props
             exec(content, props, props)
             for name in list(props.keys()):
-                if not re.match(r'[a-zA-Z]', name):
+                if not re.match(r'^[a-zA-Z]', name):
                     del props[name]
         return props
 
@@ -95,10 +95,8 @@ class MainCommand(MainObject):
             config.debug_level = v
         if opts.get('f'):
             arg = opts['f']
-            if os.path.isdir(arg):
-                raise CommandOptionError("-f %s: not a file." % arg)
-            if not os.path.isfile(arg):
-                raise CommandOptionError("-f %s: not found." % arg)
+            if not os.path.exists(arg): raise CommandOptionError("-f %s: not found." % arg)
+            if not os.path.isfile(arg): raise CommandOptionError("-f %s: not a file." % arg)
         ## property file
         props = self._load_property_file()
         if longopts:
@@ -118,7 +116,7 @@ class MainCommand(MainObject):
             if not default_product:
                 write = config.stderr.write
                 write("*** %s: target is not given\n" % self.command)
-                write("*** '%s -l' or '%s -L' show recipes and properties.\n" % (self.command, self.command))
+                write("*** '%s -l' or '%s -L' shows recipes and properties.\n" % (self.command, self.command))
                 write("*** (or set 'kook_default_product' in your kookbook.)\n")
                 return 1
             rests = [default_product]
@@ -157,7 +155,7 @@ class MainCommand(MainObject):
                         write(format2 % (opt, desc))
             write("\n")
         ## default product
-        default_product = cookbook.context.get('kook_default_product')
+        default_product = cookbook.default_product()
         if default_product:
             write("kook_default_product: %s\n" % default_product)
             write("\n")
