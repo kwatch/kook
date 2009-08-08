@@ -353,29 +353,6 @@ hello.c hello.d hello.h
             store('**/*.h', 'hello999.d')
         ok(f, 'raises', KookCommandError, "store: hello999.d: directory not found.")
 
-    def test_store(self):
-        os.mkdir('hello2.d')
-        time.sleep(1)
-        store('**/*.h', 'hello2.d')
-        ok('hello2.d/hello.h',                      isfile, True)
-        ok('hello2.d/hello.d/src/include/hello.h',  isfile, True)
-        ok('hello2.d/hello.d/src/include/hello2.h', isfile, True)
-        #
-        base = 'hello.h'
-        ok(getmtime('hello2.d/'+base), '>', getmtime(base))
-        base = 'hello.d/src/include/hello.h'
-        ok(getmtime('hello2.d/'+base), '>', getmtime(base))
-        base = 'hello.d/src/include/hello2.h'
-        ok(getmtime('hello2.d/'+base), '>', getmtime(base))
-        #
-        sout, serr = _getvalues()
-        ok(sout, '==', "$ store **/*.h hello2.d\n")
-        ok(serr, '==', "")
-        #
-        def f():
-            store('**/*.h', 'hello999.d')
-        ok(f, 'raises', KookCommandError, "store: hello999.d: directory not found.")
-
     def test_store_p(self):
         os.mkdir('hello2.d')
         time.sleep(1)
