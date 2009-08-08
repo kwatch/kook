@@ -294,7 +294,7 @@ class Cooking(Cookable):
                 _report_msg("%s (%s)" % (self.product, self._r), depth)
                 self._invoke_recipe_with(argv)
                 ## check whether product file created or not
-                if is_file_recipe and not os.path.exists(self.product):
+                if is_file_recipe and not config.noexec and not os.path.exists(self.product):
                     raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.recipe.name, ))
                 ## if new product file is same as old, return MTIME_UPDATED, else return CONTENT_CHANGED
                 if config.compare_contents and product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
