@@ -314,6 +314,40 @@ $ cp index.txt index.html
         finally:
             config.forced = False
 
+    def test_noexec(self): # -n
+        input = r"""
+@recipe
+@product('*.xhtml')
+@ingreds('$(1).html')
+def file_xhtml(c):
+  cp(c.ingred, c.product)
+
+@recipe
+@product('*.html')
+@ingreds('$(1).txt')
+def file_html(c):
+  cp(c.ingred, c.product)
+"""[1:]
+        _write(input)
+        write_file("index.txt", "xxx")
+        self.byprods = ['index.txt']
+        ## products should not be created!
+        try:
+            soutput, eoutput, status = _main_command("pykook -n index.xhtml")
+            ok(config.noexec, '==', True)
+        finally:
+            config.noexec = False
+        ok('indent.html', os.path.isfile, False)
+        ok('indent.xhtml', os.path.isfile, False)
+        expected = r"""
+### ** index.html (recipe=file_html)
+$ cp index.txt index.html
+### * index.xhtml (recipe=file_xhtml)
+$ cp index.html index.xhtml
+"""[1:]
+        ok(soutput, '==', expected)
+        ok(eoutput, '==', "")
+
     def test_list(self): # -l, -L
         input = r"""
 CC = prop('CC', 'gcc')
