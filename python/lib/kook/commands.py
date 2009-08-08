@@ -235,7 +235,7 @@ def store(*filenames):
     _store(filenames, 'store', 'store', p=False)
 
 def store_p(*filenames):
-    _store(filenames, 'store', 'store', p=True)
+    _store(filenames, 'store_p', 'store -p', p=True)
 
 def _store(filenames, func, cmd, p=False):
     fnames = _prepare(filenames, cmd)

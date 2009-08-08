@@ -386,6 +386,10 @@ hello.c hello.d hello.h
         ok(getmtime('hello2.d/'+base), '==', getmtime(base))
         base = 'hello.d/src/include/hello2.h'
         ok(getmtime('hello2.d/'+base), '==', getmtime(base))
+        #
+        sout, serr = _getvalues()
+        ok(sout, '==', "$ store -p **/*.h hello2.d\n")
+        ok(serr, '==', "")
 
 
     def test_chdir(self):
