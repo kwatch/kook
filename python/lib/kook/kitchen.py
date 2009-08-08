@@ -12,7 +12,7 @@ from kook.cookbook import Cookbook
 from kook import KookError, KookRecipeError
 import kook.utils
 import kook.config as config
-from kook.misc import ConditionalFile, _debug, _report_cmd, _report_msg
+from kook.misc import ConditionalFile, _debug, _trace, _report_cmd, _report_msg
 
 __all__ = ('Kitchen', )
 
@@ -114,7 +114,7 @@ class Kitchen(object):
         self.check_cooking_tree(root)
         assert isinstance(root, Cookable)
         assert root.product == target
-        _debug("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ), 2)
+        _trace("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ))
         if isinstance(root, Material):
             raise KookError("%s: is a material (= a file to which no recipe matched)." % target)
         ## start cooking
@@ -152,7 +152,7 @@ class Material(Cookable):
 
     def cook(self, depth=1, argv=()):
         assert os.path.exists(self.product)
-        _debug("material %s" % self.product, 1, depth)
+        _debug("material %s" % self.product, depth)
         return NOT_INVOKED
 
     def has_product_file(self):
@@ -237,10 +237,10 @@ class Cooking(Cookable):
         is_file_recipe = self.recipe.kind == 'file'
         ## return if already cooked
         if self.cooked:
-            _debug("pass %s (already cooked)" % self.product, 1, depth)
+            _debug("pass %s (already cooked)" % self.product, depth)
             return self.cooked
         ## get mtime of product file if it exists
-        _debug("begin %s" % self.product, 1, depth)
+        _debug("begin %s" % self.product, depth)
         if is_file_recipe and os.path.exists(self.product):
             product_mtime = os.path.getmtime(self.product)  # exist
         else:
@@ -255,7 +255,7 @@ class Cooking(Cookable):
                 if product_mtime and ret == NOT_INVOKED and child.has_product_file():
                     assert os.path.exists(child.product)
                     if os.path.getmtime(child.product) > product_mtime:
-                        _debug("child file '%s' is newer than product '%s'." % (child.product, self.product), 2, depth)
+                        _trace("child file '%s' is newer than product '%s'." % (child.product, self.product), depth)
                         child_status = CONTENT_CHANGED
         assert child_status in (CONTENT_CHANGED, MTIME_UPDATED, NOT_INVOKED)
         ## there are some cases to skip recipe invocation (ex. product is newer than ingredients)
@@ -263,13 +263,13 @@ class Cooking(Cookable):
             if child_status == MTIME_UPDATED:
                 assert os.path.exists(self.product)
                 _report_msg("%s (%s)" % (self.product, self._r), depth)
-                _debug("touch and skip %s (%s)" % (self.product, self._r), 1, depth)
+                _debug("touch and skip %s (%s)" % (self.product, self._r), depth)
                 _report_cmd("touch %s   # skipped" % self.product)
                 os.utime(self.product, None)    # update mtime of product file to current timestamp
                 self.cooked = MTIME_UPDATED
                 return MTIME_UPDATED    # skip recipe invocation
             elif child_status == NOT_INVOKED:
-                _debug("skip %s (%s)" % (self.product, self._r), 1, depth)
+                _debug("skip %s (%s)" % (self.product, self._r), depth)
                 self.cooked = NOT_INVOKED
                 return NOT_INVOKED          # skip recipe invocation
             else:
@@ -286,7 +286,7 @@ class Cooking(Cookable):
                     os.rename(self.product, tmp_filename)
                 ## invoke recipe
                 s = is_file_recipe and 'create' or 'perform'
-                _debug("%s %s (%s)" % (s, self.product, self._r), 1, depth)
+                _debug("%s %s (%s)" % (s, self.product, self._r), depth)
                 _report_msg("%s (%s)" % (self.product, self._r), depth)
                 self._invoke_recipe_with(argv)
                 ## check whether product file created or not
@@ -297,7 +297,7 @@ class Cooking(Cookable):
                     ret, msg = MTIME_UPDATED,   "end %s (content not changed, mtime updated)"
                 else:
                     ret, msg = CONTENT_CHANGED, "end %s (content changed)"
-                _debug(msg % self.product, 1, depth)
+                _debug(msg % self.product, depth)
                 return ret
             except Exception:
                 ## if product file exists, remove it when error raised
@@ -310,26 +310,26 @@ class Cooking(Cookable):
 
     def _can_skip(self, child_status, depth):
         if config.forced:
-            #_debug("cannot skip: invoked forcedly.", 2, depth)
+            #_trace("cannot skip: invoked forcedly.", depth)
             return False
         if self.recipe.kind == 'task':
-            _debug("cannot skip: task recipe should be invoked in any case.", 2, depth)
+            _trace("cannot skip: task recipe should be invoked in any case.", depth)
             return False
         if not self.children:
-            _debug("cannot skip: no children for product '%s'." % self.product, 2, depth)
+            _trace("cannot skip: no children for product '%s'." % self.product, depth)
             return False
         if not os.path.exists(self.product):
-            _debug("cannot skip: product '%s' not found." % self.product, 2, depth)
+            _trace("cannot skip: product '%s' not found." % self.product, depth)
             return False
         ##
         if child_status == CONTENT_CHANGED:
-            _debug("cannot skip: there is newer file in children than product '%s'." % self.product, 2, depth)
+            _trace("cannot skip: there is newer file in children than product '%s'." % self.product, depth)
             return False
         #if child_status == NOT_INVOKED:
         #    timestamp = os.path.getmtime(self.product)
         #    for child in self.children:
         #        if child.has_product_file() and os.path.getmtime(child.product) > timestamp:
-        #            _debug("cannot skip: child '%s' is newer than product '%s'." % (child.product, self.product), 2, depth)
+        #            _trace("cannot skip: child '%s' is newer than product '%s'." % (child.product, self.product), depth)
         #            return False
         ##
         return True
@@ -375,10 +375,10 @@ class Cooking(Cookable):
     ## utility method for convenience
     def parse_cmdopts(self, argv):
         parser = config.cmdopt_parser_class(self.spices)
-        _debug("parse_cmdopts() (%s): spices=%s" % (self._r, repr(parser.spices)), 2)
+        _trace("parse_cmdopts() (%s): spices=%s" % (self._r, repr(parser.spices)))
         try:
             opts, rests = parser.parse(argv)
-            _debug("parse_cmdopts() (%s): opts=%s, rests=%s" % (self._r, repr(opts), repr(rests)), 2)
+            _trace("parse_cmdopts() (%s): opts=%s, rests=%s" % (self._r, repr(opts), repr(rests)))
             return opts, rests
         except kook.utils.CommandOptionError:
             ex = sys.exc_info()[1]

@@ -8,7 +8,7 @@
 
 import os, re, types
 from kook import KookRecipeError
-from kook.misc import _debug
+from kook.misc import _debug, _trace
 import kook.utils
 import kook.config as config
 
@@ -133,10 +133,10 @@ class Cookbook(object):
         self.specific_file_recipes = recipes[SPECIFIC | FILE]   ## TODO: use dict
         self.generic_task_recipes  = recipes[GENERIC  | TASK]   ## TODO: support priority
         self.generic_file_recipes  = recipes[GENERIC  | FILE]   ## TODO: support priority
-        _debug("specific task recipes: %s" % repr(self.specific_task_recipes), 2)
-        _debug("generic  task recipes: %s" % repr(self.generic_task_recipes), 2)
-        _debug("specific file recipes: %s" % repr(self.specific_file_recipes), 2)
-        _debug("generic  file recipes: %s" % repr(self.generic_file_recipes), 2)
+        _trace("specific task recipes: %s" % repr(self.specific_task_recipes))
+        _trace("generic  task recipes: %s" % repr(self.generic_task_recipes))
+        _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
+        _trace("generic  file recipes: %s" % repr(self.generic_file_recipes))
 
     def material_p(self, target):
         return target in self.materials    ## TODO: use dict
@@ -147,8 +147,8 @@ class Cookbook(object):
         for recipes in recipes_tuple:      ## TODO: use dict for specific recipes
             for recipe in recipes:
                 if recipe.match(target):
-                    _debug("Cookbook#find_recipe(): target=%s, func=%s, product=%s" % \
-                               (repr(target), recipe.name, repr(recipe.product), ), 2)
+                    _trace("Cookbook#find_recipe(): target=%s, func=%s, product=%s" % \
+                               (repr(target), recipe.name, repr(recipe.product), ))
                     return recipe
         return None
         #if target.startswith(':'):
@@ -159,13 +159,13 @@ class Cookbook(object):
         #    generic_recipes  = self.generic_file_recipes
         #for recipe in specific_recipes:    ## TODO: use dict
         #    if recipe.match(target):
-        #        _debug("find_recipe(): target=%s, func=%s, product=%s" % \
-        #                   (repr(target), recipe.name, repr(recipe.product), ), 2)
+        #        _trace("find_recipe(): target=%s, func=%s, product=%s" % \
+        #                   (repr(target), recipe.name, repr(recipe.product), ))
         #        return recipe
         #for recipe in generic_recipes:
         #    if recipe.match(target):
-        #        _debug("find_recipe(): target=%s, func=%s, product=%s" % \
-        #                   (repr(target), recipe.name, repr(recipe.product), ), 2)
+        #        _trace("find_recipe(): target=%s, func=%s, product=%s" % \
+        #                   (repr(target), recipe.name, repr(recipe.product), ))
         #        return recipe
         #return None
 

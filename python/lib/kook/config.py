@@ -12,7 +12,7 @@ import kook.utils as _utils
 quiet            = False
 forced           = False
 noexec           = False
-debug_level      = 0
+debug_level      = 0       #  1: debug, 2: trace
 command_prompt   = '$ '
 message_prompt   = '### '
 warning_prompt   = '*** WARNING: '

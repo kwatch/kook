@@ -36,8 +36,17 @@ def if_exists(*args):
 ###
 
 
-def _debug(msg, level=1, depth=0):
-    if config.debug_level >= level:
+def _debug(msg, depth=0):
+    if config.debug_level >= 1:
+        write = config.stdout.write
+        write(config.debug_prompt)
+        if depth: write('+' * depth + ' ')
+        write(msg)
+        if msg[-1] != "\n": write("\n")
+
+
+def _trace(msg, depth=0):
+    if config.debug_level >= 2:
         write = config.stdout.write
         write(config.debug_prompt)
         if depth: write('+' * depth + ' ')
