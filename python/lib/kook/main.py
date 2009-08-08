@@ -138,13 +138,7 @@ class MainCommand(MainObject):
             write(format % (prop_name, repr(prop_value)))
         write("\n")
         ## task and file recipes
-        tuples = (
-            ("Task recipes",
-             cookbook.specific_task_recipes + cookbook.generic_task_recipes),
-            ("File recipes",
-             cookbook.specific_file_recipes + cookbook.generic_file_recipes),
-        )
-        for title, recipes in tuples:
+        def f(title, recipes):
             write(title + ":\n")
             for recipe in recipes:
                 if show_all or recipe.desc:
@@ -154,6 +148,8 @@ class MainCommand(MainObject):
                     for opt, desc in optparser.helps:
                         write(format2 % (opt, desc))
             write("\n")
+        f("Task recipes", cookbook.specific_task_recipes + cookbook.generic_task_recipes)
+        f("File recipes", cookbook.specific_file_recipes + cookbook.generic_file_recipes)
         ## default product
         default_product = cookbook.default_product()
         if default_product:
@@ -170,10 +166,10 @@ class MainCommand(MainObject):
         index = int(random() * len(TIPS))
         assert index < len(TIPS)
         if default_product:       # if default product is specified,
-            if index == 0:        # escape tips about it.
+            if index == 0:        # escape tip about it.
                 index = int(random() * len(TIPS)) or 1
         else:                     # if default product is not specified,
-            if random() < 0.5:    # show tips about it frequently.
+            if random() < 0.5:    # show tip about it frequently.
                 index = 0
         return TIPS[index]
 
