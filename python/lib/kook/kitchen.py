@@ -129,7 +129,7 @@ class Cookable(object):
     children = ()
 
     def cook(self, depth=1, argv=(), parent_mtime=0):
-        raise NotImplementedError("%s.start(): not implemented yet." % self.__class__.__name__)
+        raise NotImplementedError("%s.cook(): not implemented yet." % self.__class__.__name__)
 
 
 CONTENT_CHANGED = 3     # recipe is invoked, and product content is changed when recipe is FileRecipe
