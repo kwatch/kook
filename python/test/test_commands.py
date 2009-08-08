@@ -21,8 +21,12 @@ import kook.commands
 from kook.utils import read_file, write_file
 import kook.config as config
 
-def _getvalues():
-    return (config.stdout.getvalue(), config.stderr.getvalue())
+def _getvalues(set=False):
+    pair = (config.stdout.getvalue(), config.stderr.getvalue())
+    if set:
+        config.stdout = StringIO()
+        config.stderr = StringIO()
+    return pair
 
 HELLO_C = """\
 #include <stdio.h>
@@ -470,6 +474,90 @@ $ chdir -   # back to %s
         ]
         edit("**/*.h", by=by)
         self._test_edit()
+
+
+    def test_noexec(self):
+        noexec = config.noexec
+        config.noexec = True
+        try:
+            # system
+            for f in (system, system_f):
+                f("cat -n hello.c > hello2.c")
+                ok("hello2.c", exists, False)
+                sout, serr = _getvalues(True)
+                ok(sout, '==', "$ cat -n hello.c > hello2.c\n")
+                ok(serr, '==', "")
+            # cp
+            for f in (cp, cp_p, cp_r, cp_pr):
+                f("hello.c", "hello2.c")
+                ok("hello2.c", exists, False)
+                name = kook.utils.get_funcname(f)
+                sout, serr = _getvalues(True)
+                ok(sout, '==', "$ %s hello.c hello2.c\n" % re.sub('_', ' -', name))
+                ok(serr, '==', "")
+            # mkdir
+            for f in (mkdir, mkdir_p):
+                f("hello2.d")
+                ok("hello2.d", exists, False)
+                name = kook.utils.get_funcname(f)
+                sout, serr = _getvalues(True)
+                ok(sout, '==', "$ %s hello2.d\n" % re.sub('_', ' -', name))
+                ok(serr, '==', "")
+            # rm
+            for f in (rm, rm_r, rm_f, rm_rf):
+                f("hello.*")
+                ok("hello.c", isfile, True)
+                name = kook.utils.get_funcname(f)
+                sout, serr = _getvalues(True)
+                ok(sout, '==', "$ %s hello.*\n" % re.sub('_', ' -', name))
+                ok(serr, '==', "")
+            # mv
+            mv("hello.c", "hello2.c")
+            ok("hello2.c", exists, False)
+            sout, serr = _getvalues(True)
+            ok(sout, '==', "$ mv hello.c hello2.c\n")
+            ok(serr, '==', "")
+            mv("hello.c", "hello.h", "hello.d")
+            ok("hello.c", exists, True)
+            ok("hello.h", exists, True)
+            sout, serr = _getvalues(True)
+            ok(sout, '==', "$ mv hello.c hello.h hello.d\n")
+            ok(serr, '==', "")
+            # echo
+            for f in (echo, echo_n):
+                f("YES")
+                sout, serr = _getvalues(True)
+                name = kook.utils.get_funcname(f)
+                ok(sout, '==', "$ %s YES\n" % re.sub('_', ' -', name))
+                ok(serr, '==', "")
+            # store
+            for f in (store, store_p):
+                f("**/*.h", "hello2.d")
+                ok("hello2.d/hello.h", exists, False)
+                sout, serr = _getvalues(True)
+                name = kook.utils.get_funcname(f)
+                ok(sout, '==', "$ %s **/*.h hello2.d\n" % re.sub('_', ' -', name))
+                ok(serr, '==', "")
+            # cd
+            cwd = cd('hello.d')
+            try:
+                ok(os.getcwd(), '==', os.path.join(cwd, 'hello.d'))
+                sout, serr = _getvalues(True)
+                ok(sout, '==', "$ cd hello.d\n")
+                ok(serr, '==', "")
+            finally:
+                cd(cwd)
+                _getvalues(True)
+            # edit
+            def f(content):
+                return re.sub('\$_RELEASE_\$', '1.2.3', content)
+            edit("hello.h", by=f)
+            s = read_file("hello.h")
+            ok(s.find("1.2.3"), '==', -1)
+            ok(s.find("$_RELEASE_$"), '>', 0)
+            #
+        finally:
+            config.noexec = noexec
 
 
 if __name__ == '__main__':

@@ -128,6 +128,7 @@ pykook - build tool like Make, Rake, Ant, or Cook
   -q                  : quiet
   -f file             : kookbook
   -F                  : forcedly
+  -n                  : not execute (dry run)
   -l                  : list public recipes
   -L                  : list all recipes
   --name=value        : property name and value

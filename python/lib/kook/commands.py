@@ -32,11 +32,15 @@ __all__ = (
 
 def system_f(command):
     _report_cmd(command)
+    if config.noexec:
+        return
     return os.system(command)
 
 
 def system(command):
     _report_cmd(command)
+    if config.noexec:
+        return
     status = os.system(command)
     if status != 0:
         #status = status % 255
@@ -65,6 +69,8 @@ def _prepare(filenames, cmd=None):
 
 def _cp(filenames, func, cmd, p, r):
     fnames = _prepare(filenames, cmd)
+    if config.noexec:
+        return
     _copy_file = p and shutil.copy2 or shutil.copy
     n = len(fnames)
     if n < 2:
@@ -126,6 +132,8 @@ def mkdir_p(*dirnames):
 
 def _mkdir(dirnames, func, cmd, p):
     dnames = _prepare(dirnames, cmd)
+    if config.noexec:
+        return
     if not dnames:
         raise KookCommandError("%s: directory name required." % func)
     for dname in dnames:
@@ -165,6 +173,8 @@ def rm_rf(*filenames):
 
 def _rm(filenames, func, cmd, r=False, f=False):
     fnames = _prepare(filenames, cmd)
+    if config.noexec:
+        return
     for fname in fnames:
         if os.path.isdir(fname):
             if r: _remove(fname)
@@ -190,6 +200,8 @@ def mv(*filenames):
 
 def _mv(filenames, func, cmd):
     fnames = _prepare(filenames, cmd)
+    if config.noexec:
+        return
     n = len(fnames)
     if n < 2:
         raise KookCommandError("%s: at least two file or directory names are required." % func)
@@ -224,6 +236,8 @@ def echo_n(*messages):
 
 def _echo(messages, func, cmd, n=False):
     msgs = _prepare(messages, cmd)
+    if config.noexec:
+        return
     write = config.stdout.write
     for i, msg in enumerate(msgs):
         if i > 0: write(' ')
@@ -240,6 +254,8 @@ def store_p(*filenames):
 
 def _store(filenames, func, cmd, p=False):
     fnames = _prepare(filenames, cmd)
+    if config.noexec:
+        return
     n = len(fnames)
     _copy_file = p and shutil.copy2 or shutil.copy
     if n < 2:
@@ -335,6 +351,8 @@ def edit(*filenames, **kwargs):
 
 def _edit(filenames, func, cmd, by, encoding=None):
     fnames = _prepare(filenames, cmd)
+    if config.noexec:
+        return
     for fname in fnames:
         if not os.path.exists(fname):
             raise KookCommandError("%s: %s: not found." % (func, fname))

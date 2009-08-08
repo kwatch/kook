@@ -11,6 +11,7 @@ import kook.utils as _utils
 
 quiet            = False
 forced           = False
+noexec           = False
 debug_level      = 0
 command_prompt   = '$ '
 message_prompt   = '### '

@@ -55,9 +55,9 @@ class MainCommand(MainObject):
         "-q:      quiet",
         "-f file: kookbook",
         "-F:      forcedly",
+        "-n:      not execute (dry run)",
         "-l:      list public recipes",
         "-L:      list all recipes",
-        #"-n:      not invoke (dry run)",
         "--name=value: property name and value",
         "--name:       property name and value(=True)",
     )
@@ -77,6 +77,7 @@ class MainCommand(MainObject):
             return 0
         if opts.get('q'):  config.quiet  = True
         if opts.get('F'):  config.forced = True
+        if opts.get('n'):  config.noexec = True
         if opts.get('D'):
             v = str2int(opts['D'])    # notice that int(True) is 1
             if v is None:
