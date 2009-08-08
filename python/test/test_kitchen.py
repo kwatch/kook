@@ -621,20 +621,69 @@ $ touch hello   # skipped
         ts_hello2_o = os.path.getmtime("hello2.o")
         time.sleep(1)
         write_file('hello.h.txt', hello_h_txt.replace('hello', 'HELLO'))
-        kitchen.start_cooking('build')
+        try:
+            config.debug_level = 2
+            kitchen.start_cooking('build')
+        finally:
+            config.debug_level = 0
         ok(os.path.getmtime('hello'),    '>', ts_hello)
         ok(os.path.getmtime('hello1.o'), '>', ts_hello1_o)
         ok(os.path.getmtime('hello2.o'), '>', ts_hello2_o)
+#        expected = r'''
+#### **** hello.h (recipe=file_hello_h)
+#$ cp hello.h.txt hello.h
+#### *** hello1.o (recipe=file_o)
+#$ gcc -c hello1.c
+#### *** hello2.o (recipe=file_o)
+#$ gcc -c hello2.c
+#### ** hello (recipe=file_hello)
+#$ gcc -o hello hello1.o hello2.o
+#### * build (recipe=build)
+#'''[1:]
         expected = r'''
+*** debug: Cookbook#find_recipe(): target='build', func=build, product='build'
+*** debug: Cookbook#find_recipe(): target='hello', func=file_hello, product='hello'
+*** debug: Cookbook#find_recipe(): target='hello1.o', func=file_o, product='*.o'
+*** debug: Cookbook#find_recipe(): target='hello.h', func=file_hello_h, product='hello.h'
+*** debug: Cookbook#find_recipe(): target='hello2.o', func=file_o, product='*.o'
+*** debug: start_cooking(): root.product='build', root.ingreds=('hello',)
+*** debug: + begin build
+*** debug: ++ begin hello
+*** debug: +++ begin hello1.o
+*** debug: ++++ material hello1.c
+*** debug: ++++ begin hello.h
+*** debug: +++++ material hello.h.txt
+*** debug: ++++ child file 'hello.h.txt' is newer than product 'hello.h'.
+*** debug: ++++ cannot skip: there is newer file in children than product 'hello.h'.
+*** debug: ++++ create hello.h (recipe=file_hello_h)
 ### **** hello.h (recipe=file_hello_h)
 $ cp hello.h.txt hello.h
+*** debug: ++++ end hello.h (content changed)
+*** debug: +++ cannot skip: there is newer file in children than product 'hello1.o'.
+*** debug: +++ create hello1.o (recipe=file_o)
 ### *** hello1.o (recipe=file_o)
 $ gcc -c hello1.c
+*** debug: +++ end hello1.o (content not changed, mtime updated)
+*** debug: +++ begin hello2.o
+*** debug: ++++ material hello2.c
+*** debug: ++++ begin hello.h
+*** debug: +++++ material hello.h.txt
+*** debug: ++++ skip hello.h (recipe=file_hello_h)
+*** debug: +++ child file 'hello.h' is newer than product 'hello2.o'.
+*** debug: +++ cannot skip: there is newer file in children than product 'hello2.o'.
+*** debug: +++ create hello2.o (recipe=file_o)
 ### *** hello2.o (recipe=file_o)
 $ gcc -c hello2.c
+*** debug: +++ end hello2.o (content changed)
+*** debug: ++ cannot skip: there is newer file in children than product 'hello'.
+*** debug: ++ create hello (recipe=file_hello)
 ### ** hello (recipe=file_hello)
 $ gcc -o hello hello1.o hello2.o
+*** debug: ++ end hello (content changed)
+*** debug: + cannot skip: task recipe should be invoked in any case.
+*** debug: + perform build (recipe=build)
 ### * build (recipe=build)
+*** debug: + end build (content changed)
 '''[1:]
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
