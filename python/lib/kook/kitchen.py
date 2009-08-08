@@ -81,7 +81,7 @@ class Kitchen(object):
                 # assert isinstance(child, (Material, Cooking))
                 if child.product in visited:
                     pos = route.index(child.product)
-                    loop = "->".join( prod for prod in route[pos:] + [child.product] )
+                    loop = "->".join(route[pos:] + [child.product])
                     raise KookRecipeError("%s: recipe is looped (%s)." % (child.product, loop))
                 elif child.children:
                     # assert isinstance(child, Cooking)
