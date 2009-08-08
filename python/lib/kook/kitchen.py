@@ -128,7 +128,7 @@ class Cookable(object):
     ingreds = ()
     children = ()
 
-    def cook(self, depth=1, argv=(), parent_mtime=0):
+    def cook(self, depth=1, argv=()):
         raise NotImplementedError("%s.cook(): not implemented yet." % self.__class__.__name__)
 
     def has_product_file(self):
@@ -150,7 +150,7 @@ class Material(Cookable):
     def new(cls, filename):
         return cls(filename)
 
-    def cook(self, depth=1, argv=(), parent_mtime=0):
+    def cook(self, depth=1, argv=()):
         assert os.path.exists(self.product)
         _debug("material %s" % self.product, 1, depth)
         return NOT_INVOKED
@@ -232,7 +232,7 @@ class Cooking(Cookable):
     ##     # not invoke recipe function
     ##     return NOT_INVOKED
     ##
-    def cook(self, depth=1, argv=(), parent_mtime=0):
+    def cook(self, depth=1, argv=()):
         """invoke recipe function."""
         is_file_recipe = self.recipe.kind == 'file'
         ## return if already cooked
@@ -249,7 +249,7 @@ class Cooking(Cookable):
         child_status = NOT_INVOKED
         if self.children:
             for child in self.children:
-                ret = child.cook(depth+1, (), product_mtime)
+                ret = child.cook(depth+1, ())
                 assert ret is not None
                 if ret > child_status:  child_status = ret
                 if product_mtime and ret == NOT_INVOKED and child.has_product_file():
