@@ -35,6 +35,13 @@ class Cookbook(object):
         #if bookname:
         #    self.load_file(bookname)
 
+    @classmethod
+    def new(cls, bookname, properties={}):
+        self = cls(bookname)
+        if bookname:
+            self.load_file(bookname, properties)
+        return self
+
     def prop(self, name, value):
         if name not in self._property_names_dict:
             self._property_names_dict[name] = True
@@ -47,13 +54,6 @@ class Cookbook(object):
 
     def all_properties(self):
         return [ (pname, self.context.get(pname)) for pname in self.property_names ]
-
-    @classmethod
-    def new(cls, bookname, properties={}):
-        self = cls(bookname)
-        if bookname:
-            self.load_file(bookname, properties)
-        return self
 
     def default_product(self):
         return self.context.get('kook_default_product')
@@ -196,15 +196,6 @@ class Recipe(object):
         else:
             self.pattern = None
 
-    def is_generic(self):
-        return self.pattern is not None
-
-    def match(self, target):
-        if self.pattern:
-            return re.match(self.pattern, target)
-        else:
-            return self.product == target
-
     @classmethod
     def new(cls, func_name, func, _cls=None):
         if _cls: cls = _cls
@@ -217,6 +208,15 @@ class Recipe(object):
         desc    = func.__doc__  ## can be empty string
         if desc is None: desc = _default_descs.get(product)
         return cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
+
+    def is_generic(self):
+        return self.pattern is not None
+
+    def match(self, target):
+        if self.pattern:
+            return re.match(self.pattern, target)
+        else:
+            return self.product == target
 
     def __repr__(self):
         #return "<%s product=%s func=%s>" % (self.__class__.__name__, repr(self.product), self.name)
