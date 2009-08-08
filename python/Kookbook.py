@@ -149,3 +149,16 @@ def file_users_guide_txt(c):
 def file_users_guide_css(c):
     os.path.isdir('doc') or mkdir('doc')
     cp(c.ingred, c.product)
+
+@recipe
+@product('test/oktest.py')
+@ingreds('../../oktest/python/lib/oktest.py')
+def file_test_oktest_py(c):
+    rm_f(c.product)
+    system(c%'ln $(ingred) $(product)')
+
+@recipe
+@ingreds('test/oktest.py')
+def update_oktest(c):
+    """update 'test/oktest.py'"""
+    pass
