@@ -237,6 +237,7 @@ def invoke_test(obj, method_name):
                 base = os.path.basename(filename)
                 if base != 'oktest.py' and base != 'oktest.pyc':
                     break
+            stdout.write(    "  - %s:%s: %s\n" % (filename, linenum, linetext))
             for filename, linenum, funcname, linetext in iter:
                 stdout.write("  - %s:%s: %s\n" % (filename, linenum, linetext))
 
@@ -246,13 +247,7 @@ def _invoke(obj, callable_name):
     f = getattr(obj, callable_name)
     if not hasattr(f, '__call__'):
         raise TypeError('%s: not a callable.' % callable_name)
-    if python2:
-        if isinstance(obj, _class_types):
-            return f(obj)
-        else:
-            return f()
-    elif python3:
-        return f()
+    return f()
 
 
 def _matched_class_objects(*classes):
