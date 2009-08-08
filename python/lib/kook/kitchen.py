@@ -152,15 +152,8 @@ class Material(Cookable):
 
     def cook(self, depth=1, argv=(), parent_mtime=0):
         assert os.path.exists(self.product)
-        if   parent_mtime == 0:
-            ret, msg = NOT_INVOKED, "material %s"
-        elif parent_mtime < os.path.getmtime(self.product):
-            ret, msg = CONTENT_CHANGED, "material %s (newer than product)"
-        else:
-            ret, msg = NOT_INVOKED, "material %s (not newer than product)"
-        _debug(msg % self.product, 1, depth)
-        #self.cooked = ret
-        return ret
+        _debug("material %s" % self.product, 1, depth)
+        return NOT_INVOKED
 
     def has_product_file(self):
         return True
