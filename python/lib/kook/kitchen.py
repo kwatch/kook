@@ -57,6 +57,7 @@ class Kitchen(object):
             assert cookable is not None
             cookables[target] = cookable
             if cookable.ingreds:
+                assert isinstance(cookable, Cooking)
                 for ingred in cookable.ingreds:
                     if isinstance(ingred, ConditionalFile):
                         filename = ingred()
@@ -77,11 +78,13 @@ class Kitchen(object):
             route.append(cooking.product)
             visited[cooking.product] = True
             for child in cooking.children:
+                # assert isinstance(child, (Material, Cooking))
                 if child.product in visited:
                     pos = route.index(child.product)
                     loop = "->".join( prod for prod in route[pos:] + [child.product] )
                     raise KookRecipeError("%s: recipe is looped (%s)." % (child.product, loop))
                 elif child.children:
+                    # assert isinstance(child, Cooking)
                     _traverse(child, route, visited)
             assert len(route) > 0
             prod = route.pop()
