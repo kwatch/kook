@@ -252,7 +252,7 @@ class Cooking(Cookable):
                 if ret > child_status:  child_status = ret
         assert child_status in (CONTENT_CHANGED, MTIME_UPDATED, NOT_INVOKED)
         ## there are some cases to skip recipe invocation (ex. product is newer than ingredients)
-        if self._can_skip():
+        if self._can_skip(depth):
             if child_status == MTIME_UPDATED:
                 assert os.path.exists(self.product)
                 _report_msg("%s (%s)" % (self.product, self._r), depth)
@@ -301,11 +301,19 @@ class Cooking(Cookable):
         finally:
             if product_mtime: os.unlink(tmp_filename)
 
-    def _can_skip(self):
-        if config.forced:              return False
-        if self.recipe.kind == 'task': return False
-        if not self.children:          return False
-        if not os.path.exists(self.product): return False
+    def _can_skip(self, depth):
+        if config.forced:
+            #_debug("cannot skip: invoked forcedly.", 2, depth)
+            return False
+        if self.recipe.kind == 'task':
+            _debug("cannot skip: task recipe should be invoked in any case.", 2, depth)
+            return False
+        if not self.children:
+            _debug("cannot skip: no children for product '%s'." % self.product, 2, depth)
+            return False
+        if not os.path.exists(self.product):
+            _debug("cannot skip: product '%s' not found." % self.product, 2, depth)
+            return False
         return True
 
     def _invoke_recipe_with(self, argv):

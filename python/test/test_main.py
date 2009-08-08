@@ -198,6 +198,7 @@ YES
 *** debug: Cookbook#find_recipe(): target='echo', func=task_echo, product='echo'
 *** debug: start_cooking(): root.product='echo', root.ingreds=()
 *** debug: + begin echo
+*** debug: + cannot skip: task recipe should be invoked in any case.
 *** debug: + perform echo (recipe=task_echo)
 ### * echo (recipe=task_echo)
 $ echo YES
