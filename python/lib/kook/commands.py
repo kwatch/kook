@@ -39,6 +39,7 @@ def system(command):
     _report_cmd(command)
     status = os.system(command)
     if status != 0:
+        #status = status % 255
         raise KookCommandError("command failed (status=%s)." % status)
 
 
@@ -283,6 +284,7 @@ class Chdir(object):
             raise KookCommandError("%s: %s: not a directory." % (func, dname))
         self.cwd = os.getcwd()
         os.chdir(self.dirname)
+        return self
 
     def __exit__(self, type, value, traceback):   # type and value is not used
         _prepare(['-', '  # back to '+self.cwd], self.cmd)
