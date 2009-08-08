@@ -399,7 +399,8 @@ def file_hello_txt(c):
     open(c.product, "w").write("abc")
     #import sys, os
     #sys.stderr.write("*** debug: os.path.exists('hello.h')=%s\n" % (os.path.exists('hello.h')))
-    system(c%"gcc HOGE.c")
+    #system(c%"gcc HOGE.c")
+    system(c%"gcc HOGE.c 2>/dev/null")
     #system(c%"gcc HOGE.c 2>&1 /dev/null")
 """
         ok("hello.h", isfile)
@@ -409,7 +410,7 @@ def file_hello_txt(c):
         ok(func, 'raises', kook.KookCommandError)
         expected = (
             "### * hello.h (recipe=file_hello_txt)\n"
-            "$ gcc HOGE.c\n"
+            "$ gcc HOGE.c 2>/dev/null\n"
             "### * (remove hello.h because unexpected error raised (recipe=file_hello_txt))\n"
         )
         ok(_stdout(), '==', expected)
