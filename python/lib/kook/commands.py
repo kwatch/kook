@@ -41,6 +41,7 @@ def system(command):
     if status != 0:
         #status = status % 255
         raise KookCommandError("command failed (status=%s)." % status)
+    return status
 
 
 def cp(*filenames):
