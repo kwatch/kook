@@ -131,6 +131,9 @@ class Cookable(object):
     def cook(self, depth=1, argv=(), parent_mtime=0):
         raise NotImplementedError("%s.cook(): not implemented yet." % self.__class__.__name__)
 
+    def has_product_file(self):
+        raise NotImplementedError("%s.has_product_file(): not implemented yet." % self.__class__.__name__)
+
 
 CONTENT_CHANGED = 3     # recipe is invoked, and product content is changed when recipe is FileRecipe
 MTIME_UPDATED   = 2     # file content of product is not changed (recipe may be invoked or not)
@@ -158,6 +161,9 @@ class Material(Cookable):
         _debug(msg % self.product, 1, depth)
         #self.cooked = ret
         return ret
+
+    def has_product_file(self):
+        return True
 
 
 class Cooking(Cookable):
@@ -212,6 +218,9 @@ class Cooking(Cookable):
         self.matched = matched
         self.m = m
         return self
+
+    def has_product_file(self):
+        return self.recipe.kind == "file"
 
     ##
     ## pseudo-code:
