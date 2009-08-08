@@ -31,10 +31,16 @@ def _teardown_stdio():
     config.stderr = sys.stderr
 
 def _stdout():
-    return config.stdout.getvalue()
+    val = config.stdout.getvalue()
+    config.stdout.close()
+    config.stdout = StringIO()
+    return val
 
 def _stderr():
-    return config.stderr.getvalue()
+    val = config.stderr.getvalue()
+    config.stderr.close()
+    config.stderr = StringIO()
+    return val
 
 
 HELLO_C = r"""
@@ -74,6 +80,11 @@ class KookKitchenTest(object):
         kitchen.start_cooking(*targets)
         return kitchen
 
+    def _kitchen(self, kookbook_py):
+        kookbook = Cookbook()
+        kookbook.load(kookbook_py)
+        kitchen = Kitchen(kookbook)
+        return kitchen
 
     def test_specific_file_cooking1(self):
         content = r"""\
@@ -477,6 +488,149 @@ def task_all(c):
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+
+
+    def test_complicated_cooking2(self):   # DAG
+
+        for x in glob("hello*"):
+            os.unlink(x)
+
+        hello_h_txt = r'''
+/*extern char *command;*/
+#define COMMAND "hello"
+void print_args(int argc, char *argv[]);
+'''[1:]
+        hello1_c = r'''
+#include "hello.h"
+/*char *command = "hello";*/
+int main(int argc, char *argv[]) {
+    print_args(argc, argv);
+    return 0;
+}
+'''[1:]
+        hello2_c = r'''
+#include <stdio.h>
+#include "hello.h"
+void print_args(int argc, char *argv[]) {
+    int i;
+    printf("%s: argc=%d\n", COMMAND, argc);
+    for (i = 0; i < argc; i++) {
+        printf("%s: argv[%d]: %s\n", COMMAND, i, argv[i]);
+    }
+}
+'''[1:]
+        write_file("hello.h.txt", hello_h_txt)
+        write_file("hello1.c", hello1_c)
+        write_file("hello2.c", hello2_c)
+        #
+        kookbook_py = r'''
+@recipe
+@ingreds('hello')
+def build(c):
+  "build all files"
+  pass
+
+@recipe
+@product('hello')
+@ingreds('hello1.o', 'hello2.o')
+def file_hello(c):
+  system(c%'gcc -o $(product) $(ingreds)')
+
+@recipe
+@product('*.o')
+@ingreds('$(1).c', 'hello.h')
+def file_o(c):
+  system(c%'gcc -c $(ingred)')
+
+@recipe
+@product('hello.h')
+@ingreds('hello.h.txt')
+def file_hello_h(c):
+  system(c%'cp $(ingred) $(product)')
+'''[1:]
+        kitchen = self._kitchen(kookbook_py)
+        #
+        ## 1st
+        ok('hello.h',  isfile, False)
+        ok('hello1.o', isfile, False)
+        ok('hello1.o', isfile, False)
+        ok('hello',    isfile, False)
+        kitchen.start_cooking('build')
+        ok('hello.h',  isfile, True)
+        ok('hello1.o', isfile, True)
+        ok('hello1.o', isfile, True)
+        ok('hello',    isfile, True)
+        expected = r'''
+### **** hello.h (recipe=file_hello_h)
+$ cp hello.h.txt hello.h
+### *** hello1.o (recipe=file_o)
+$ gcc -c hello1.c
+### *** hello2.o (recipe=file_o)
+$ gcc -c hello2.c
+### ** hello (recipe=file_hello)
+$ gcc -o hello hello1.o hello2.o
+### * build (recipe=build)
+'''[1:]
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+        ## 2nd (sleep 1 sec, all recipes should be skipped)
+        ts_hello    = os.path.getmtime("hello")
+        ts_hello1_o = os.path.getmtime("hello1.o")
+        ts_hello2_o = os.path.getmtime("hello2.o")
+        ts_hello_h  = os.path.getmtime("hello.h")
+        time.sleep(1)
+        kitchen.start_cooking('build')
+        ok(os.path.getmtime('hello'),    '==', ts_hello)
+        ok(os.path.getmtime('hello1.o'), '==', ts_hello1_o)
+        ok(os.path.getmtime('hello2.o'), '==', ts_hello2_o)
+        ok(os.path.getmtime('hello.h'),  '==', ts_hello_h)
+        expected = r'''
+### * build (recipe=build)
+'''[1:]
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+        ## 3rd (touch hello.h, hello should be skipped)
+        now = time.time()
+        os.utime('hello.h', (now, now))   # update intermediates
+        kitchen.start_cooking('build')
+        ok(os.path.getmtime('hello.h.txt'), '<', now)
+        ok(os.path.getmtime('hello'),    '>', ts_hello)
+        ok(os.path.getmtime('hello1.o'), '>', ts_hello1_o)
+        ok(os.path.getmtime('hello2.o'), '>', ts_hello2_o)
+        expected = r'''
+### *** hello1.o (recipe=file_o)
+$ gcc -c hello1.c
+### *** hello2.o (recipe=file_o)
+$ gcc -c hello2.c
+### ** hello (recipe=file_hello)
+$ touch hello   # skipped
+### * build (recipe=build)
+'''[1:]
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+        ## 4th (edit hello.h.txt, hello should not be skipped)
+        ts_hello    = os.path.getmtime("hello")
+        ts_hello1_o = os.path.getmtime("hello1.o")
+        ts_hello2_o = os.path.getmtime("hello2.o")
+        time.sleep(1)
+        write_file('hello.h.txt', hello_h_txt.replace('hello', 'HELLO'))
+        kitchen.start_cooking('build')
+        ok(os.path.getmtime('hello'),    '>', ts_hello)
+        ok(os.path.getmtime('hello1.o'), '>', ts_hello1_o)
+        ok(os.path.getmtime('hello2.o'), '>', ts_hello2_o)
+        expected = r'''
+### **** hello.h (recipe=file_hello_h)
+$ cp hello.h.txt hello.h
+### *** hello1.o (recipe=file_o)
+$ gcc -c hello1.c
+### *** hello2.o (recipe=file_o)
+$ gcc -c hello2.c
+### ** hello (recipe=file_hello)
+$ gcc -o hello hello1.o hello2.o
+### * build (recipe=build)
+'''[1:]
         ok(_stdout(), '==', expected)
         ok(_stderr(), '==', "")
 
