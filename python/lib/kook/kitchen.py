@@ -302,6 +302,7 @@ class Cooking(Cookable):
                 else:
                     ret, msg = CONTENT_CHANGED, "end %s (content changed)"
                 _debug(msg % self.product, depth)
+                self.cooked = ret
                 return ret
             except Exception:
                 ## if product file exists, remove it when error raised

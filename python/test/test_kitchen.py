@@ -417,6 +417,44 @@ def file_hello_txt(c):
         ok("hello.h", isfile, False)         # product should be removed
 
 
+    def test_cooking_is_cooked_only_once(self):
+        content = r'''
+@recipe
+@ingreds('task1', 'task2')
+def build(c):
+   pass
+
+@recipe
+@ingreds('setup')
+def task1(c):
+   echo('task1 invoked.')
+
+@recipe
+@ingreds('setup')
+def task2(c):
+   echo('task2 invoked.')
+
+@recipe
+def setup(c):
+  echo('setup invoked.')
+'''[1:]
+        #
+        self._start(content, "build")
+        expected = r'''
+### *** setup (recipe=setup)
+$ echo setup invoked.
+setup invoked.
+### ** task1 (recipe=task1)
+$ echo task1 invoked.
+task1 invoked.
+### ** task2 (recipe=task2)
+$ echo task2 invoked.
+task2 invoked.
+### * build (recipe=build)
+'''[1:]
+        ok(_stdout(), '==', expected)
+        ok(_stderr(), '==', "")
+
     def test_complicated_cooking1(self):
         content = r"""
 command = "hello"
@@ -666,10 +704,7 @@ $ gcc -c hello1.c
 *** debug: +++ end hello1.o (content not changed, mtime updated)
 *** debug: +++ begin hello2.o
 *** debug: ++++ material hello2.c
-*** debug: ++++ begin hello.h
-*** debug: +++++ material hello.h.txt
-*** debug: ++++ skip hello.h (recipe=file_hello_h)
-*** debug: +++ child file 'hello.h' is newer than product 'hello2.o'.
+*** debug: ++++ pass hello.h (already cooked)
 *** debug: +++ cannot skip: there is newer file in children than product 'hello2.o'.
 *** debug: +++ create hello2.o (recipe=file_o)
 ### *** hello2.o (recipe=file_o)
