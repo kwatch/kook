@@ -45,6 +45,16 @@ class MainObject(object):
         return props
 
 
+TIPS = [
+    "you can set 'kook_default_product' variable in your kookbook.",
+    "you can override properties with '--propname=propvalue'.",
+    "it is able to separate properties into 'Properties.py' file.",
+    "try 'kk' command which is shortcat for 'pykook' command.",
+    "'@ingreds(\"$(1).c\", if_exists(\"$(1).h\"))' is a friend of C programmer.",
+    "'c%\"gcc $(ingred)\"' is more natural than '\"gcc %s\" % c.ingreds[0]'.",
+]
+
+
 class MainCommand(MainObject):
 
     optdef_strs = (
@@ -157,18 +167,8 @@ class MainCommand(MainObject):
             write("(Tips: %s)\n" % tip)
         return 0
 
-    TIPS = (
-        "you can set 'kook_default_product' variable in your kookbook.",
-        "you can override properties with '--propname=propvalue'.",
-        "it is able to separate properties into 'Properties.py' file.",
-        "try 'kk' command which is shortcat for 'pykook' command.",
-        "'@ingreds(\"$(1).c\", if_exists(\"$(1).h\"))' is a friend of C programmer.",
-        "'c%\"gcc $(ingred)\"' is more natural than '\"gcc %s\" % c.ingreds[0]'.",
-    )
-
     def get_tip(self, default_product):
         from random import random
-        TIPS = self.__class__.TIPS
         index = int(random() * len(TIPS))
         assert index < len(TIPS)
         if default_product:       # if default product is specified,
