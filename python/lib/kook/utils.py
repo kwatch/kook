@@ -255,7 +255,7 @@ class CommandOptionParser(object):
                     raise CommandOptionError("%s: unknown command option." % cmd_arg)
                 elif spices[name] is False:    # --name
                     if arg is not None:
-                        raise CommandOptionError("%s: argument is now allowed." % cmd_arg)
+                        raise CommandOptionError("%s: argument is not allowed." % cmd_arg)
                     opts[name] = True
                 elif spices[name] is True:     # --name[=arg]
                     opts[name] = arg is None and True or arg
