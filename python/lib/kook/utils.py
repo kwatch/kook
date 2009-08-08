@@ -244,6 +244,7 @@ class CommandOptionParser(object):
             if cmd_arg == '--':
                 i += 1
                 break
+            ## long opts
             m = re.match(r'^--([a-zA-Z][-\w]+)(?:=(.*))?$', cmd_arg)
             if m:
                 name, arg = m.group(1), m.group(2)
@@ -271,6 +272,7 @@ class CommandOptionParser(object):
                             raise CommandOptionError("%s: integer required." % cmd_arg)
                         arg = str2int(arg)
                     opts[name] = arg
+            ## short opts
             elif cmd_arg and cmd_arg[0] == '-':
                 optchars = cmd_arg
                 j = 1
@@ -308,6 +310,7 @@ class CommandOptionParser(object):
                             arg = str2int(arg)
                         opts[ch] = arg
                         break
+            ## not an option
             else:
                 break
             i += 1
