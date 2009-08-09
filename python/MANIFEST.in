@@ -1,7 +1,7 @@
 include README.txt MANIFEST MIT-LICENSE CHANGES.txt setup.py ez_setup.py
 include bin/pykook bin/kk
 include lib/*/*.py
-include doc/users-guide.html doc/docstyle.css
+include doc/users-guide.html doc/docstyle.css doc/fig001.png
 #include benchmark/bench.py benchmark/bench_context.* benchmark/Makefile
 #include benchmark/templates/*.*
 include test/*.py

@@ -21,8 +21,13 @@ in the future.
 Install
 -------
 
-    $ git clone git@github.com:kwatch/kook.git
-    $ cd kook/python
+If you have install easy_install command:
+
+    $ easy_install Kook
+
+Or:
+    $ tar xzf Kook-$Release$.tar.gz
+    $ cd Kook-$Release$/
     $ sudo python setup.py install
 
 

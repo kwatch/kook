@@ -16,12 +16,14 @@ library_files   = [ "lib/*.py" ]
 
 
 @recipe
+#@ingreds('doc')
 def task_package(c):
     """create package"""
     ## remove files
-    pattern = c%"dist/$(package)-$(release)*"
-    if glob2(pattern):
-        rm_rf(pattern)
+    #pattern = c%"dist/$(package)-$(release)*"
+    #if glob2(pattern):
+    #    rm_rf(pattern)
+    rm_rf('dist')
     ## edit files
     repl = (
         (r'\$Release\$', release),
@@ -100,7 +102,7 @@ def test(c):
 
 @recipe
 def clean(c):
-    pass
+    rm_rf('**/*.pyc', 'dist', 'doc/users-guide.toc.html')
 
 
 kook_default_product = 'test'

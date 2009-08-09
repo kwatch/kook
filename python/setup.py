@@ -1,5 +1,5 @@
 ###
-### $Release: 0.0.2 $
+### $Release: 0.0.3 $
 ### copyright(c) 2008-2009 kuwata-lab.com all rights reserved.
 ### MIT License
 ###
@@ -18,21 +18,23 @@ else:
 
 
 name     = 'Kook'
-version  = '0.0.2'
+version  = '0.0.3'
 author   = 'makoto kuwata'
 email    = 'kwa@kuwata-lab.com'
 maintainer = author
 maintainer_email = email
 url      = 'http://www.kuwata-lab.com/kook/'
-desc     = 'a task control system for Python, similar to Make or Rake'
+desc     = 'a smart build tool for Python, similar to Make, Rake, Ant, or Cook'
 detail   = (
-           'pyKook is a very useful tool to control your task such as install or clean.\n'
-           'pyKook is similar to Make, Ant, Rake, or SCons.\n'
+           'pyKook is a very useful tool to control your task such as compile, install or clean.\n'
+           'pyKook is similar to Make, Rake, Ant, or Cook.\n'
            'Kookbook.py, which is a task definition file for pyKook, is written in Python.\n'
            )
 license  = 'MIT License'
 platforms = 'any'
+#download = 'http://pypi.python.org/packages/source/K/Kook/Kook-%s.tar.gz' % version
 download = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
+#download = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
 #download = 'http://jaist.dl.sourceforge.net/sourceforge/kook/%s-%s.tar.gz' % (name, version)
 classifiers = [
     'Development Status :: 4 - Beta',
