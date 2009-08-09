@@ -36,6 +36,8 @@
         <li>Input file (called 'cookbook') is named 'Kookbook.py', which is equivarent to 'Makefile' of Make or 'build.xml' of Ant.</li>
 
         <li>Cookbook's format is pure Python. You can write any Python code in kookbook.</li>
+
+        <li>Support command-line scripting framework.</li>
       </ul>
 
       <p><span style="color:#FF0000">Caution! pyKook is currently under experimental. It means that the design and specification of pyKook may change without prior notice.</span></p><a name="toc" id="toc"></a>
@@ -79,6 +81,8 @@
           <a href="#topic">Other features</a>
 
           <ul>
+            <li><a href="#topic-framework">Command-line Scripting Framework</a></li>
+
             <li><a href="#topc-debug-mode">Debug mode</a></li>
 
             <li><a href="#topic-short-command">Short command</a></li>
@@ -974,7 +978,77 @@ rests: ('AAA', 'BBB')
       <br>
       <a name="topic" id="topic"></a>
 
-      <h2 class="section1">Other features</h2><a name="topc-debug-mode" id="topc-debug-mode"></a>
+      <h2 class="section1">Other features</h2><a name="topic-framework" id="topic-framework"></a>
+
+      <h3 class="section2">Command-line Scripting Framework</h3>
+
+      <p>pyKook supports to create command-line script.</p>
+
+      <p>The points are:</p>
+
+      <ul type="disc">
+        <li>Add '#!/usr/bin/env pykook -X' as first line of script (shebang).</li>
+
+        <li>Add 'kook_desc = "..script description.."'.</li>
+
+        <li>Define specific task recipes which are regarded as sub-command.</li>
+      </ul>
+
+      <div class="program_caption">
+        'hello' script
+      </div>
+      <pre class="program">
+<strong>#!/usr/bin/env pykook -X</strong>
+
+from kook.utils import CommandOptionError
+
+<strong>kook_desc =</strong> "example script to show pyKook's CLI framework feature"
+
+@recipe
+def hello(c):
+    """prints hello world"""      # description of sub-command
+    echo("Hello world!")
+
+@recipe
+@spices("-u user: username")
+def sweet(c, *args, **kwargs):
+    """prints words of love"""    # description of sub-command
+    user = kwargs.get('u', "you")
+      # or raise CommandOptionError("sweet: required '-u username' option.")
+    echo("I love %s!" % user)
+</pre>
+
+      <div class="terminal_caption">
+        result
+      </div>
+      <pre class="terminal">
+### Don't forget to make script executable!
+sh&gt; chmod a+w hello
+
+### Show help
+sh&gt; ./hello <strong>-h</strong>
+hello - example script to show pyKook's CLI framework
+
+sub-commands:
+  hello           : prints hello world
+  sweet           : prints words of love
+
+(Type 'hello -h subcommand' to show options of sub-commands.)
+
+### Show help for each sub-command
+sh&gt; ./hello <strong>-h sweet</strong>
+hello sweet - prints words of love
+  -u user              : username
+
+### Invoke sub-command
+sh&gt; ./hello hello
+Hello world!
+sh&gt; ./hello sweet
+I love you!
+sh&gt; ./hello sweet -u Haruhi
+I love Haruhi!
+</pre><br>
+      <a name="topc-debug-mode" id="topc-debug-mode"></a>
 
       <h3 class="section2">Debug mode</h3>
 

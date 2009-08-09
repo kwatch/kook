@@ -22,6 +22,7 @@ Features:
 .* Impremented in pure Rython and runs any platform which Python supports.
 .* Input file (called 'cookbook') is named 'Kookbook.py', which is equivarent to 'Makefile' of Make or 'build.xml' of Ant.
 .* Cookbook's format is pure Python. You can write any Python code in kookbook.
+.* Support command-line scripting framework.
 
 
 {{!Caution! pyKook is currently under experimental. It means that the design and specification of pyKook may change without prior notice.!}}
@@ -922,6 +923,68 @@ rests: ('AAA', 'BBB')
 
 .$ Other features			| topic
 
+
+.$$ Command-line Scripting Framework	| topic-framework
+
+pyKook supports to create command-line script.
+
+The points are:
+
+.* Add '#!/usr/bin/env pykook -X' as first line of script (shebang).
+.* Add 'kook_desc = "..script description.."'.
+.* Define specific task recipes which are regarded as sub-command.
+
+
+.? 'hello' script
+.--------------------
+{{*#!/usr/bin/env pykook -X*}}
+
+from kook.utils import CommandOptionError
+
+{{*kook_desc =*}} "example script to show pyKook's CLI framework feature"
+
+@recipe
+def hello(c):
+    """prints hello world"""      # description of sub-command
+    echo("Hello world!")
+
+@recipe
+@spices("-u user: username")
+def sweet(c, *args, **kwargs):
+    """prints words of love"""    # description of sub-command
+    user = kwargs.get('u', "you")
+      # or raise CommandOptionError("sweet: required '-u username' option.")
+    echo("I love %s!" % user)
+.--------------------
+
+.? result
+.====================
+### Don't forget to make script executable!
+sh> chmod a+w hello
+
+### Show help
+sh> ./hello {{*-h*}}
+hello - example script to show pyKook's CLI framework
+
+sub-commands:
+  hello           : prints hello world
+  sweet           : prints words of love
+
+(Type 'hello -h subcommand' to show options of sub-commands.)
+
+### Show help for each sub-command
+sh> ./hello {{*-h sweet*}}
+hello sweet - prints words of love
+  -u user              : username
+
+### Invoke sub-command
+sh> ./hello hello
+Hello world!
+sh> ./hello sweet
+I love you!
+sh> ./hello sweet -u Haruhi
+I love Haruhi!
+.====================
 
 
 .$$ Debug mode				| topc-debug-mode
