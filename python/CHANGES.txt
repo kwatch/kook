@@ -1,6 +1,50 @@
 
 releases:
 
+  - release:  0.0.3
+    date:
+    changes:
+
+      - IMPORTANT!!
+        New '@recipe' decorator is required for each recipe function.
+        If function is decorated by '@recipe', 'task_' prefix is not necessary.
+
+        ex:
+          ## previous version
+	  def task_clean(c):    # 'task_' prefix is required
+	    rm_rf("*.o")
+        
+          ## since this release
+	  @release              # @release decorator is required
+	  def clean(c):         # 'task_' prefix is not necessary
+	    rm_rf("*.o")
+        
+        See http://www.kuwata-lab.com/kook/pykook-users-guide.html#cookbook-recipekind
+	for details.
+
+      - Library codes are much refactored.
+
+    enhancements:
+
+      - IMPORTANT!!
+        New feature to support command-line script framework.
+        You can convert Kookbook.py into command-line script.
+	See http://www.kuwata-lab.com/kook/pykook-users-guide.html#topic-framework
+	for details.
+
+      - New command-line option '-n' (no exec) supported.
+        If you specify '-n', commands such as 'cp()' or 'rm()' are not executed.
+	In other words, '-n' means 'dry-run'.
+
+      - Add a lot of test scripts.
+
+    bugfixes:
+
+      - A bug related timestamp detection is now fixed.
+        There was a case that product file was not updated even when
+	ingredient files were updated.
+
+
   - release:  0.0.2
     date:     2009-07-30
     enhancements:
