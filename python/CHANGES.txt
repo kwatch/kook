@@ -44,6 +44,10 @@ releases:
         There was a case that product file was not updated even when
 	ingredient files were updated.
 
+      - A bug about recipe tree is fixed. There was a case that the same recipe
+        can be invoke more than once when an intermediate recipe was required
+	from several recipes.
+
 
   - release:  0.0.2
     date:     2009-07-30
