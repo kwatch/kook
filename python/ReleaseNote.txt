@@ -9,6 +9,8 @@ http://pypi.python.org/pypi/Kook/0.0.3
 http://www.kuwata-lab.com/kook/
 http://www.kuwata-lab.com/kook/pykook-users-guide.html
 
+In this release, recipe syntax is changed (see below).
+
 
 Overview
 ========
