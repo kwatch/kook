@@ -6,34 +6,62 @@
 ### $License$
 ###
 
+from types import FunctionType
 #from kook import KookRecipeError
 #from kook.kitchen import IfExists
-from kook.utils import flatten
+from kook.utils import flatten, _is_str, ArgumentError
 
 __all__ = ('recipe', 'product', 'ingreds', 'byprods', 'coprods', 'priority', 'spices', 'cmdopts', )
 
 
-def recipe(func):
-    func._kook_recipe = True
-    return func
+#def recipe(func):
+#    func._kook_recipe = True
+#    return func
 
-#def recipe(func=None, kind=None):
-#    if func is not None:
-#        func._kook_recipe = True
-#        return func
-#    elif kind is not None:
-#        if kind not in ('task', 'file'):
-#            raise TypeError("@recipe(): kind should be 'task' or 'file'.")
-#        def deco(f):
-#            f._kook_recipe = True
-#            f._kook_kind = kind
-#            return f
-#        return deco
-#    else:
-#        def deco(f):
-#            f._kook_recipe = True
-#            return f
-#        return deco
+def recipe(product=None, ingreds=None):
+    """decorator to mark function as a recipe.
+    ex1.
+       @recipe
+       def clean(c):
+         rm_rf('**/*.py')
+    ex2.
+       @recipe('*.o', ['$(1).c', '($1).h'])
+       def file_o(c):
+         system(c%'gcc -c $(product)')
+    """
+    ## ex:
+    ##   @recipe
+    ##   def clean(c): ...
+    if isinstance(product, FunctionType):
+        func = product
+        func._kook_recipe = True
+        return func
+    ## ex:
+    ##   @recipe('*.o', ['$(1).c', '$(1).h'])
+    ##   def file_o(c): ...
+    if   product is None:   pass
+    elif _is_str(product):  pass
+    else:
+        raise ArgumentError("%s: recipe product should be a string." % repr(product))
+    #
+    if   ingreds is None:            pass
+    elif isinstance(ingreds, tuple): pass
+    elif isinstance(ingreds, list):  ingreds = tuple(ingreds)
+    elif _is_str(ingreds):           ingreds = (ingreds, )
+    else:
+        raise ArgumentError("%s: recipe ingredients should be a list or tuple." % repr(ingreds))
+    #
+    #if kind in (None, 'file', 'task'):  pass
+    #else:
+    #    raise TypeError("%s: recipe kind should be 'file' or 'task'." % repr(ingreds))
+    #
+    def deco(f):
+        f._kook_recipe = True
+        if product:  f._kook_product = product
+        if ingreds:  f._kook_ingreds = ingreds
+        #if kind:     f._kook_kind    = kind
+        return f
+    return deco
 
 
 def product(name):
