@@ -1,14 +1,39 @@
 #!/bin/sh
 
-n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
+die() {
+	echo $1
+	exit 1
+}
 
-if [ $n -eq 0 ]; then
-	echo "No kookbook found."
-	exit 1
-fi
-if [ $n -gt 1 ]; then
-	echo "Kookbook.*: Too many kookbooks found."
-	exit 1
+if [ -z "$KK_UPSTAIRS" ]; then
+	n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
+	if [ $n -eq 0 ]; then
+		echo "No kookbook found."
+		exit 1
+	fi
+	if [ $n -gt 1 ]; then
+		echo "Kookbook.*: Too many kookbooks found."
+		exit 1
+	fi
+else
+	cwd=`pwd`
+	while [ true ]; do
+		n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
+		if [ $n -eq 1 ]; then
+			break
+		fi
+		if [ $n -gt 1 ]; then
+			echo "Kookbook.*: Too many kookbooks found."
+			exit 1
+		fi
+		old=$cwd
+		cd ..
+		cwd=`pwd`
+		if [ "$cwd" == "$old" ]; then
+			echo "No kookbook found."
+			exit 1
+		fi
+	done
 fi
 
 kookbook=`/bin/ls Kookbook.*`
