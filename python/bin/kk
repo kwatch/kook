@@ -22,7 +22,7 @@ else
 	done
 fi
 
-kookbook=`/bin/ls Kookbook.*`
+kookbook=`echo Kookbook.*`
 case $kookbook in
 *.py)	pykook $@
 	;;
