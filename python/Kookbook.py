@@ -108,26 +108,26 @@ def clean(c):
 kook_default_product = 'test'
 
 
-@recipe
-@ingreds('package')
-def default(c):
-    pass
-    #rm_rf("dist")
-    #system("python setup.py sdist")
-    #with chdir("dist"):
-    #    system(c%"tar xzf $(package)-$(release).tar.gz")
-    #    system(c%"ls $(package)-$(release)/")
+#@recipe
+#@ingreds('package')
+#def default(c):
+#    pass
+#    #rm_rf("dist")
+#    #system("python setup.py sdist")
+#    #with chdir("dist"):
+#    #    system(c%"tar xzf $(package)-$(release).tar.gz")
+#    #    system(c%"ls $(package)-$(release)/")
 
 
-@recipe
-@ingreds('doc/users-guide.html', 'doc/docstyle.css')
+@recipe(None, ['doc/users-guide.html', 'doc/docstyle.css'])
+#@ingreds('doc/users-guide.html', 'doc/docstyle.css')
 def doc(c):
     """make document"""
     pass
 
-@recipe
-@product('doc/users-guide.html')
-@ingreds('doc/users-guide.txt')
+@recipe('doc/users-guide.html', ['doc/users-guide.txt'])
+#@product('doc/users-guide.html')
+#@ingreds('doc/users-guide.txt')
 #@byprods('doc/users-guide.toc.html')
 @byprods('users-guide.toc.html')
 def file_users_guide_html(c):
@@ -138,29 +138,29 @@ def file_users_guide_html(c):
     rm(c%"$(product).tmp")
     mv(c.byprod, "doc")
 
-@recipe
-@product('doc/users-guide.txt')
-@ingreds('../doc/users-guide.eruby')
+@recipe('doc/users-guide.txt', ['../doc/users-guide.eruby'])
+#@product('doc/users-guide.txt')
+#@ingreds('../doc/users-guide.eruby')
 def file_users_guide_txt(c):
     os.path.isdir('doc') or mkdir('doc')
     system(c%"erubis -E PercentLine -p '\\[% %\\]' $(ingred) > $(product)")
 
-@recipe
-@product('doc/docstyle.css')
-@ingreds('../doc/docstyle.css')
+@recipe('doc/docstyle.css', ['../doc/docstyle.css'])
+#@product('doc/docstyle.css')
+#@ingreds('../doc/docstyle.css')
 def file_users_guide_css(c):
     os.path.isdir('doc') or mkdir('doc')
     cp(c.ingred, c.product)
 
-@recipe
-@product('test/oktest.py')
-@ingreds('../../oktest/python/lib/oktest.py')
+@recipe('test/oktest.py', ['../../oktest/python/lib/oktest.py'])
+#@product('test/oktest.py')
+#@ingreds('../../oktest/python/lib/oktest.py')
 def file_test_oktest_py(c):
     rm_f(c.product)
     system(c%'ln $(ingred) $(product)')
 
-@recipe
-@ingreds('test/oktest.py')
+@recipe(None, ['test/oktest.py'])
+#@ingreds('test/oktest.py')
 def update_oktest(c):
     """update 'test/oktest.py'"""
     pass
