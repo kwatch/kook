@@ -220,7 +220,7 @@ class CommandOptionParser(object):
                 elif arg2:  spices[name] = arg2 == 'N' and 1 or True
                 else:       spices[name] = False
                 continue
-            raise ArgumentError("%s: invalid command optin definition." % optdef_str)
+            raise ArgumentError("%s: invalid command option definition." % optdef_str)
         self.spices = spices
         self.helps = helps
         return spices, help
