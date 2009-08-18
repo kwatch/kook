@@ -24,14 +24,9 @@ fi
 
 kookbook=`echo Kookbook.*`
 case $kookbook in
-*.py)	pykook $@
-	;;
-*.pl)	plkook $@
-	;;
-#*.php)	phpkook $@
-#	;;
-#*.js)	jskook $@
-#	;;
-*.yaml)	kook $@
-	;;
+*.py)	pykook $@  ;;
+*.pl)	plkook $@  ;;
+#*.php)	phpkook $@  ;;
+#*.js)	jskook $@   ;;
+*.yaml)	kook $@    ;;
 esac
