@@ -123,7 +123,7 @@ class KookDecoratorsTest(object):
         import kook
         ok(func, 'raises', kook.KookRecipeError, "priority requires integer.")
 
-    def test_spcies(self):
+    def test_spices(self):
         @spices('-h: help', '-v: verbose')
         def f(c):
             pass
