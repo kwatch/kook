@@ -25,10 +25,10 @@ class MainObject(object):
         self.command = os.path.basename(argv[0])
         self.args = argv[1:]
 
-    def invoke():
+    def invoke(self):
         raise NotImplementedError("%s#invoke(): not implemented yet." % self.__class__.__name__)
 
-    def main():
+    def main(self):
         raise NotImplementedError("%s#main(): not implemented yet." % self.__class__.__name__)
 
     def _load_property_file(self, filename=None):
