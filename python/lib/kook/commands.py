@@ -11,8 +11,7 @@ import shutil
 #from glob import glob as _glob
 import kook
 from kook import KookCommandError
-from kook.utils import *
-from kook.utils import glob2
+from kook.utils import glob2, flatten, has_metachars, ArgumentError
 import kook.config as config
 from kook.misc import _report_cmd
 
