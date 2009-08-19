@@ -220,9 +220,14 @@ def _mv(filenames, func, cmd):
             os.rename(src, dst)
     else:  # n > 2
         dst = fnames[-1]
-        if not os.path.isdir(dst):     # any to file
+        if not os.path.exists(dst):
+            raise KookCommandError("%s: %s: directory not found." % (func, dst))
+        if not os.path.isdir(dst):
             raise KookCommandError("%s: %s: not a directory." % (func, dst))
-        for src in fnames[0:-1]:       # any to dir
+        for src in fnames[0:-1]:
+            if not os.path.exists(src):
+                raise KookCommandError("%s: %s: not found." % (func, src))
+        for src in fnames[0:-1]:
             #shutil.move(src, dst)
             os.rename(src, os.path.join(dst, os.path.basename(src)))
 
@@ -268,6 +273,7 @@ def _store(filenames, func, cmd, p=False):
         for src in fnames[0:-1]:
             if not os.path.exists(src):
                 raise KookCommandError("%s: %s: not found." % (cmd, src))
+        for src in fnames[0:-1]:
             dst = os.path.join(basedir, src)
             if os.path.isdir(src):
                 _makedir(dst)
