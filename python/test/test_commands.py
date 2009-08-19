@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 
 HELLO_H = """\
 char *command = "hello";
-char *release = "$_RELEASE_$"
+char *release = "$_RELEASE_$";
 """
 
 
