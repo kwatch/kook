@@ -73,7 +73,7 @@ def _cp(filenames, func, cmd, p, r):
     _copy_file = p and shutil.copy2 or shutil.copy
     n = len(fnames)
     if n < 2:
-        raise KookCommandError("%s: at least tow file or directory names are required." % func)
+        raise KookCommandError("%s: at least two file or directory names are required." % func)
     elif n == 2:
         src, dst = fnames
         if not os.path.exists(src):
@@ -214,11 +214,11 @@ def _mv(filenames, func, cmd):
         elif os.path.isdir(dst):       # any to dir
             #shutil.move(src, dst)
             os.rename(src, os.path.join(dst, os.path.basename(src)))
-        elif os.path.isdir(src):       # file to dir
+        elif os.path.isdir(src):       # dir to file
             raise KookCommandError("%s: %s: already exists." % (func, dst))
         else:                          # file to file
             os.rename(src, dst)
-    else:  # n > 2
+    else:  # n > 2                     # files and dirs to a dir
         dst = fnames[-1]
         if not os.path.exists(dst):
             raise KookCommandError("%s: %s: directory not found." % (func, dst))
@@ -280,7 +280,7 @@ def _store(filenames, func, cmd, p=False):
             else:
                 dirname = os.path.dirname(dst)
                 _makedir(dirname)
-                _copy_file(src, dst)
+                _copy_file(src, dst)  # copy file to file
 
 
 class Chdir(object):
