@@ -1,8 +1,42 @@
 
 releases:
 
+  - release:  0.0.4
+    date:     
+    changes:
+
+      - Compact style of @recipe decorator supported.
+        ex::
+           ## normal style
+	   @recipe
+	   @product('*.o')
+	   @ingreds('$(1).c', '$(1).h')
+	   def file_o(c):
+	       system(c%"gcc -c $(ingre)")
+
+           ## compact style
+	   @recipe('*.o', ['$(1).c', '$(1).h'])
+	   def file_o(c):
+	       system(c%"gcc -c $(ingre)")
+
+      - 'kk' script supports '$KK_CLIMB' environment variable.
+        If you set it, 'kk' script searches parent directories
+        when 'Kookbook.py' is not found.
+        ex::
+           sh> ls -F
+           Kookbook.py    src/    test/
+           sh> cd src/foo/bar/
+           sh> kk clean                    # ERROR
+           kk: No kookbook found.
+           sh> export KK_CLIMB=1
+           sh> kk clean                    # OK
+           ### * clean (recipe=clean)
+           $ rm **/*.pyc
+
+
+
   - release:  0.0.3
-    date:
+    date:     2009-08-09
     changes:
 
       - IMPORTANT!!
