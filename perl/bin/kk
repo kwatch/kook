@@ -1,0 +1,26 @@
+#!/bin/sh
+
+n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
+
+if [ $n -eq 0 ]; then
+	echo "No kookbook found."
+	exit 1
+fi
+if [ $n -gt 1 ]; then
+	echo "Kookbook.*: Too many kookbooks found."
+	exit 1
+fi
+
+kookbook=`/bin/ls Kookbook.*`
+case $kookbook in
+*.py)	pykook $@
+	;;
+*.pl)	plkook $@
+	;;
+#*.php)	phpkook $@
+#	;;
+#*.js)	jskook $@
+#	;;
+*.yaml)	kook $@
+	;;
+esac
