@@ -89,32 +89,34 @@ my $T = $ENV{'TEST'};
 ###
 before_each();
 if (_test_p("sys")) {
-    ok(! -e 'hello2.c');
-    ob_start();
-    sys "cat -n hello.c > hello2.c";
-    my $output = ob_get_clean();
-    ok(-e 'hello2.c');
-    #
-    ok($output eq "\$ cat -n hello.c > hello2.c\n");
-    #
-    open FH, 'hello.c'  or die $!;
-    my @lines = <FH>;
-    close FH;
-    my $i = 0;
-    my @buf = ();
-    my $i = 0;
-    my $expected = join "", map { sprintf("%6d\t%s", ++$i, $_) } @lines;
-    ok(read_file('hello2.c') eq $expected);
-    #
-    ok(! $@);
-    ob_start();
-    eval {
-        sys "cat -n hello999.c 2>/dev/null";
-    };
-    $output = ob_get_clean();
-    ok($@);
-    ok($@ eq "*** command failed (status=256).\n");
-    $@ = undef;
+    if ("os command specified") {
+        ok(! -e 'hello2.c');
+        ob_start();
+        sys "cat -n hello.c > hello2.c";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(-e 'hello2.c');
+        ok($output eq "\$ cat -n hello.c > hello2.c\n");
+        #
+        open FH, 'hello.c'  or die $!;
+        my @lines = <FH>;
+        close FH;
+        my $i = 0;
+        my @buf = ();
+        my $i = 0;
+        my $expected = join "", map { sprintf("%6d\t%s", ++$i, $_) } @lines;
+        ok(read_file('hello2.c') eq $expected);
+    }
+    if ("os cmmand failed then report error") {
+        ok(! $@);
+        ob_start();
+        eval { sys "cat -n hello999.c 2>/dev/null"; };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "*** command failed (status=256).\n");
+        $@ = undef;
+    }
 }
 after_each();
 
@@ -124,30 +126,32 @@ after_each();
 ###
 before_each();
 if (_test_p("sys_f")) {
-    ok(! -e 'hello2.c');
-    ob_start();
-    sys_f "cat -n hello.c > hello2.c";
-    my $output = ob_get_clean();
-    ok(-e 'hello2.c');
-    #
-    ok($output eq "\$ cat -n hello.c > hello2.c\n");
-    #
-    open FH, 'hello.c'  or die $!;
-    my @lines = <FH>;
-    close FH;
-    my $i = 0;
-    my @buf = ();
-    my $i = 0;
-    my $expected = join "", map { sprintf("%6d\t%s", ++$i, $_) } @lines;
-    ok(read_file('hello2.c') eq $expected);
-    #
-    ok(! $@);
-    ob_start();
-    eval {
-        sys_f "cat -n hello999.c 2>/dev/null";
-    };
-    $output = ob_get_clean();
-    ok(! $@);
+    if ("os command specified") {
+        ok(! -e 'hello2.c');
+        ob_start();
+        sys_f "cat -n hello.c > hello2.c";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(-e 'hello2.c');
+        ok($output eq "\$ cat -n hello.c > hello2.c\n");
+        #
+        open FH, 'hello.c'  or die $!;
+        my @lines = <FH>;
+        close FH;
+        my $i = 0;
+        my @buf = ();
+        my $i = 0;
+        my $expected = join "", map { sprintf("%6d\t%s", ++$i, $_) } @lines;
+        ok(read_file('hello2.c') eq $expected);
+    }
+    if ("os cmmand failed then error is not reported") {
+        ob_start();
+        eval { sys_f "cat -n hello999.c 2>/dev/null"; };
+        my $output = ob_get_clean();
+        #
+        ok(! $@);
+    }
 }
 after_each();
 
