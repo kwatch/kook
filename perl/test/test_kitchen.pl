@@ -8,7 +8,7 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 75;
+use Test::Simple tests => 76;
 
 use Kook::Cookbook;
 use Kook::Kitchen;
@@ -504,6 +504,41 @@ END
     };
     my $expected = "build: recipe is looped (hello.o->hello.h->hello.h.txt->hello.o).\n";
     ok($@ eq $expected);
+}
+
+
+###
+### Kook::Kitchen  # spices
+###
+if ("recipe has species") {
+
+    my $input = <<'END';
+	recipe "test1", {
+	    spices => ["-v: verbose", "-f file: file", "-D:", "--name=str: name string"],
+	    method => sub {
+	        my ($c, $opts, $rest) = @_;
+	        #my @arr = map { repr($_).'=>'.repr($opts->{$_}) } sort keys %$opts;
+	        #print "opts={", join(", ", @arr), "}\n";
+	        my $s = join ", ", map { repr($_).'=>'.repr($opts->{$_}) } sort keys %$opts;
+	        print "opts={", $s, "}\n";
+	        print "rest=", repr($rest), "\n";
+	    }
+	};
+END
+    ;
+    my $kitchen = _create_kitchen($input);
+    ##
+    ob_start();
+    $kitchen->start_cooking("test1", "-vDf", "file1.txt", "--name=hoge", "AAA", "BBB");
+    my $output = ob_get_clean();
+    my $expected = <<'END';
+	### * test1 (recipe=test1)
+	opts={"D"=>1, "f"=>"file1.txt", "name"=>"hoge", "v"=>1}
+	rest=["AAA","BBB"]
+END
+    ;
+    $expected =~ s/\t//g;
+    ok($output eq $expected);
 }
 
 

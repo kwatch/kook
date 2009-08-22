@@ -9,7 +9,7 @@
 use strict;
 use Data::Dumper;
 use Cwd;
-use Test::Simple tests => 36;
+use Test::Simple tests => 42;
 
 use Kook::Main;
 use Kook::Utils ('write_file');
@@ -107,6 +107,19 @@ recipe "hello.h", {
     method => sub {
         my ($c) = @_;
         sys "cp $c->{ingred} $c->{product}";
+    }
+};
+
+recipe "test1", {
+    desc   => "test of spices",
+    spices => ["-v: verbose", "-f file: file", "-i[N]: indent", "-D:", "--name=str: name string"],
+    method => sub {
+        my ($c, $opts, $rest) = @_;
+        #my @arr = map { repr($_).'=>'.repr($opts->{$_}) } sort keys %$opts;
+        #print "opts={", join(", ", @arr), "}\n";
+        my $s = join ", ", map { repr($_).'=>'.repr($opts->{$_}) } sort keys %$opts;
+        print "opts={", $s, "}\n";
+        print "rest=", repr($rest), "\n";
     }
 };
 END
@@ -259,6 +272,11 @@ Properties:
 
 Task recipes
   build               : build all files
+  test1               : test of spices
+    -v                    verbose
+    -f file               file
+    -i[N]                 indent
+    --name=str            name string
 
 File recipes
   hello               : build hello command
@@ -329,7 +347,7 @@ before_each();
 if ("option -D2 specified") {
     my $output = `plkook -D2 build`;
     my $expected = <<'END';
-*** debug: specific task recipes: ["build"]
+*** debug: specific task recipes: ["build","test1"]
 *** debug: specific file recipes: ["hello","hello.h"]
 *** debug: generic  task recipes: []
 *** debug: generic  file recipes: ["*.o"]
@@ -378,9 +396,9 @@ END
     sleep 1;
     my $now = time();
     utime $now, $now, "hello.h";
-    my $output = `plkook -D2 build`;
-    my $expected = <<'END';
-*** debug: specific task recipes: ["build"]
+    $output = `plkook -D2 build`;
+    $expected = <<'END';
+*** debug: specific task recipes: ["build","test1"]
 *** debug: specific file recipes: ["hello","hello.h"]
 *** debug: generic  task recipes: []
 *** debug: generic  file recipes: ["*.o"]
@@ -474,10 +492,10 @@ if ("option -F specified") {
     my $output = `plkook build`;
     my $expected = $output;
     #
-    my $output = `plkook build`;
+    $output = `plkook build`;
     ok($output eq "### * build (recipe=build)\n");
     #
-    my $output = `plkook -F build`;
+    $output = `plkook -F build`;
     ok($output eq $expected);
 }
 after_each();
@@ -506,6 +524,36 @@ $ gcc -o hello hello1.o hello2.o
 END
     ;
     ok($output eq $expected);
+}
+after_each();
+
+
+###
+### spices
+###
+before_each();
+if ("spices") {
+    if ("spices specified") {
+        my ($output, $errmsg) = _system 'plkook test1 -vDf file1.txt -i AAA BBB';
+        my $expected = <<'END';
+	### * test1 (recipe=test1)
+	opts={"D"=>1, "f"=>"file1.txt", "i"=>1, "v"=>1}
+	rest=["AAA","BBB"]
+END
+        $expected =~ s/^\t//gm;
+        ok($output eq $expected);
+        ok($errmsg eq "");
+    }
+    if ("invalid option (-ifoo) specified") {
+        my ($output, $errmsg) = _system 'plkook test1 -ifoo AAA BBB';
+        ok($output eq "### * test1 (recipe=test1)\n");
+        ok($errmsg eq "-ifoo: integer required.\n");
+    }
+    if ("argument is not passed to '-f'") {
+        my ($output, $errmsg) = _system 'plkook test1 -f';
+        ok($output eq "### * test1 (recipe=test1)\n");
+        ok($errmsg eq "-f: file required.\n");
+    }
 }
 after_each();
 
@@ -548,7 +596,7 @@ if ("there is no recipes which matches to specified target") {
     ok($output eq "");
     ok($errmsg eq "foobar: no such recipe or material.\n");
     #
-    my ($output, $errmsg) = _system 'plkook hello3.o';
+    ($output, $errmsg) = _system 'plkook hello3.o';
     ok($output eq "");
     ok($errmsg eq "hello3.c: no such recipe or material (required for 'hello3.o').\n");
 }

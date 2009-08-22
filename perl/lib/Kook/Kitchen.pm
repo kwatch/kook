@@ -400,16 +400,19 @@ sub _invoke_recipe_with {
     $this->{argv} = $argv;
     if (@{$this->{spices}}) {
         my ($opts, $rests) = $this->parse_cmdopts($argv);
-        $this->{opts}  = $opts;
-        $this->{rests} = $rests;
+        #$this->{opts}  = $opts;
+        #$this->{rests} = $rests;
+        $this->{recipe}->{method}->($this, $opts, $rests);
     }
-    $this->{recipe}->{method}->($this);
+    else {
+        $this->{recipe}->{method}->($this);
+    }
 }
 
 sub parse_cmdopts {
     my ($this, $argv) = @_;
     my $sig = $this->_signature();
-    my $parser = $Kook::Config::CMDOPT_PARSER_CLASS->new($this->{spcies});
+    my $parser = $Kook::Config::CMDOPT_PARSER_CLASS->new($this->{spices});
     my ($opts, $rests) = $parser->parse($argv);
     _trace("parse_cmdopts() ($sig): opts=$opts, rests=$rests");
     return $opts, $rests;
