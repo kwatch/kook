@@ -8,9 +8,9 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 37;
+use Test::Simple tests => 39;
 
-use Kook::Utils ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp');
+use Kook::Utils ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr');
 
 
 ###
@@ -75,6 +75,16 @@ if (1) {
     ok(meta2rexp("index.{txt,html,xml}") eq '^index\\.(txt|html|xml)$');
     ok(meta2rexp("index.{a.b,c-d}") eq '^index\\.(a\\.b|c\\-d)$');
     ok(meta2rexp("*-???.{txt,html,xml}") eq '^(.*?)\\-(...)\\.(txt|html|xml)$');
+}
+
+
+###
+### repr()
+###
+if (1) {
+    ok(repr(["foo\n", 123, undef]) eq '["foo\n",123,undef]');
+    my $s = repr({'x'=>10, 'y'=>20});
+    ok($s eq '{"x" => 10,"y" => 20}' || $s eq '{"y" => 20,"x" => 10}');
 }
 
 

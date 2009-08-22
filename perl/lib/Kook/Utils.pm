@@ -10,7 +10,7 @@ package Kook::Utils;
 use strict;
 use Data::Dumper;
 use Exporter 'import';
-our @EXPORT_OK = ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp');
+our @EXPORT_OK = ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr');
 
 
 sub read_file {
@@ -125,6 +125,13 @@ sub meta2rexp {
     return join '', @buf;
 }
 
+
+sub repr {
+    my ($val) = @_;
+    my $d = Data::Dumper->new([$val]);
+    $d->Indent(0)->Terse(1)->Useqq(1);
+    return $d->Dump;
+}
 
 
 package Kook::Utils::CommandOptionParser;
