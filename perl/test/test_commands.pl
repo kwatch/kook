@@ -461,7 +461,7 @@ if (_test_p('mkdir')) {
         my $path = "hello.d/tmp";
         ok(-d $path);
         ob_start();
-        eval { &mkdir($path); };
+        eval { mkdir($path); };
         my $output = ob_get_clean();
         #die $@ if $@;
         #
@@ -473,7 +473,7 @@ if (_test_p('mkdir')) {
         my $path = "hello.d/tmp3/test";
         ok(! -e "hello.d/tmp3");
         ob_start();
-        eval { &mkdir($path); };
+        eval { mkdir($path); };
         my $output = ob_get_clean();
         #die $@ if $@;
         #
@@ -502,7 +502,7 @@ if (_test_p('mkdir_p')) {
         my $path = "hello.d/src/lib/hello.c";
         ok(-f $path);
         ob_start();
-        eval { &mkdir_p($path); };
+        eval { mkdir_p($path); };
         my $output = ob_get_clean();
         #die $@ if $@;
         #

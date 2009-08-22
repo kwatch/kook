@@ -191,7 +191,7 @@ sub _copy_dir_to_dir {
 }
 
 
-sub mkdir {    # should be called as '&mkdir()'
+sub mkdir {
     _mkdir('mkdir', 'mkdir', 0, @_);
 }
 
@@ -214,7 +214,7 @@ sub _mkdir {
     else {
         for my $dname (@dirnames) {
             -e $dname and die "$func: $dname: already exists.\n";
-            mkdir $dname  or die "$func: $dname: $!\n";   # built-in function
+            CORE::mkdir $dname  or die "$func: $dname: $!\n";
         }
     }
 }
