@@ -87,8 +87,8 @@ my $T = $ENV{'TEST'};
 ###
 ### sys
 ###
-before_each();
 if (_test_p("sys")) {
+    before_each();
     if ("os command specified") {
         ok(! -e 'hello2.c');
         ob_start();
@@ -117,15 +117,15 @@ if (_test_p("sys")) {
         ok($@ eq "*** command failed (status=256).\n");
         $@ = undef;
     }
+    after_each();
 }
-after_each();
 
 
 ###
 ### sys_f
 ###
-before_each();
 if (_test_p("sys_f")) {
+    before_each();
     if ("os command specified") {
         ok(! -e 'hello2.c');
         ob_start();
@@ -152,15 +152,15 @@ if (_test_p("sys_f")) {
         #
         ok(! $@);
     }
+    after_each();
 }
-after_each();
 
 
 ###
 ### echo, echo_n
 ###
-before_each();
 if (_test_p("echo")) {
+    before_each();
     if ("argument doesn't contain any meta character") {
         ob_start();
         echo("foo", "bar");
@@ -178,11 +178,11 @@ END
         ;
         ok($output eq $expected);
     }
+    after_each();
 }
-after_each();
 #
-before_each();
 if (_test_p("echo_n")) {
+    before_each();
     if ("argument doesn't contain any meta character") {
         ob_start();
         echo_n("foo", "bar");
@@ -201,14 +201,15 @@ END
         chomp $expected;
         ok($output eq $expected);
     }
+    after_each();
 }
-after_each();
 
 
 ###
 ### cp, cp_p
 ###
 sub _test_cp {
+    before_each();
     my ($func, $cmd) = @_;
     my $op = $func =~ /_pr?$/ ? '==' : '>';
     if ("file to file") {
@@ -288,25 +289,23 @@ sub _test_cp {
         ok(eval "mtime('$dst/hello.h')  $op  mtime('$src/include/hello.h')");
         ok(eval "mtime('$dst/hello2.h') $op  mtime('$src/include/hello2.h')");
     }
+    after_each();
 }
 
-before_each();
 if (_test_p("cp")) {
     _test_cp("cp", "cp");
 }
-after_each();
 
-before_each();
 if (_test_p("cp_p")) {
     _test_cp("cp_p", "cp -p");
 }
-after_each();
 
 
 ###
 ### cp_r, cp_pr
 ###
 sub _test_cp_r {
+    before_each();
     my ($func, $cmd) = @_;
     my $op = $func =~ /_pr?$/ ? '==' : '>';
     if ("dir to dir which exists") {
@@ -429,26 +428,23 @@ sub _test_cp_r {
         ok($@ eq "$func: hello.d/tmp2: directory not found.\n");
         $@ = undef;
     }
+    after_each();
 }
 
-before_each();
 if (_test_p("cp_r")) {
     _test_cp_r("cp_r", "cp -r");
 }
-after_each();
 
-before_each();
 if (_test_p("cp_pr")) {
     _test_cp_r("cp_pr", "cp -pr");
 }
-after_each();
 
 
 ###
 ### mkdir, mkdir_p
 ###
-before_each();
 if (_test_p('mkdir')) {
+    before_each();
     if ("unexisted path is specified then create directory") {
         my ($path1, $path2) = ('hello.d/foo', 'hello.d/bar');
         ok(! -e $path1 && ! -e $path2);
@@ -485,11 +481,11 @@ if (_test_p('mkdir')) {
         ok($@ eq "mkdir: hello.d/tmp3/test: No such file or directory\n");
         $@ = undef;
     }
+    after_each();
 }
-after_each();
 #
-before_each();
 if (_test_p('mkdir_p')) {
+    before_each();
     if ("deep path specified then create it") {
         my ($path1, $path2) = ('hello.d/foo/d1', 'hello.d/bar/d2');
         ok(! -e $path1 && ! -e $path2);
@@ -514,8 +510,8 @@ if (_test_p('mkdir_p')) {
         ok($@ eq "mkdir_p: $path: already exists.\n");
         $@ = undef;
     }
+    after_each();
 }
-after_each();
 
 
 
