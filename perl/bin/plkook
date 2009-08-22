@@ -5,56 +5,7 @@ use Data::Dumper;
 use Kook::Main;
 
 my @argv = @ARGV;
-my $main = Kook::MainCommand->new(\@argv);
+my $main = $argv[0] eq "-X"
+         ? Kook::MainApplication->new(\@argv)
+         : Kook::MainCommand->new(\@argv);
 $main->main();
-
-__END__
-
-use Data::Dumper;
-use File::Basename;
-
-use Kook ('recipe');
-use Kook::Cookbook;
-use Kook::Kitchen;
-
-
-sub _read_file {
-    my $filename = shift @_;
-    open FH, $filename  or die("$filename: $!");
-    my @lines = <FH>;
-    close FH;
-    return join "", @lines;
-}
-
-sub _eval_in_sandbox {
-    return eval $_[0];
-}
-
-sub _main {
-    my @argv = @_;
-    my $command = basename($0);
-    if ($#argv < 0) {
-        print "$command: target product name is required.\n";
-        exit 1;
-    }
-    ## load kookbook
-    my $bookname = 'Kookbook.pl';
-    my $cookbook = Kook::Cookbook->new($bookname);
-    #print Dumper($Kook::all_recipes);
-    ##
-    my $target_product = shift(@argv) || $Kook::default_product  or
-        die "Kook::Kitchen::start_cooking(): no argv nor Kook::default_product.";
-    ## search recipe
-    my $recipe = $cookbook->find_recipe($target_product)  or
-        die("[ERROR] $target_product: recipe not found.\n");
-    ## invoke recipe
-    my $kitchen = Kook::Kitchen->new($cookbook);
-    $kitchen->start_cooking($target_product, \@argv);
-}
-
-
-eval { _main(@ARGV); };
-if ($@) {
-    print STDERR $@;
-    exit 1;
-}

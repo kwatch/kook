@@ -17,11 +17,13 @@ use Kook::Commands;
 our $RELEASE = (split ' ', '$Release: 0.0.0 $')[1];
 our $all_recipes = [];
 our $default_product;
+our $desc;
 
 
 sub recipe {
-    my $recipe_obj = new Kook::Recipe(@_);
+    my $recipe_obj = Kook::Recipe->new(@_);
     push @$all_recipes, $recipe_obj;
+    return $recipe_obj;
 }
 
 
