@@ -119,7 +119,7 @@ sub _check_cooking_tree {
 }
 
 sub start_cooking {
-    my ($this, $target, $argv) = @_;
+    my ($this, $target, @argv) = @_;
     $target  or die "start_cooking(): target is required.";
     ## create tree of cookable object
     my $root = $this->create_cooking_tree($target);
@@ -129,7 +129,7 @@ sub start_cooking {
     ! $root->isa('Kook::Material')  or
         die "$target: is a material (= a file to which no recipe matched).";
     ## start cooking
-    $root->cook(1, $argv);
+    $root->cook(1, \@argv);
 }
 
 

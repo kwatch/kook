@@ -137,9 +137,7 @@ sub invoke {
     }
     ## start cooking
     my $kitchen = Kook::Kitchen->new($cookbook);
-    my $target = shift @$rests;
-    my $args = $rests;
-    $kitchen->start_cooking($target, $args);
+    $kitchen->start_cooking(@$rests);
     ##
     return 0;
 }
