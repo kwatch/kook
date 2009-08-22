@@ -262,6 +262,7 @@ Task recipes
 
 File recipes
   hello               : build hello command
+  *.o                 : compile *.c
 
 (Tips: it is able to separate properties into 'Properties.pl' file.)
 END

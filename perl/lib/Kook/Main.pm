@@ -180,14 +180,14 @@ sub __list_recipes {
     my ($this, $title, $recipes, $format, $format2, $show_all) = @_;
     print $title, "\n";
     for my $recipe (@$recipes) {
-        last unless $show_all || $recipe->{desc};
+        next unless $show_all || $recipe->{desc};
         printf($format, $recipe->{product}, $recipe->{desc});
-        last unless $Kook::Config::VERBOSE;
-        last unless $recipe->{spices} && @{$recipe->{spices}};
+        next unless $Kook::Config::VERBOSE;
+        next unless $recipe->{spices} && @{$recipe->{spices}};
         my $optparser = Kook::Utils::CommandOptionParser->new($recipe->{spices});
         for (@{$optparser->{helps}}) {
             my ($opt, $desc) = @$_;
-            printf($format2, $opt, $desc);
+            printf($format2, $opt, $desc) if $desc;
         }
     }
 }
