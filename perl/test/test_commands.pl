@@ -6,11 +6,11 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 13;
+use Test::Simple tests => 17;
 use File::Path;
 
-use Kook::Commands ('sys', 'sys_f');
-use Kook::Utils ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'repr');
+use Kook::Commands qw(sys sys_f echo echo_n);
+use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
 
 sub _test_p {
@@ -146,6 +146,56 @@ if (_test_p("sys_f")) {
     ok(! $@);
 }
 after_each();
+
+
+###
+### echo, echo_n
+###
+before_each();
+if (_test_p("echo")) {
+    if ("argument doesn't contain any meta character") {
+        ob_start();
+        echo("foo", "bar");
+        my $output = ob_get_clean();
+        ok($output eq "\$ echo foo bar\nfoo bar\n");
+    }
+    if ("argument contains meta character") {
+        ob_start();
+        echo("hello.d/src/*/hello.?");
+        my $output = ob_get_clean();
+        my $expected = <<'END';
+$ echo hello.d/src/*/hello.?
+hello.d/src/include/hello.h hello.d/src/lib/hello.c
+END
+        ;
+        ok($output eq $expected);
+    }
+}
+after_each();
+#
+before_each();
+if (_test_p("echo_n")) {
+    if ("argument doesn't contain any meta character") {
+        ob_start();
+        echo_n("foo", "bar");
+        my $output = ob_get_clean();
+        ok($output eq "\$ echo foo bar\nfoo bar");
+    }
+    if ("argument contains meta character") {
+        ob_start();
+        echo_n("hello.d/src/*/hello.?");
+        my $output = ob_get_clean();
+        my $expected = <<'END';
+$ echo hello.d/src/*/hello.?
+hello.d/src/include/hello.h hello.d/src/lib/hello.c
+END
+        ;
+        chomp $expected;
+        ok($output eq $expected);
+    }
+}
+after_each();
+
 
 
 ###
