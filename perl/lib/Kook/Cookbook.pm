@@ -14,6 +14,7 @@ use Data::Dumper;
 use Kook::Utils;
 use Kook::Sandbox;
 use Kook::Misc ('_debug', '_trace');
+use Kook::Utils ('repr');
 
 
 sub new {
@@ -111,10 +112,18 @@ sub load {
     $this->{specific_file_recipes} = $recipes->[$SPECIFIC | $FILE];  ## TODO: use dict
     $this->{generic_task_recipes}  = $recipes->[$GENERIC  | $TASK];  ## TODO: support priority
     $this->{generic_file_recipes}  = $recipes->[$GENERIC  | $FILE];  ## TODO: support priority
-    Kook::Misc::_trace("specific task recipes: ", Dumper($this->{specific_task_recipes}));
-    Kook::Misc::_trace("specific file recipes: ", Dumper($this->{specific_file_recipes}));
-    Kook::Misc::_trace("generic  task recipes: ", Dumper($this->{generic_task_recipes}));
-    Kook::Misc::_trace("generic  file recipes: ", Dumper($this->{generic_file_recipes}));
+    if ($Kook::Config::DEBUG_LEVEL >= 2) {
+        _trace("specific task recipes: " . $this->_repr_products($this->{specific_task_recipes}));
+        _trace("specific file recipes: " . $this->_repr_products($this->{specific_file_recipes}));
+        _trace("generic  task recipes: " . $this->_repr_products($this->{generic_task_recipes}));
+        _trace("generic  file recipes: " . $this->_repr_products($this->{generic_file_recipes}));
+    }
+}
+
+sub _repr_products {
+    my ($this, $recipes) = @_;
+    my @names = map { $_->{product} } @$recipes;
+    return repr(\@names);
 }
 
 sub material_p {

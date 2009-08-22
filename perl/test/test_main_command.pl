@@ -328,10 +328,10 @@ before_each();
 if ("option -D2 specified") {
     my $output = `plkook -D2 build`;
     my $expected = <<'END';
-*** debug:  specific task recipes: 
-*** debug:  specific file recipes: 
-*** debug:  generic  task recipes: 
-*** debug:  generic  file recipes: 
+*** debug: specific task recipes: ["build"]
+*** debug: specific file recipes: ["hello","hello.h"]
+*** debug: generic  task recipes: []
+*** debug: generic  file recipes: ["*.o"]
 *** debug: ++ Cookbook#find_recipe(): target=build, func=, product=build
 *** debug: ++ Cookbook#find_recipe(): target=hello, func=, product=hello
 *** debug: ++ Cookbook#find_recipe(): target=hello1.o, func=, product=*.o
@@ -379,10 +379,10 @@ END
     utime $now, $now, "hello.h";
     my $output = `plkook -D2 build`;
     my $expected = <<'END';
-*** debug:  specific task recipes: 
-*** debug:  specific file recipes: 
-*** debug:  generic  task recipes: 
-*** debug:  generic  file recipes: 
+*** debug: specific task recipes: ["build"]
+*** debug: specific file recipes: ["hello","hello.h"]
+*** debug: generic  task recipes: []
+*** debug: generic  file recipes: ["*.o"]
 *** debug: ++ Cookbook#find_recipe(): target=build, func=, product=build
 *** debug: ++ Cookbook#find_recipe(): target=hello, func=, product=hello
 *** debug: ++ Cookbook#find_recipe(): target=hello1.o, func=, product=*.o
