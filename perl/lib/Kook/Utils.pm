@@ -10,7 +10,7 @@ package Kook::Utils;
 use strict;
 use Data::Dumper;
 use Exporter 'import';
-our @EXPORT_OK = ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr');
+our @EXPORT_OK = ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr', 'flatten');
 
 
 sub read_file {
@@ -131,6 +131,26 @@ sub repr {
     my $d = Data::Dumper->new([$val]);
     $d->Indent(0)->Terse(1)->Useqq(1);
     return $d->Dump;
+}
+
+
+##
+## ex.
+##    my $arr = ["foo", ["bar", ["baz"]]];
+##    my @arr2 = flatten @$arr;
+##    print repr(\@arr2);  #=> ["foo", "bar", "baz"]
+##
+sub flatten {
+    my $buf = [];
+    _flatten($buf, @_);
+    return @$buf;
+}
+
+sub _flatten {
+    my $buf = shift @_;
+    for (@_) {
+        ref($_) eq 'ARRAY' ? _flatten($buf, @$_) : push(@$buf, $_);
+    }
 }
 
 

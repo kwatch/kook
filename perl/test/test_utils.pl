@@ -8,9 +8,9 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 39;
+use Test::Simple tests => 40;
 
-use Kook::Utils ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr');
+use Kook::Utils ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr', 'flatten');
 
 
 ###
@@ -85,6 +85,16 @@ if (1) {
     ok(repr(["foo\n", 123, undef]) eq '["foo\n",123,undef]');
     my $s = repr({'x'=>10, 'y'=>20});
     ok($s eq '{"x" => 10,"y" => 20}' || $s eq '{"y" => 20,"x" => 10}');
+}
+
+
+###
+### flatten()
+###
+if (1) {
+    my $arr = ["foo", ["bar", ["baz"]]];
+    my @arr2 = flatten(@$arr);
+    ok(repr(\@arr2) eq '["foo","bar","baz"]');
 }
 
 
