@@ -13,6 +13,7 @@ use Data::Dumper;
 
 use Kook ('recipe');
 use Kook::Commands ('sys', 'sys_f');
+use Kook::Utils ('repr');
 
 
 sub _eval {
