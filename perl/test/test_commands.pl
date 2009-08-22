@@ -10,7 +10,7 @@ use Test::Simple tests => 212;
 use File::Path;
 use File::Basename;
 
-use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p);
+use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf);
 use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
 
@@ -513,6 +513,132 @@ if (_test_p('mkdir_p')) {
     after_each();
 }
 
+
+###
+### rm, rm_f, rm_r, rm_rf
+###
+if (_test_p('rm')) {
+    before_each();
+    if ("filenames are specified") {
+        my ($path1, $path2) = "hello.d/hello.*", "hello.d/tmp/foo.c";
+        write_file("hello.d/hello.c", $HELLO_C);
+        write_file("hello.d/hello.h", $HELLO_H);
+        write_file("hello.d/tmp/foo.c", $HELLO_C);
+        ok(-f "hello.d/hello.c");
+        ok(-f "hello.d/hello.h");
+        ok(-f "hello.d/tmp/foo.c");
+        #
+        ob_start();
+        rm("hello.d/hello.*", "hello.d/tmp/foo.c");
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! -e "hello.d/hello.c");
+        ok(! -e "hello.d/hello.h");
+        ok(! -e "hello.d/tmp/foo.c");
+        ok($output eq "\$ rm hello.d/hello.* hello.d/tmp/foo.c\n");
+    }
+    if ("directory name is specified then report error") {
+        my $path = "hello.d/tmp";
+        ob_start();
+        eval { rm($path); };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "rm: $path: can't remove directory (try 'rm_r' instead).\n");
+        ok($output eq "\$ rm $path\n");
+        $@ = undef;
+    }
+    if ("unexisting filename specified then error is reported") {
+        ob_start();
+        eval { rm("hello.d/tmp/bar.txt"); };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "rm: hello.d/tmp/bar.txt: not found.\n");
+        $@ = undef;
+    }
+    after_each();
+}
+#
+if (_test_p("rm_f")) {
+    before_each();
+    if ("unexisitng filename specified then error is not reported") {
+        my $path = "hello.d/tmp/bar.txt";
+        ob_start(! -e $path);
+        eval { rm_f($path); };
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ rm -f $path\n");
+    }
+    if ("directory name is specified then report error") {
+        my $path = "hello.d/tmp";
+        ob_start();
+        eval { rm_f($path); };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "rm_f: $path: can't remove directory (try 'rm_r' instead).\n");
+        ok($output eq "\$ rm -f $path\n");
+        $@ = undef;
+    }
+    after_each();
+}
+#
+if (_test_p("rm_r")) {
+    before_each();
+    if ("directory is specified") {
+        write_file("hello.d/hello.c", $HELLO_C);
+        ok(-f "hello.d/hello.c" && -d "hello.d/src" && -d "hello.d/tmp");
+        #
+        ob_start();
+        rm_r("hello.d/*");
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! -e "hello.d/hello.c" && ! -e "hello.d/src" && ! -e "hello.d/tmp");
+        ok($output eq "\$ rm -r hello.d/*\n");
+    }
+    if ("unexisting filename or directory name specified then report error") {
+        my $path = "hello.d/tmp3";
+        ob_start();
+        eval { rm_r($path); };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "rm_r: $path: not found.\n");
+        ok($output eq "\$ rm -r $path\n");
+        $@ = undef;
+    }
+    after_each();
+}
+#
+if (_test_p("rm_rf")) {
+    before_each();
+    if ("unexisitng file or directory specified") {
+        my $path = "hello.d/tmp3";
+        ok(! -e $path);
+        #
+        ob_start();
+        eval { rm_rf($path); };
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! $@);
+        ok($output eq "\$ rm -rf $path\n");
+    }
+    if ("file or directory specified") {
+        write_file("hello.d/hello.c", $HELLO_C);
+        ok(-f "hello.d/hello.c" && -d "hello.d/src" && -d "hello.d/tmp");
+        my $path = "hello.d/*";
+        #
+        ob_start();
+        eval { rm_rf($path); };
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! -e "hello.d/hello.c" && ! -e "hello.d/src" && ! -e "hello.d/tmp");
+        ok($output eq "\$ rm -rf $path\n");
+    }
+    after_each();
+}
 
 
 ###

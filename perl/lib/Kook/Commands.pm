@@ -8,7 +8,7 @@
 package Kook::Commands;
 use strict;
 use Exporter 'import';
-our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p);
+our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf);
 use Data::Dumper;
 use File::Basename;     # basename()
 use File::Path;         # mkpath(), rmtree()
@@ -215,6 +215,42 @@ sub _mkdir {
         for my $dname (@dirnames) {
             -e $dname and die "$func: $dname: already exists.\n";
             CORE::mkdir $dname  or die "$func: $dname: $!\n";
+        }
+    }
+}
+
+
+sub rm {
+    _rm('rm', 'rm', 0, 0, @_);
+}
+
+sub rm_r {
+    _rm('rm_r', 'rm -r', 1, 0, @_);
+}
+
+sub rm_f {
+    _rm('rm_f', 'rm -f', 0, 1, @_);
+}
+
+sub rm_rf {
+    _rm('rm_rf', 'rm -rf', 1, 1, @_);
+}
+
+sub _rm {
+    my ($func, $cmd, $r, $f, @filenames) = @_;
+    @filenames = _prepare($cmd, @filenames);
+    return if $Kook::Config::NOEXEC;
+    @filenames  or die "$func: directory name required.\n";
+    for my $fname (@filenames) {
+        if (-d $fname) {
+            $r  or die "$func: $fname: can't remove directory (try 'rm_r' instead).\n";
+            rmtree $fname  or die "$func: $fname: $!";
+        }
+        elsif (-e $fname) {
+            unlink $fname  or die "$func: $fname: $!";
+        }
+        else {
+            $f  or die "$func: $fname: not found.\n";
         }
     }
 }
