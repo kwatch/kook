@@ -10,7 +10,7 @@ package Kook::Utils;
 use strict;
 use Data::Dumper;
 use Exporter 'import';
-our @EXPORT_OK = ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr', 'flatten');
+our @EXPORT_OK = qw(read_file write_file ob_start ob_get_clean has_metachar meta2rexp repr flatten mtime);
 
 
 sub read_file {
@@ -151,6 +151,12 @@ sub _flatten {
     for (@_) {
         ref($_) eq 'ARRAY' ? _flatten($buf, @$_) : push(@$buf, $_);
     }
+}
+
+
+sub mtime {
+    my ($filename) = @_;
+    return (stat $filename)[9];
 }
 
 
