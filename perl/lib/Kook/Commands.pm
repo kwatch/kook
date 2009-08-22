@@ -8,9 +8,10 @@
 package Kook::Commands;
 use strict;
 use Exporter 'import';
-our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr);
+our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p);
 use Data::Dumper;
-use File::Basename;
+use File::Basename;     # basename()
+use File::Path;         # mkpath(), rmtree()
 
 use Kook::Config;
 use Kook::Misc ('_report_cmd');
@@ -187,6 +188,35 @@ sub _copy_dir_to_dir {
                   : _copy_file_to_dir($fpath, $dst, $func, $p);
     }
     _touch $src, $dst if $p;
+}
+
+
+sub mkdir {    # should be called as '&mkdir()'
+    _mkdir('mkdir', 'mkdir', 0, @_);
+}
+
+sub mkdir_p {
+    _mkdir('mkdir_p', 'mkdir -p', 1, @_);
+}
+
+sub _mkdir {
+    my ($func, $cmd, $p, @dirnames) = @_;
+    @dirnames = _prepare($cmd, @dirnames);
+    return if $Kook::Config::NOEXEC;
+    @dirnames  or die "$func: directory name required.\n";
+    if ($p) {
+        for my $dname (@dirnames) {
+            -d $dname and next;
+            -e $dname and die "$func: $dname: already exists.\n";
+            mkpath($dname)  or die "$func: $dname: $!\n";
+        }
+    }
+    else {
+        for my $dname (@dirnames) {
+            -e $dname and die "$func: $dname: already exists.\n";
+            mkdir $dname  or die "$func: $dname: $!\n";   # built-in function
+        }
+    }
 }
 
 

@@ -6,11 +6,11 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 195;
+use Test::Simple tests => 212;
 use File::Path;
 use File::Basename;
 
-use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr);
+use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p);
 use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
 
@@ -42,7 +42,7 @@ END
 ###
 ### before_all()
 ###
-mkdir "_sandbox" unless -d "_sandbox";
+CORE::mkdir "_sandbox" unless -d "_sandbox";
 chdir "_sandbox"  or die $!;
 
 
@@ -56,17 +56,19 @@ sub before_each {
     utime $t, $t, 'hello.c';
     utime $t, $t, 'hello.h';
     #
-    mkdir('hello.d');
-    mkdir('hello.d/src');
-    mkdir('hello.d/src/lib');
-    mkdir('hello.d/src/include');
-    mkdir('hello.d/tmp');
+    CORE::mkdir 'hello.d';
+    CORE::mkdir 'hello.d/src';
+    CORE::mkdir 'hello.d/src/lib';
+    CORE::mkdir 'hello.d/src/include';
+    CORE::mkdir 'hello.d/tmp';
     write_file('hello.d/src/lib/hello.c', $HELLO_C);
     write_file('hello.d/src/include/hello.h',  $HELLO_H);
     write_file('hello.d/src/include/hello2.h', $HELLO_H);
     utime $t, $t, 'hello.d/src/lib/hello.c';
     utime $t, $t, 'hello.d/src/include/hello.h';
     utime $t, $t, 'hello.d/src/include/hello2.h';
+    #
+    $@ = undef;
 }
 
 sub after_each {
@@ -411,6 +413,8 @@ sub _test_cp_r {
         ok(eval "mtime('hello.d/tmp/src/lib/hello.c') $op mtime('hello.d/src/lib/hello.c')");
         ok(eval "mtime('hello.d/tmp/src/include/hello.h') $op mtime('hello.d/src/include/hello.h')");
         ok(eval "mtime('hello.d/tmp/src/include/hello2.h') $op mtime('hello.d/src/include/hello2.h')");
+        rmtree('hello.d/tmp/src');
+        unlink glob('hello.d/tmp/*');
     }
     if ("ERROR: files and directories into not-exisiting dir") {
         ok(! -e 'hello.d/tmp2');
@@ -432,6 +436,80 @@ after_each();
 before_each();
 if (_test_p("cp_pr")) {
     _test_cp_r("cp_pr", "cp -pr");
+}
+after_each();
+
+
+###
+### mkdir, mkdir_p
+###
+before_each();
+if (_test_p('mkdir')) {
+    if ("unexisted path is specified then create directory") {
+        my ($path1, $path2) = ('hello.d/foo', 'hello.d/bar');
+        ok(! -e $path1 && ! -e $path2);
+        ob_start();
+        &mkdir($path1, $path2);
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ mkdir $path1 $path2\n");
+        ok(-d $path1);
+        ok(-d $path2);
+    }
+    if ("existing path is specified then error raises") {
+        my $path = "hello.d/tmp";
+        ok(-d $path);
+        ob_start();
+        eval { &mkdir($path); };
+        my $output = ob_get_clean();
+        #die $@ if $@;
+        #
+        ok($output eq "\$ mkdir $path\n");
+        ok($@ eq "mkdir: $path: already exists.\n");
+        $@ = undef;
+    }
+    if ("deep path is specified") {
+        my $path = "hello.d/tmp3/test";
+        ok(! -e "hello.d/tmp3");
+        ob_start();
+        eval { &mkdir($path); };
+        my $output = ob_get_clean();
+        #die $@ if $@;
+        #
+        ok($output eq "\$ mkdir $path\n");
+        ok($@ eq "mkdir: hello.d/tmp3/test: No such file or directory\n");
+        $@ = undef;
+    }
+}
+after_each();
+#
+before_each();
+if (_test_p('mkdir_p')) {
+    if ("deep path specified then create it") {
+        my ($path1, $path2) = ('hello.d/foo/d1', 'hello.d/bar/d2');
+        ok(! -e $path1 && ! -e $path2);
+        ob_start();
+        mkdir_p($path1, $path2);
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ mkdir -p $path1 $path2\n");
+        ok(-d $path1);
+        ok(-d $path2);
+    }
+    if ("file is specified then error raises") {
+        my $path = "hello.d/src/lib/hello.c";
+        ok(-f $path);
+        ob_start();
+        eval { &mkdir_p($path); };
+        my $output = ob_get_clean();
+        #die $@ if $@;
+        #
+        ok($output eq "\$ mkdir -p $path\n");
+        ok($@ eq "mkdir_p: $path: already exists.\n");
+        $@ = undef;
+    }
 }
 after_each();
 
