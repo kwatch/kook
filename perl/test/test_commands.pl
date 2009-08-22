@@ -6,10 +6,11 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 17;
+use Test::Simple tests => 195;
 use File::Path;
+use File::Basename;
 
-use Kook::Commands qw(sys sys_f echo echo_n);
+use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr);
 use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
 
@@ -59,6 +60,7 @@ sub before_each {
     mkdir('hello.d/src');
     mkdir('hello.d/src/lib');
     mkdir('hello.d/src/include');
+    mkdir('hello.d/tmp');
     write_file('hello.d/src/lib/hello.c', $HELLO_C);
     write_file('hello.d/src/include/hello.h',  $HELLO_H);
     write_file('hello.d/src/include/hello2.h', $HELLO_H);
@@ -193,6 +195,243 @@ END
         chomp $expected;
         ok($output eq $expected);
     }
+}
+after_each();
+
+
+###
+### cp, cp_p
+###
+sub _test_cp {
+    my ($func, $cmd) = @_;
+    my $op = $func =~ /_pr?$/ ? '==' : '>';
+    if ("file to file") {
+        ok(! -e "hello2.c");
+        ob_start();
+        eval "$func('hello.c', 'hello2.c');";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(-f "hello2.c");
+        ok($output eq "\$ $cmd hello.c hello2.c\n");
+        ok(read_file("hello2.c") eq $HELLO_C);
+        ok(eval "mtime('hello2.c') $op mtime('hello.c')");
+    }
+    if ("file to dir") {
+        my $src = "./hello.c";
+        my $base = basename($src);
+        my $dst = "hello.d/tmp";
+        ok(! -e "$dst/$base");
+        ob_start();
+        eval "$func(\$src, \$dst);";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        ok(-f "$dst/$base");
+        #
+        ok($output eq "\$ $cmd $src $dst\n");
+        ok(read_file("$dst/$base") eq $HELLO_C);
+        ok(eval "mtime('$dst/$base') $op mtime('$src')");
+    }
+    if ("ERROR: dir to dir") {
+        my ($src, $dst) = ("hello.d/src", "hello.d/tmp/hoge");
+        ok(! $@);
+        ob_start();
+        eval "$func(\$src, \$dst);";
+        my $output = ob_get_clean();
+        ok($@ eq "$func: hello.d/src: cannot copy directory (use 'cp_r' instead).\n");
+        $@ = undef;
+        ok(! -e $dst);
+    }
+    if ("ERROR: dir to file") {
+        my ($src, $dst) = ("hello.d/src", "hello.h");
+        ok(-f $dst);
+        ok(! $@);
+        ob_start();
+        eval "$func(\$src, \$dst);";
+        my $output = ob_get_clean();
+        ok($@ eq "$func: hello.d/src: cannot copy directory to file.\n");
+        $@ = undef;
+    }
+    if ("files into dir") {
+        my $src = "hello.d/src";
+        my $dst = "hello.d/tmp";
+        unlink glob("$dst/*");
+        ob_start();
+        eval "$func('$src/lib/hello.c', '$src/include/hello.h', '$src/include/hello2.h', \$dst);";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ $cmd $src/lib/hello.c $src/include/hello.h $src/include/hello2.h $dst\n");
+        ok(-f "$dst/hello.c");
+        ok(-f "$dst/hello.h");
+        ok(-f "$dst/hello2.h");
+        ok(eval "mtime('$dst/hello.c')  $op  mtime('$src/lib/hello.c')");
+        ok(eval "mtime('$dst/hello.h')  $op  mtime('$src/include/hello.h')");
+        ok(eval "mtime('$dst/hello2.h') $op  mtime('$src/include/hello2.h')");
+    }
+    if ("handles metachars") {
+        my $src = "hello.d/src";
+        my $dst = "hello.d/tmp";
+        unlink glob("$dst/*");
+        ob_start();
+        eval "$func('$src/lib/*.c', '$src/include/*.h', \$dst)";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(eval "mtime('$dst/hello.c')  $op  mtime('$src/lib/hello.c')");
+        ok(eval "mtime('$dst/hello.h')  $op  mtime('$src/include/hello.h')");
+        ok(eval "mtime('$dst/hello2.h') $op  mtime('$src/include/hello2.h')");
+    }
+}
+
+before_each();
+if (_test_p("cp")) {
+    _test_cp("cp", "cp");
+}
+after_each();
+
+before_each();
+if (_test_p("cp_p")) {
+    _test_cp("cp_p", "cp -p");
+}
+after_each();
+
+
+###
+### cp_r, cp_pr
+###
+sub _test_cp_r {
+    my ($func, $cmd) = @_;
+    my $op = $func =~ /_pr?$/ ? '==' : '>';
+    if ("dir to dir which exists") {
+        ok(-d 'hello.d/tmp');
+        ok(! -e 'hello.d/tmp/src');
+        ob_start();
+        eval "$func('hello.d/src', 'hello.d/tmp');";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ $cmd hello.d/src hello.d/tmp\n");
+        ok(-d 'hello.d/tmp/src');
+        ok(-d 'hello.d/tmp/src/lib');
+        ok(-f 'hello.d/tmp/src/lib/hello.c');
+        ok(-d 'hello.d/tmp/src/include');
+        ok(-f 'hello.d/tmp/src/include/hello.h');
+        ok(-f 'hello.d/tmp/src/include/hello2.h');
+        ok(eval "mtime('hello.d/tmp/src/lib/hello.c')      $op mtime('hello.d/src/lib/hello.c')");
+        ok(eval "mtime('hello.d/tmp/src/include/hello.h')  $op mtime('hello.d/src/include/hello.h')");
+        ok(eval "mtime('hello.d/tmp/src/include/hello2.h') $op mtime('hello.d/src/include/hello2.h')");
+        rmtree('hello.d/tmp/src');
+    }
+    if ("dir to dir which doesn't exist") {
+        ok(! -e 'hello.d/tmp/src2');
+        ob_start();
+        eval "$func('hello.d/src', 'hello.d/tmp/src2');";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ $cmd hello.d/src hello.d/tmp/src2\n");
+        ok(-d 'hello.d/tmp/src2');
+        ok(-d 'hello.d/tmp/src2/lib');
+        ok(-f 'hello.d/tmp/src2/lib/hello.c');
+        ok(-d 'hello.d/tmp/src2/include');
+        ok(-f 'hello.d/tmp/src2/include/hello.h');
+        ok(-f 'hello.d/tmp/src2/include/hello2.h');
+        ok(eval "mtime('hello.d/tmp/src2/lib/hello.c')      $op mtime('hello.d/src/lib/hello.c')");
+        ok(eval "mtime('hello.d/tmp/src2/include/hello.h')  $op mtime('hello.d/src/include/hello.h')");
+        ok(eval "mtime('hello.d/tmp/src2/include/hello2.h') $op mtime('hello.d/src/include/hello2.h')");
+        rmtree('hello.d/tmp/src2');
+    }
+    if ("ERROR: dir to file") {
+        my ($src, $dst) = ("hello.d/src", "hello.h");
+        ok(-f $dst);
+        ok(! $@);
+        ob_start();
+        eval "$func(\$src, \$dst);";
+        my $output = ob_get_clean();
+        ok($@ eq "$func: hello.d/src: cannot copy directory to file.\n");
+        $@ = undef;
+    }
+    if ("files and directories into exisiting dir") {
+        write_file('hello.d/hello.c', $HELLO_C);
+        write_file('hello.d/hello.h', $HELLO_H);
+        my $t = time() - 99;
+        utime $t, $t, ('hello.d/hello.c', 'hello.d/hello.h');
+        #
+        ok(! -e 'hello.d/tmp/hello.c');
+        ok(! -e 'hello.d/tmp/hello.h');
+        ok(! -e 'hello.d/tmp/src');
+        ob_start();
+        eval "$func('hello.d/hello.c', 'hello.d/hello.h', 'hello.d/src', 'hello.d/tmp')";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        ok($output eq "\$ $cmd hello.d/hello.c hello.d/hello.h hello.d/src hello.d/tmp\n");
+        #
+        ok(-f 'hello.d/tmp/hello.c');
+        ok(-f 'hello.d/tmp/hello.h');
+        ok(-d 'hello.d/tmp/src');
+        ok(-d 'hello.d/tmp/src/lib');
+        ok(-f 'hello.d/tmp/src/lib/hello.c');
+        ok(-d 'hello.d/tmp/src/include');
+        ok(-f 'hello.d/tmp/src/include/hello.h');
+        ok(-f 'hello.d/tmp/src/include/hello2.h');
+        ok(eval "mtime('hello.d/tmp/hello.c') $op mtime('hello.d/hello.c')");
+        ok(eval "mtime('hello.d/tmp/hello.h') $op mtime('hello.d/hello.h')");
+        ok(eval "mtime('hello.d/tmp/src/lib/hello.c') $op mtime('hello.d/src/lib/hello.c')");
+        ok(eval "mtime('hello.d/tmp/src/include/hello.h') $op mtime('hello.d/src/include/hello.h')");
+        ok(eval "mtime('hello.d/tmp/src/include/hello2.h') $op mtime('hello.d/src/include/hello2.h')");
+        rmtree('hello.d/tmp/src');
+        unlink glob('hello.d/tmp/*');
+    }
+    if ("handles meta-chracters") {
+        write_file('hello.d/hello.c', $HELLO_C);
+        write_file('hello.d/hello.h', $HELLO_H);
+        my $t = time() - 99;
+        utime $t, $t, ('hello.d/hello.c', 'hello.d/hello.h');
+        #
+        ok(! -e 'hello.d/tmp/hello.c');
+        ok(! -e 'hello.d/tmp/hello.h');
+        ok(! -e 'hello.d/tmp/src');
+        ob_start();
+        eval "$func('hello.d/hello.*', 'hello.d/sr?', 'hello.d/tmp')";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        ok($output eq "\$ $cmd hello.d/hello.* hello.d/sr? hello.d/tmp\n");
+        #
+        ok(-f 'hello.d/tmp/hello.c');
+        ok(-f 'hello.d/tmp/hello.h');
+        ok(-d 'hello.d/tmp/src');
+        ok(-d 'hello.d/tmp/src/lib');
+        ok(-f 'hello.d/tmp/src/lib/hello.c');
+        ok(-d 'hello.d/tmp/src/include');
+        ok(-f 'hello.d/tmp/src/include/hello.h');
+        ok(-f 'hello.d/tmp/src/include/hello2.h');
+        ok(eval "mtime('hello.d/tmp/hello.c') $op mtime('hello.d/hello.c')");
+        ok(eval "mtime('hello.d/tmp/hello.h') $op mtime('hello.d/hello.h')");
+        ok(eval "mtime('hello.d/tmp/src/lib/hello.c') $op mtime('hello.d/src/lib/hello.c')");
+        ok(eval "mtime('hello.d/tmp/src/include/hello.h') $op mtime('hello.d/src/include/hello.h')");
+        ok(eval "mtime('hello.d/tmp/src/include/hello2.h') $op mtime('hello.d/src/include/hello2.h')");
+    }
+    if ("ERROR: files and directories into not-exisiting dir") {
+        ok(! -e 'hello.d/tmp2');
+        ok(! $@);
+        ob_start();
+        eval "$func('hello.d/hello.c', 'hello.d/hello.h', 'hello.d/src/lib', 'hello.d/tmp2')";
+        my $output = ob_get_clean();
+        ok($@ eq "$func: hello.d/tmp2: directory not found.\n");
+        $@ = undef;
+    }
+}
+
+before_each();
+if (_test_p("cp_r")) {
+    _test_cp_r("cp_r", "cp -r");
+}
+after_each();
+
+before_each();
+if (_test_p("cp_pr")) {
+    _test_cp_r("cp_pr", "cp -pr");
 }
 after_each();
 
