@@ -405,7 +405,7 @@ sub _invoke_recipe_with {
         $this->{recipe}->{method}->($this, $opts, $rests);
     }
     else {
-        $this->{recipe}->{method}->($this);
+        $this->{recipe}->{method}->($this, undef, $argv);
     }
 }
 
