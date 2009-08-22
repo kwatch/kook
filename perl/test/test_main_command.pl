@@ -271,16 +271,16 @@ if ("option -l specified") {
 Properties:
 
 Task recipes
-  build               : build all files
-  test1               : test of spices
-    -v                    verbose
-    -f file               file
-    -i[N]                 indent
-    --name=str            name string
+  build                : build all files
+  test1                : test of spices
+    -v                     verbose
+    -f file                file
+    -i[N]                  indent
+    --name=str             name string
 
 File recipes
-  hello               : build hello command
-  *.o                 : compile *.c
+  hello                : build hello command
+  *.o                  : compile *.c
 
 (Tips: it is able to separate properties into 'Properties.pl' file.)
 END

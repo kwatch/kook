@@ -23,6 +23,8 @@ our $PROPERTIES_FILENAME = 'Properties.pl';
 our $COOKBOOK_FILENAME   = 'Kookbook.pl';
 #our $STDOUT              = STDOUT;
 #our $STDERR              = STDERR;
+our $RECIPE_LIST_FORMAT  = "  %-20s : %s\n";
+our $RECIPE_OPTS_FORMAT  = "    %-20s   %s\n";
 
 
 1;

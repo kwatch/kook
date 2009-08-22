@@ -145,8 +145,8 @@ sub invoke {
 sub _list_recipes {
     my ($this, $cookbook, $opts)  = @_;
     my $show_all = $opts->{L};
-    my $format   = "  %-20s: %s\n";
-    my $format2  = "    %-20s  %s\n";
+    my $format   = $Kook::Config::RECIPE_LIST_FORMAT;  # "  %-20s: %s\n";
+    my $format2  = $Kook::Config::RECIPE_OPTS_FORMAT;  # "    %-20s  %s\n";
     ## properties
     print "Properties:\n";
     my $all_props = $cookbook->all_properties();
