@@ -6,12 +6,12 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 344;
+use Test::Simple tests => 350;
 use File::Path;
 use File::Basename;
 use Cwd;
 
-use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p cd);
+use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p cd edit);
 use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
 
@@ -22,6 +22,7 @@ sub _test_p {
 
 
 my $HELLO_C = <<'END';
+/* $COPYRIGHT$ */
 #include <stdio.h>
 int main(int argc, char *argv[]) {
     int i;
@@ -34,6 +35,7 @@ END
     ;
 
 my $HELLO_H = <<'END';
+/* $COPYRIGHT$ */
 char *command = "hello";
 char *release = "$_RELEASE_$";
 END
@@ -1001,6 +1003,42 @@ END
     }
 }
 
+
+###
+### edit
+###
+if (_test_p("edit")) {
+    if ("filenames specified with closure") {
+        before_each();
+        #
+        ob_start();
+        edit { s/\$COPYRIGHT\$/MIT License/g; $_ } "hello.d/src/*/*.c", "hello.d/src/*/*.h";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        my $expected = $HELLO_C;
+        $expected =~ s/\$COPYRIGHT\$/MIT License/g;
+        ok($expected ne $HELLO_C);
+        ok(read_file("hello.d/src/lib/hello.c") eq $expected);
+        my $expected = $HELLO_H;
+        $expected =~ s/\$COPYRIGHT\$/MIT License/g;
+        ok($expected ne $HELLO_H);
+        ok(read_file("hello.d/src/include/hello.h") eq $expected);
+        ok(read_file("hello.d/src/include/hello2.h") eq $expected);
+    }
+    if ("directory names are specified") {
+        before_each();
+        #
+        ob_start();
+        edit { s/\$COPYRIGHT\$/MIT License/g; $_ } "hello.d/src";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! $@);
+        #
+        after_each();
+    }
+}
 
 
 ###

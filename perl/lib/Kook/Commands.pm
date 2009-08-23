@@ -8,7 +8,7 @@
 package Kook::Commands;
 use strict;
 use Exporter 'import';
-our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p cd);
+our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p cd edit);
 use Data::Dumper;
 use File::Basename;     # basename()
 use File::Path;         # mkpath(), rmtree()
@@ -16,7 +16,7 @@ use Cwd;                # getcwd()
 
 use Kook::Config;
 use Kook::Misc ('_report_cmd');
-use Kook::Utils ('has_metachar', 'flatten');
+use Kook::Utils ('read_file', 'write_file', 'has_metachar', 'flatten');
 
 
 sub _msg {
@@ -344,6 +344,18 @@ sub _cd {
         $closure->();
         _report_cmd("$cmd -  # back to $cwd");
         CORE::chdir $cwd  or die "$func: $!";
+    }
+}
+
+
+sub edit (&@) {
+    my ($closure, @filenames) = @_;
+    my @fnames = _prepare('edit', @filenames);
+    for my $fname (@fnames) {
+        next unless -f $fname;
+        $_ = read_file($fname);
+        $_ = &{$closure}();
+        write_file($fname, $_);
     }
 }
 
