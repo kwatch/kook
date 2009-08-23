@@ -8,7 +8,7 @@
 package Kook::Commands;
 use strict;
 use Exporter 'import';
-our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p cd edit);
+our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf rmdir mv store store_p cd edit);
 use Data::Dumper;
 use File::Basename;     # basename()
 use File::Path;         # mkpath(), rmtree()
@@ -264,6 +264,24 @@ sub _rm {
         else {
             $f  or die "$func: $fname: not found.\n";
         }
+    }
+}
+
+
+## remove directory
+sub rmdir {
+    _rmdir('rmdir', 'rmdir', @_);
+}
+
+sub _rmdir {
+    my ($func, $cmd, @dirnames) = @_;
+    @dirnames = _prepare($cmd, @dirnames);
+    return if $Kook::Config::NOEXEC;
+    @dirnames  or die "$func: directory name required.\n";
+    for my $dname (@dirnames) {
+        -e $dname  or die "$func: $dname: not found.\n";
+        -d $dname  or die "$func: $dname: not a directory.";
+        CORE::rmdir $dname  or die "$func: $dname: $!\n";
     }
 }
 

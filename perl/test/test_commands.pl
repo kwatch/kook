@@ -11,7 +11,7 @@ use File::Path;
 use File::Basename;
 use Cwd;
 
-use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p cd edit);
+use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf rmdir mv store store_p cd edit);
 use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
 
@@ -641,6 +641,61 @@ if (_test_p("rm_rf")) {
         ok($output eq "\$ rm -rf $path\n");
     }
     after_each();
+}
+
+
+###
+### rmdir
+###
+if (_test_p('rmdir')) {
+    if ("empty directory specified") {
+        before_each();
+        #
+        my $path = "hello.d/tmp";
+        ok(-d $path);
+        #
+        ob_start();
+        rmdir $path;
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ rmdir $path\n");
+        ok(! -e $path);
+        #
+        after_each();
+    }
+    if ("non-existing directory specified then report error") {
+        before_each();
+        #
+        my $path = "hello.d/tmp3";
+        ok(! -e $path);
+        #
+        ob_start();
+        eval { rmdir $path; };
+        my $output = ob_get_clean();
+        #
+        ok($output eq "\$ rmdir $path\n");
+        ok($@ eq "rmdir: $path: not found.\n");
+        #
+        after_each();
+    }
+    if ("not-empty directory specified then report error") {
+        before_each();
+        #
+        my $path = "hello.d/src";
+        ok(-d $path);
+        #
+        ob_start();
+        eval { rmdir $path; };
+        my $output = ob_get_clean();
+        #die $@ if $@;
+        #
+        ok($output eq "\$ rmdir $path\n");
+        ok($@ eq "rmdir: hello.d/src: Directory not empty\n");
+        ok(-e $path);
+        #
+        after_each();
+    }
 }
 
 
