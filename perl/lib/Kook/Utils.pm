@@ -10,7 +10,7 @@ package Kook::Utils;
 use strict;
 use Data::Dumper;
 use Exporter 'import';
-our @EXPORT_OK = qw(read_file write_file ob_start ob_get_clean has_metachar meta2rexp repr flatten mtime);
+our @EXPORT_OK = qw(read_file write_file ob_start ob_get_clean has_metachar meta2rexp repr flatten glob2 mtime);
 
 
 sub read_file {
@@ -152,6 +152,50 @@ sub _flatten {
         ref($_) eq 'ARRAY' ? _flatten($buf, @$_) : push(@$buf, $_);
     }
 }
+
+
+sub glob2 {
+    my ($pattern) = @_;
+    my @pair = split /\*\*\//, $pattern, 2;
+    return glob($pattern) if @pair == 1;
+    my ($dirpat, $basepat) = @pair;
+    #$dirpat && $dirpat =~ /\/$/ ?  $dirpat =~ s/\/$//
+    #                            :  $dirpat .= '*';
+    if ($dirpat && $dirpat =~ /\/$/) {
+        $dirpat =~ s/\/$//;
+    }
+    else {
+        $dirpat .= '*';
+    }
+    my @filenames = $dirpat eq '*' ? glob($basepat) : ();
+    for my $path (glob($dirpat)) {
+        my @dirlist = _listup($path, 'd');
+        for my $dir (@dirlist) {
+            my @entries = glob2("$dir/$basepat");
+            push @filenames, @entries;
+        }
+    }
+    return @filenames;
+}
+
+sub _listup {
+    my ($path, $kind, $arr) = @_;
+    $arr = [] unless $arr;
+    if    ($kind eq 'f') { push @$arr, $path if -f $path; }
+    elsif ($kind eq 'd') { push @$arr, $path if -d $path; }
+    else                 { push @$arr, $path; }
+    if (-d $path) {
+        opendir DIR, $path  or die "opendir: $path: $!";
+        my @entries = readdir DIR;
+        closedir DIR;
+        for my $e (@entries) {
+            next if $e eq '.' || $e eq '..';
+            _listup("$path/$e", $kind, $arr);
+        }
+    }
+    return @$arr;
+}
+
 
 
 sub mtime {

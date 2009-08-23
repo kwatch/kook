@@ -8,9 +8,10 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 40;
+use Test::Simple tests => 43;
+use File::Path;
 
-use Kook::Utils ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr', 'flatten');
+use Kook::Utils ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr', 'flatten', 'glob2');
 
 
 ###
@@ -95,6 +96,37 @@ if (1) {
     my $arr = ["foo", ["bar", ["baz"]]];
     my @arr2 = flatten(@$arr);
     ok(repr(\@arr2) eq '["foo","bar","baz"]');
+}
+
+
+###
+### glob2()
+###
+if (1) {
+    mkdir "hello.d";
+    mkdir "hello.d/src";
+    mkdir "hello.d/src/lib";
+    mkdir "hello.d/src/include";
+    mkdir "hello.d/tmp";
+    write_file("hello.c", "---");
+    write_file("hello.h", "---");
+    write_file("hello.d/src/lib/hello.c", "---");
+    write_file("hello.d/src/include/hello.h", "---");
+    write_file("hello.d/src/include/hello2.h", "---");
+    #
+    my @expected = qw(hello.d/src/include/hello.h hello.d/src/include/hello2.h);
+    my @actual = glob2("hello.d/**/*.h");
+    ok(join(" ", @actual) eq join(" ", @expected));
+    #
+    my @expected = qw(hello.c hello.h hello.d/src/include/hello.h hello.d/src/include/hello2.h hello.d/src/lib/hello.c);
+    my @actual = glob2("**/*.{c,h}");
+    ok(join(" ", @actual) eq join(" ", @expected));
+    #
+    my @actual = glob2("**/*.jpg");
+    ok(! @actual);
+    #
+    rmtree("hello.d");
+    unlink "hello.c", "hello.h";
 }
 
 
