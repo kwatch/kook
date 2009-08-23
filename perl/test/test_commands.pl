@@ -893,11 +893,11 @@ sub _test_store {
         my $dst = "hello.d/tmp";
         #
         ob_start();
-        eval "$func('*.{c,h}', 'hello.d/src/*/*.{c,h}', '$dst')";
+        eval "$func('*.{c,h}', 'hello.d/**/*.{c,h}', '$dst')";
         my $output = ob_get_clean();
         die $@ if $@;
         #
-        ok($output eq "\$ $cmd *.{c,h} hello.d/src/*/*.{c,h} $dst\n");
+        ok($output eq "\$ $cmd *.{c,h} hello.d/**/*.{c,h} $dst\n");
         ok(-f "hello.c");
         ok(-f "hello.h");
         ok(-f "hello.d/src/lib/hello.c");
@@ -1067,11 +1067,11 @@ if (_test_p("edit")) {
         before_each();
         #
         ob_start();
-        edit { s/\$COPYRIGHT\$/MIT License/g; $_ } "hello.d/src/*/*.c", "hello.d/src/*/*.h";
+        edit { s/\$COPYRIGHT\$/MIT License/g; $_ } "hello.d/**/*.c", "hello.d/**/*.h";
         my $output = ob_get_clean();
         die $@ if $@;
         #
-        ok($output eq "\$ edit hello.d/src/*/*.c hello.d/src/*/*.h\n");
+        ok($output eq "\$ edit hello.d/**/*.c hello.d/**/*.h\n");
         my $expected = $HELLO_C;
         $expected =~ s/\$COPYRIGHT\$/MIT License/g;
         ok($expected ne $HELLO_C);

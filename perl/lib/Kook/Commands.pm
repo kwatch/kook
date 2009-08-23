@@ -16,7 +16,7 @@ use Cwd;                # getcwd()
 
 use Kook::Config;
 use Kook::Misc ('_report_cmd');
-use Kook::Utils ('read_file', 'write_file', 'has_metachar', 'flatten');
+use Kook::Utils ('read_file', 'write_file', 'has_metachar', 'flatten', 'glob2');
 
 
 sub _msg {
@@ -34,8 +34,8 @@ sub _prepare {
     my ($cmd, @filenames) = @_;
     _report_cmd("$cmd " . join(' ', @filenames)) if $cmd;
     my @arr;
-    #my @fnames = map { has_metachar($_) ? ((@arr = glob($_)) ? @arr : $_) : $_ } @filenames;
-    my @fnames = map { (@arr = glob($_)) ? @arr : $_ } flatten(@filenames);
+    #my @fnames = map { has_metachar($_) ? ((@arr = glob2($_)) ? @arr : $_) : $_ } @filenames;
+    my @fnames = map { (@arr = glob2($_)) ? @arr : $_ } flatten(@filenames);
     return @fnames;
 }
 
