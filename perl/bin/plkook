@@ -1,11 +1,16 @@
 #!/usr/bin/env perl
 
+###
+### $Release:$
+### $Copyright$
+### $License$
+###
+
 use strict;
 use Data::Dumper;
 use Kook::Main;
 
 my @argv = @ARGV;
-my $main = $argv[0] eq "-X"
-         ? Kook::MainApplication->new(\@argv)
-         : Kook::MainCommand->new(\@argv);
+my $klass = $argv[0] eq "-X" ? 'Kook::MainApplication' : 'Kook::MainCommand';
+my $main = $klass->new(\@argv);
 $main->main();
