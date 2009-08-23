@@ -46,6 +46,9 @@ sub _touch {
 }
 
 
+## invoke os-depend command. if command failed then die.
+## ex.
+##   sys("gcc -o hello hello.o");
 sub sys {
     my $command = shift @_;
     _pr($command) if $Kook::Config::VERBOSE;
@@ -55,6 +58,7 @@ sub sys {
     return $status;
 }
 
+## similar to sys() but never die even when os-command failed.
 sub sys_f {
     my $command = shift @_;
     _pr($command) if $Kook::Config::VERBOSE;
@@ -63,10 +67,12 @@ sub sys_f {
 }
 
 
+## print argument
 sub echo {
     _echo("echo", "echo", 0, @_);
 }
 
+## similar to echo() but not print newline
 sub echo_n {
     _echo("echo", "echo", 1, @_);
 }
@@ -84,6 +90,7 @@ sub _echo {
 }
 
 
+## copy files or directories
 sub cp {
     _cp('cp',    'cp',     0, 0, @_);
 }
@@ -192,6 +199,7 @@ sub _copy_dir_to_dir {
 }
 
 
+## create directory
 sub mkdir {
     _mkdir('mkdir', 'mkdir', 0, @_);
 }
@@ -221,6 +229,9 @@ sub _mkdir {
 }
 
 
+## remove files or directories
+## ex.
+##   rm_rf "*/*.o", "doc/*.html", "tmp";
 sub rm {
     _rm('rm', 'rm', 0, 0, @_);
 }
@@ -257,6 +268,9 @@ sub _rm {
 }
 
 
+## rename or move files or directories
+## ex.
+##    mv "src/*/*.pl", "test/*.pl", "dist";
 sub mv {
     _mv('mv', 'mv', @_);
 }
@@ -291,6 +305,11 @@ sub _mv {
 }
 
 
+## copy files to directory with keeping file path
+## ex.
+##   $dir = "dist/project-1.2.3";
+##   mkdir_p $dir;
+##   store "README", "src", "test", "doc", $dir;
 sub store {
     _store('store', 'store', 0, @_);
 }
@@ -326,6 +345,10 @@ sub _store {
 }
 
 
+## change directory
+## ex.
+##   cd "dist";
+##   cd "dist", sub { rm "*.o" };
 sub cd {
     _cd('cd', 'cd', @_);
 }
@@ -348,6 +371,9 @@ sub _cd {
 }
 
 
+## edit files
+## ex.
+##   edit { s/\$RELEASE\$/1.2.3/g; $_ } "dist/src/*/*.pl";
 sub edit (&@) {
     my ($closure, @filenames) = @_;
     my @fnames = _prepare('edit', @filenames);
