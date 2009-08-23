@@ -1,4 +1,9 @@
 
+my $project   = "plkook";
+my $release   = "0.0.1";
+my $copyright = "copyright(c) 2009 kuwata-lab.com all rights reserved.";
+my $license   = "MIT License";
+
 $Kook::default_product = "test";
 
 recipe "test", {
@@ -8,6 +13,34 @@ recipe "test", {
         #    system "perl $_";
         #}
         sys("prove test/test_*.pl");
+    }
+};
+
+recipe "package", {
+    desc   => "create package",
+    method => sub {
+        rm_rf "dist";
+        my $dir = "dist/$project-$release";
+        mkdir_p $dir;
+        store "bin/*", "lib/**/*.pm", "test/**/*.pl", $dir;
+        edit {
+            s/\$Release\$/$release/g;
+            s/\$Release:.*?\$/\$Release: $release \$/g;
+            s/\$Copyright\$/$copyright/g;
+            s/\$License\$/$license/g;
+            $_;
+        } "$dir/**/*";
+    }
+};
+
+my $orig_kk = "../python/bin/kk";
+
+recipe "bin/kk", {
+    ingreds => [$orig_kk],
+    desc  => "copy from '$orig_kk'",
+    method => sub {
+        my ($c) = @_;
+        cp($c->{ingred}, $c->{product});
     }
 }
 
