@@ -377,6 +377,7 @@ sub _cd {
 sub edit (&@) {
     my ($closure, @filenames) = @_;
     my @fnames = _prepare('edit', @filenames);
+    return if $Kook::Config::NOEXEC;
     for my $fname (@fnames) {
         next unless -f $fname;
         $_ = read_file($fname);
