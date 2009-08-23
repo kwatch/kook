@@ -6,7 +6,7 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 351;
+use Test::Simple tests => 361;
 use File::Path;
 use File::Basename;
 use Cwd;
