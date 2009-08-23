@@ -8,7 +8,7 @@
 package Kook::Commands;
 use strict;
 use Exporter 'import';
-our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf);
+our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv);
 use Data::Dumper;
 use File::Basename;     # basename()
 use File::Path;         # mkpath(), rmtree()
@@ -251,6 +251,40 @@ sub _rm {
         }
         else {
             $f  or die "$func: $fname: not found.\n";
+        }
+    }
+}
+
+
+sub mv {
+    _mv('mv', 'mv', @_);
+}
+
+sub _mv {
+    my ($func, $cmd, @filenames) = @_;
+    @filenames = _prepare($cmd, @filenames);
+    return if $Kook::Config::NOEXEC;
+    my $n = @filenames;
+    if ($n < 2) {
+        die "$func: at least two file or directory names are required.\n";
+    }
+    elsif ($n == 2) {
+        my ($src, $dst) = @filenames;
+        if    (! -e $src) { die "$func: $src: not found.\n";       }
+        elsif (! -e $dst) { rename $src, $dst                     or die "$func: $!"; } # any to new
+        elsif (-d $dst)   { rename $src, $dst.'/'.basename($src)  or die "$func: $!"; } # any to dir
+        elsif (-d $src)   { die "$func: $dst: not a directory.\n";                    } # dir to file
+        else              { rename $src, $dst                     or die "$func: $!"; } # file to file
+    }
+    else {
+        my $dst = pop @filenames;
+        -e $dst  or die "$func: $dst: directory not found.\n";
+        -d $dst  or die "$func: $dst: not a directory.\n";
+        for my $src (@filenames) {
+            -e $src  or die "$func: $src: not found.\n";
+        }
+        for my $src (@filenames) {
+            rename($src, $dst.'/'.basename($src))  or die "$func: $!";
         }
     }
 }

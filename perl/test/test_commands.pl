@@ -6,11 +6,11 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 212;
+use Test::Simple tests => 290;
 use File::Path;
 use File::Basename;
 
-use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf);
+use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv);
 use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
 
@@ -638,6 +638,189 @@ if (_test_p("rm_rf")) {
         ok($output eq "\$ rm -rf $path\n");
     }
     after_each();
+}
+
+
+###
+### mv
+###
+if (_test_p('mv')) {
+    if ("move file to new") {
+        before_each();
+        #
+        my ($path1, $path2) = ("hello.c", "hello.d/tmp/foo.c");
+        ok(-f $path1);
+        ok(! -e $path2);
+        #
+        ob_start();
+        mv($path1, $path2);
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! -e $path1);
+        ok(-f $path2);
+        ok($output eq "\$ mv $path1 $path2\n");
+        #
+        after_each();
+    }
+    if ("move dir to new") {
+        before_each();
+        #
+        my ($path1, $path2) = ("hello.d/src", "hello.d/src3");
+        ok(-d $path1);
+        ok(! -e $path2);
+        #
+        ob_start();
+        mv($path1, $path2);
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! -e $path1);
+        ok(-d $path2);
+        ok($output eq "\$ mv $path1 $path2\n");
+        #
+        after_each();
+    }
+    if ("move file to file") {
+        before_each();
+        #
+        my ($path1, $path2) = ("hello.c", "hello.h");
+        ok(-f $path1);
+        ok(-f $path2);
+        #
+        ob_start();
+        mv($path1, $path2);
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! -e $path1);
+        ok(-f $path2);
+        ok($output eq "\$ mv $path1 $path2\n");
+        #
+        after_each();
+    }
+    if ("move file to dir") {
+        before_each();
+        #
+        my ($path1, $path2) = ("hello.d/src/lib/hello.c", "hello.d/tmp");
+        ok(-f $path1);
+        ok(-d $path2);
+        #
+        ob_start();
+        mv($path1, $path2);
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! -e $path1);
+        ok(-f "$path2/hello.c");
+        ok($output eq "\$ mv $path1 $path2\n");
+        #
+        after_each();
+    }
+    if ("move dir to dir") {
+        before_each();
+        #
+        my ($path1, $path2) = ("hello.d/src", "hello.d/tmp");
+        ok(-d $path1);
+        ok(-d $path2);
+        #
+        ob_start();
+        mv($path1, $path2);
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok(! -e $path1);
+        ok(-d "$path2/src");
+        ok($output eq "\$ mv $path1 $path2\n");
+        #
+        after_each();
+    }
+    if ("move dir to file then report error") {
+        before_each();
+        #
+        my ($path1, $path2) = ("hello.d/src", "hello.c");
+        ok(-d $path1);
+        ok(-f $path2);
+        #
+        ob_start();
+        eval { mv($path1, $path2); };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "mv: $path2: not a directory.\n");
+        ok($output eq "\$ mv $path1 $path2\n");
+        #
+        after_each();
+    }
+    if ("move unexisting file then report error") {
+        before_each();
+        #
+        my ($path1, $path2) = ("hello.d/tmp3", "hello.d/tmp");
+        ok(! -d $path1);
+        #
+        ob_start();
+        eval { mv($path1, $path2); };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "mv: $path1: not found.\n");
+        ok($output eq "\$ mv $path1 $path2\n");
+        #
+        after_each();
+    }
+    #
+    if ("move files or directories into a directory") {
+        before_each();
+        #
+        my @src = ("hello.{c,h}", "hello.d/src/*");
+        my $dst = "hello.d/tmp";
+        ok(-d $dst);
+        #ok(-f "hello.c" && -f "hello.h" && -d "hello.d/src/lib" && -d "hello.d/src/include");
+        #ok(! -e "$dst/hello.c" && ! -e "$dst/hello.h" && ! -e "$dst/lib" && ! -e "$dst/include");
+        ok(-f "hello.c");
+        ok(-f "hello.h");
+        ok(-d "hello.d/src/lib");
+        ok(-d "hello.d/src/include");
+        ok(! -e "$dst/hello.c");
+        ok(! -e "$dst/hello.h");
+        ok(! -e "$dst/lib");
+        ok(! -e "$dst/include");
+        #
+        ob_start();
+        mv(@src, $dst);
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ mv ".join(' ', @src)." $dst\n");
+        ok(! -e "hello.c");
+        ok(! -e "hello.h");
+        ok(! -e "hello.d/src/lib");
+        ok(! -e "hello.d/src/include");
+        ok(-f "$dst/hello.c");
+        ok(-f "$dst/hello.h");
+        ok(-d "$dst/lib");
+        ok(-d "$dst/include");
+        #
+        after_each();
+    }
+    if ("move files or directories into non-existing directory then report error") {
+        before_each();
+        #
+        my @src = ("hello.{c,h}", "hello.d/src/*", "hello.txt");
+        my $dst = "hello.d/tmp";
+        ok(-f "hello.c");
+        ok(-f "hello.h");
+        ok(! -e "hello.txt");
+        #
+        ob_start();
+        eval { mv(@src, $dst); };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "mv: hello.txt: not found.\n");
+        ok(-f "hello.c");
+        ok(-f "hello.h");
+        #
+        after_each();
+    }
+
 }
 
 
