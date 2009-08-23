@@ -12,7 +12,7 @@ use strict;
 use Data::Dumper;
 
 use Kook ('recipe');
-use Kook::Commands ('sys', 'sys_f');
+use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf rmdir mv store store_p cd edit);
 use Kook::Utils ('repr');
 
 
