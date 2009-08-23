@@ -6,11 +6,12 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 332;
+use Test::Simple tests => 344;
 use File::Path;
 use File::Basename;
+use Cwd;
 
-use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p);
+use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p cd);
 use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
 
@@ -906,6 +907,98 @@ if (_test_p('store')) {
 }
 if (_test_p('store_p')) {
     _test_store('store_p', 'store -p', '==');
+}
+
+
+###
+### cd
+###
+if (_test_p("cd")) {
+    if ("both dirname and closure are specified") {
+        before_each();
+        #
+        my $cwd = getcwd();
+        #
+        ob_start();
+        cd "hello.d/src/include", sub { echo "*.h"; };
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        my $expected = <<END;
+\$ cd hello.d/src/include
+\$ echo *.h
+hello.h hello2.h
+\$ cd -  # back to $cwd
+END
+        ;
+        ok($output eq $expected);
+        ok(getcwd() eq $cwd);
+        #
+        after_each();
+    }
+    if ("only directory name specified") {
+        before_each();
+        #
+        my $cwd = getcwd();
+        #
+        ob_start();
+        cd "hello.d/src/lib";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ cd hello.d/src/lib\n");
+        ok(getcwd() eq "$cwd/hello.d/src/lib");
+        #
+        chdir $cwd;
+        #
+        after_each();
+    }
+    if ("unexisting directory specified then report error") {
+        before_each();
+        #
+        my $cwd = getcwd();
+        my $path = "hello.d/tmp3";
+        ok(! -e $path);
+        #
+        ob_start();
+        eval { cd $path; };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "cd: $path: directory not found.\n");
+        ok(getcwd() eq $cwd);
+        #
+        after_each();
+    }
+    if ("file name specified then report error") {
+        before_each();
+        #
+        my $cwd = getcwd();
+        my $path = "hello.d/src/lib/hello.c";
+        ok(-f $path);
+        #
+        ob_start();
+        eval { cd $path; };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "cd: $path: not a directory.\n");
+        ok(getcwd() eq $cwd);
+        #
+        after_each();
+    }
+    if ("directory name is not specified then report error") {
+        before_each();
+        #
+        my $cwd = getcwd();
+        #
+        ob_start();
+        eval { cd; };
+        my $output = ob_get_clean();
+        #
+        ok($@ eq "cd: directory name required.\n");
+        ok(getcwd() eq $cwd);
+        #
+        after_each();
+    }
 }
 
 

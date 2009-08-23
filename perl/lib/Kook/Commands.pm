@@ -8,10 +8,11 @@
 package Kook::Commands;
 use strict;
 use Exporter 'import';
-our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p);
+our @EXPORT_OK = qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p cd);
 use Data::Dumper;
 use File::Basename;     # basename()
 use File::Path;         # mkpath(), rmtree()
+use Cwd;                # getcwd()
 
 use Kook::Config;
 use Kook::Misc ('_report_cmd');
@@ -321,6 +322,28 @@ sub _store {
             _copy_file_to_file($src, $dst);
             _touch($src, $dst) if $p;
         }
+    }
+}
+
+
+sub cd {
+    _cd('cd', 'cd', @_);
+}
+
+sub _cd {
+    my ($func, $cmd, $dir, $closure) = @_;
+    my @dirs = _prepare($cmd, $dir);
+    $dir = $dirs[0]  or die "$func: directory name required.\n";
+    -e $dir  or die "$func: $dir: directory not found.\n";
+    -d $dir  or die "$func: $dir: not a directory.\n";
+    my $cwd = getcwd();
+    CORE::chdir $dir  or die "$func: $!";
+    if ($closure) {
+        ref($closure) eq "CODE"  or die "$func: 2nd argument should be closure.\n";
+        $_ = $dir;
+        $closure->();
+        _report_cmd("$cmd -  # back to $cwd");
+        CORE::chdir $cwd  or die "$func: $!";
     }
 }
 
