@@ -6,11 +6,11 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 290;
+use Test::Simple tests => 332;
 use File::Path;
 use File::Basename;
 
-use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv);
+use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf mv store store_p);
 use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
 
@@ -822,6 +822,92 @@ if (_test_p('mv')) {
     }
 
 }
+
+
+###
+### store, store_p
+###
+sub _test_store {
+    my ($func, $cmd, $op) = @_;
+    if ("copy files to dir with keeping file path") {
+        before_each();
+        #
+        my $dst = "hello.d/tmp";
+        #
+        ob_start();
+        eval "$func('*.{c,h}', 'hello.d/src/*/*.{c,h}', '$dst')";
+        my $output = ob_get_clean();
+        die $@ if $@;
+        #
+        ok($output eq "\$ $cmd *.{c,h} hello.d/src/*/*.{c,h} $dst\n");
+        ok(-f "hello.c");
+        ok(-f "hello.h");
+        ok(-f "hello.d/src/lib/hello.c");
+        ok(-f "hello.d/src/include/hello.h");
+        ok(-f "hello.d/src/include/hello2.h");
+        ok(-f "$dst/hello.c");
+        ok(-f "$dst/hello.h");
+        ok(-f "$dst/hello.d/src/lib/hello.c");
+        ok(-f "$dst/hello.d/src/include/hello.h");
+        ok(-f "$dst/hello.d/src/include/hello2.h");
+        ok(eval "mtime('$dst/hello.c') $op mtime('hello.c')");
+        ok(eval "mtime('$dst/hello.h') $op mtime('hello.h')");
+        ok(eval "mtime('$dst/hello.d/src/lib/hello.c') $op mtime('hello.d/src/lib/hello.c')");
+        ok(eval "mtime('$dst/hello.d/src/include/hello.h') $op mtime('hello.d/src/include/hello.h')");
+        ok(eval "mtime('$dst/hello.d/src/include/hello2.h') $op mtime('hello.d/src/include/hello2.h')");
+        #
+        after_each();
+    }
+    if ("only an argument specified then report error") {
+        before_each();
+        #
+        ob_start();
+        eval "$func('hello.d/tmp');";
+        my $output = ob_get_clean();
+        ok($@ eq "$func: at least two file or directory names are required.\n");
+        #
+        after_each();
+    }
+    if ("destination directory doesn't exist then report error") {
+        before_each();
+        #
+        ob_start();
+        eval "$func('*.foo', 'foo.d');";
+        my $output = ob_get_clean();
+        ok($@ eq "$func: foo.d: directory not found.\n");
+        #
+        after_each();
+    }
+    if ("destination is not a directory then report error") {
+        before_each();
+        #
+        ob_start();
+        eval "$func('*.foo', 'hello.c');";
+        my $output = ob_get_clean();
+        ok($@ eq "$func: hello.c: not a directory.\n");
+        #
+        after_each();
+    }
+    if ("source file doesn't exist then report error") {
+        before_each();
+        #
+        ob_start();
+        eval "$func('hello.c', '*.foo', 'hello.d/tmp');";
+        my $output = ob_get_clean();
+        ok($@ eq "$func: *.foo: not found.\n");
+        ok(! -e 'hello.d/tmp/hello.c');
+        #
+        after_each();
+    }
+}
+#
+if (_test_p('store')) {
+    _test_store('store', 'store', '>');
+}
+if (_test_p('store_p')) {
+    _test_store('store_p', 'store -p', '==');
+}
+
 
 
 ###
