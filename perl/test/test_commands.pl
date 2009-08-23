@@ -6,7 +6,7 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 350;
+use Test::Simple tests => 351;
 use File::Path;
 use File::Basename;
 use Cwd;
@@ -1016,6 +1016,7 @@ if (_test_p("edit")) {
         my $output = ob_get_clean();
         die $@ if $@;
         #
+        ok($output eq "\$ edit hello.d/src/*/*.c hello.d/src/*/*.h\n");
         my $expected = $HELLO_C;
         $expected =~ s/\$COPYRIGHT\$/MIT License/g;
         ok($expected ne $HELLO_C);
