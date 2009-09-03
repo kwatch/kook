@@ -110,23 +110,40 @@ The following is an example of recipe definitions in cookbook.
 .? [%= BOOKNAME %]: Compile hello.c so that to generate 'hello' command.
 .-------------------- [%= BASENAME %]1.[%= suffix %]
 # product "hello" depends on "hello.o".
-@recipe
-@product("hello")
-@ingreds("hello.o")
+{{*@recipe*}}
+{{*@product("hello")*}}
+{{*@ingreds("hello.o")*}}
 def file_hello(c):
     """generates hello command"""           # recipe description
     system("gcc -g -o hello hello.o")
 
 # product "hello.o" depends on "hello.c" and "hello.h".
-@recipe
-@product("hello.o")
-@ingreds("hello.c", "hello.h")
+{{*@recipe*}}
+{{*@product("hello.o")*}}
+{{*@ingreds("hello.c", "hello.h")*}}
 def file_hello_o(c):
     """compile 'hello.c' and 'hello.h'"""   # recipe description
     system("gcc -g -c hello.c")
 .--------------------
 
-The following is an example of invoking {{,[%= COMMAND %],}} command{{([%= PROJECT %] also provides {{,[%= SHORT_COMMAND %],}} command which is equivarent to {{,[%= COMMAND %],}}, because {{,[%= COMMAND %],}} is too long to type many times :))}}.
+[%= PROJECT %] also provides short-notation. See the following example which is equivarent to the above, or see {{<this section|#topic-short-notation>}} for details.
+
+.? Example of Short-notation
+.--------------------
+# product "hello" depends on "hello.o".
+{{*@recipe("hello", ["hello.o"])*}}
+def file_hello(c):
+    """generates hello command"""           # recipe description
+    system("gcc -g -o hello hello.o")
+
+# product "hello.o" depends on "hello.c" and "hello.h".
+{{*@recipe("hello.o", ["hello.c", "hello.h"])*}}
+def file_hello_o(c):
+    """compile 'hello.c' and 'hello.h'"""   # recipe description
+    system("gcc -g -c hello.c")
+.--------------------
+
+The following is an example of invoking {{,[%= COMMAND %],}} command.
 Command-line option '{{,-l,}}' shows recipes which have description.
 It means that recipes which have description are public recipes.
 Command-line option '{{,-L,}}' shows all recipes.
@@ -151,7 +168,14 @@ $ gcc -g -c hello.c
 $ gcc -g -o hello hello.o
 .====================
 
-[%= PROJECT %] checks both timestamps and contents of files (= products, ingredients).
+[%= PROJECT %] also provides {{,[%= SHORT_COMMAND %],}} command which is equivarent to {{,[%= COMMAND %],}}, because {{,[%= COMMAND %],}} is too long to type many times :)
+See {{<this section|#topic-short-command>}} for details.
+
+
+
+.$$ Timestamp and content              | cookbook-timestamp
+
+[%= PROJECT %] checks both timestamp and content of files (= products, ingredients).
 .* If product is older than ingredients, that recipe will be executed.
 .* If product is newer than or have the same timestamp as ingredients, that recipe will not be executed.
 .* If recipe of ingredient is executed but content of ingredient is not changed, then recipe of product will not be executed and product will be 'touched'.
@@ -1050,59 +1074,213 @@ The points are:
 .* Define specific task recipes which are regarded as sub-command.
 
 
-.? 'hello' script
-.--------------------
+.? 'appsvr' script
+.-------------------- appsvr
 {{*#!/usr/bin/env pykook -X*}}
 
 from kook.utils import CommandOptionError
 
-{{*kook_desc =*}} "example script to show pyKook's CLI framework feature"
+{{*kook_desc =*}} "start/stop web application server"
+
+app = prop('app', 'helloworld')
 
 @recipe
-def hello(c):
-    """prints hello world"""      # description of sub-command
-    echo("Hello world!")
+@spices("-p port: port number", "-d: debug")
+def start(c, *args, **kwargs):
+    """start server process"""
+    p = kwargs.get("p", 8080)
+    d = kwargs.get("d") and "-d" or ""
+    _app = args and args[0] or app
+    system("nohup python dev_appserver.py -p %s %s %s &" % (p, d, _app))
 
 @recipe
-@spices("-u user: username")
-def sweet(c, *args, **kwargs):
-    """prints words of love"""    # description of sub-command
-    user = kwargs.get('u', "you")
-      # or raise CommandOptionError("sweet: required '-u username' option.")
-    echo("I love %s!" % user)
+def stop(c):
+    """stop server process"""
+    system_f("ps auxw | awk '/python dev_appserver.py/ && !/awk/{print $2}' | xargs kill")
 .--------------------
+
+.#.? 'hello' script
+.#.--------------------
+.#{{*#!/usr/bin/env pykook -X*}}
+.#
+.#from kook.utils import CommandOptionError
+.#
+.#{{*kook_desc =*}} "example script to show pyKook's CLI framework feature"
+.#
+.#@recipe
+.#def hello(c):
+.#    """prints hello world"""      # description of sub-command
+.#    echo("Hello world!")
+.#
+.#@recipe
+.#@spices("-u user: username")
+.#def sweet(c, *args, **kwargs):
+.#    """prints words of love"""    # description of sub-command
+.#    user = kwargs.get('u', "you")
+.#      # or raise CommandOptionError("sweet: required '-u username' option.")
+.#    echo("I love %s!" % user)
+.#.--------------------
 
 .? result
 .====================
 ### Don't forget to make script executable!
-sh> chmod a+w hello
+sh> chmod a+w appsvr
 
 ### Show help
-sh> ./hello {{*-h*}}
-hello - example script to show pyKook's CLI framework
+sh> ./appsvr {{*-h*}}
+appsvr - start/stop web application server
 
 sub-commands:
-  hello           : prints hello world
-  sweet           : prints words of love
+  start           : start server process
+  stop            : stop server process
 
-(Type 'hello -h subcommand' to show options of sub-commands.)
+(Type 'appsvr -h subcommand' to show options of sub-commands.)
 
 ### Show help for each sub-command
-sh> ./hello {{*-h sweet*}}
-hello sweet - prints words of love
-  -u user              : username
+sh> ./appsvr {{*-h start*}}
+appsvr start - start server process
+  -p port              : port number
+  -d                   : debug
 
 ### Invoke sub-command
-sh> ./hello hello
-Hello world!
-sh> ./hello sweet
-I love you!
-sh> ./hello sweet -u Haruhi
-I love Haruhi!
+sh> ./appsvr {{*start -p 4223*}}
+appending output to nohup.out
+sh> ./appsvr {{*stop*}}
 .====================
 
 
-.$$ Debug mode				| topc-debug-mode
+.#.? 'mygit' script
+.#.-------------------- mygit
+.#{{*#!/usr/bin/env pykook -X*}}
+.#
+.#from kook.utils import CommandOptionError
+.#
+.#{{*kook_desc =*}} "example script to show pyKook's CLI framework feature"
+.#
+.#@recipe
+.#def st(c):
+.#    """invokes git status"""      # description of sub-command
+.#    system_f("git status | egrep -v '^# *('")
+.#
+.#@recipe
+.#def revert(c, *args):
+.#    """invokes git checkout"""    # description of sub-command
+.#    system("git checkout " + ' '.join(args))
+.#
+.#@recipe
+.#@spices("-m message: commit message for 'git commit'")
+.#def ci(c, *args, **kwargs):
+.#    """invokes git commit"""      # description of sub-command
+.#    cmd = "git commit "
+.#    if 'm' in kwargs: cmd += "-m %s " % repr(kwargs['m'])
+.#    cmd += args and ' '.join(args) or '-a'
+.#    system(cmd)
+.#.--------------------
+.#
+.#.? result
+.#.====================
+.#### Don't forget to make script executable!
+.#sh> chmod a+w mygit
+.#
+.#### Show help
+.#sh> ./mygit {{*-h*}}
+.#mygit - example script to show pyKook's CLI framework feature
+.#
+.#sub-commands:
+.#  st              : invokes git status
+.#  revert          : invokes git checkout
+.#  ci              : invokes git commit
+.#
+.#(Type 'mygit -h subcommand' to show options of sub-commands.)
+.#
+.#### Show help for each sub-command
+.#sh> ./mygit {{*-h ci*}}
+.#mygit ci - invokes git commit
+.#  -m message           : commit message for 'git commit'
+.#
+.#### Invoke sub-command
+.#sh> ./mygit {{*ci -m "tweak files"*}}
+.#[master (root-commit) ff4a6f5] Add all files
+.# 3 files changed, 20 insertions(+), 0 deletions(-)
+.#sh> vi README.txt
+.#sh> ./mygit {{*st*}}
+.## On branch master
+.## Changed but not updated:
+.##
+.##       modified:   README.txt
+.##
+.#no changes added to commit (use "git add" and/or "git commit -a")
+.#sh> ./mygit {{*revert README.txt*}}
+.#sh> ./mygit {{*st*}}
+.## On branch master
+.#nothing to commit (working directory clean)
+.#.====================
+
+
+.$$ Short command                      | topic-short-command
+
+[%= PROJECT %] provides {{,kk,}} command which is the same as {{,[%= COMMAND %],}} command, because {{,[%= COMMAND %],}} is too long to type many times :)
+
+.====================
+sh> kk all    # this is more confortable to type than [%= COMMAND %] :)
+.====================
+
+In fact, {{,kk,}} is a shell script to invoke {{,pykook,}} or {{,plkook,}} command according to filename of cookbook.
+For example, {{,pykook,}} will be invoked by {{,kk,}} when {{,Kookbook.py,}} exists, or {{,plkook,}} will be invoked when {{,Kookbook.pl,}} exists.
+Therefore {{*{{,kk,}} script requires {{,[%= BOOKNAME %],}} to invoke {{,[%= COMMAND %],}} command*}}.
+
+.====================
+### you can't invoke kk when [%= BOOKNAME %] doesn't exist
+sh> ls [%= BOOKNAME %]
+ls: [%= BOOKNAME %]: No such file or directory
+sh> kk -h
+kk: No kookbook found.
+.====================
+
+If you set {{,$KK_CLIMB,}} environment variable to {{,1,}}, {{,kk,}} script searches kookbook in the parent directory.
+
+.====================
+sh> ls -F
+[%= BOOKNAME %]    src/    test/
+sh> cd src/foo/bar/
+sh> kk clean                       # ERROR
+kk: No kookbook found.
+sh> {{*export KK_CLIMB=1*}}
+sh> kk clean                       # OK
+### * clean (recipe=clean)
+$ rm **/*.pyc
+.====================
+
+
+% if PYTHON     #####
+
+.$$ Short notation                             | topic-short-notation
+
+pyKook provides short notation of recipe.
+
+.--------------------
+### normal notation                   ### short notation
+@recipe                               {{*@recipe('*.o', ['$(1).c', '$(1).h'])*}}
+@product('*.o')                       def file_o(c):
+@ingreds('$(1).c', '$(1).h')             system(c%"gcc -o $(ingred)")
+def file_o(c):
+   system(c%"gcc -c $(ingred)")
+
+@recipe                               {{*@recipe('build', ['hello.o'])*}}
+@ingreds('hello.o')                   def {{*task_*}}build(c):
+def build(c):                            system(c%"gcc -o hello *.o")
+   system(c%"gcc -o hello *.o")
+.--------------------
+
+{{,@recipe(),}} decorator can take two arguments.
+.* 1st argument represents product. If you pass {{,None,}}, it will be ignored.
+.* 2nd argument represents ingredients and should be list or tuple of string.
+   And 2nd argument is optional.
+
+% end    ##### if PYTHON
+
+
+.$$ Debug mode				| topic-debug-mode
 
 Command-line option {{,-D,}} or {{,-D2,}} turn on debug mode and debug message will be displayed.
 {{,-D2,}} is higher debug level than {{,-D,}}.
@@ -1122,16 +1300,6 @@ $ gcc -g -c hello.c
 ### * hello (recipe=file_hello)
 $ gcc -g -o hello hello.o
 *** debug: + end hello (content changed)
-.====================
-
-
-
-.$$ Short command			| topic-short-command
-
-[%= PROJECT %] provides {{,[%= SHORT_COMMAND %],}} command which is the same as {{,[%= COMMAND %],}} command, because {{,[%= COMMAND %],}} is too long to type many times :)
-
-.====================
-sh> [%= SHORT_COMMAND %] all    # this is more confortable to type than [%= COMMAND %] :)
 .====================
 
 
