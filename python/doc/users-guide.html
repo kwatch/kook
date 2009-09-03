@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <meta name="generator" content="HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 13), see www.w3.org">
+  <meta name="generator" content="HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 15.3), see www.w3.org">
   <meta http-equiv="Content-Type" content="text/html">
 
   <title>pyKook Users' Guide</title>
@@ -59,6 +59,8 @@
           <ul>
             <li><a href="#cookbook-recipes">Recipes</a></li>
 
+            <li><a href="#cookbook-timestamp">Timestamp and content</a></li>
+
             <li><a href="#cookbook-prod">Product and Ingredients</a></li>
 
             <li><a href="#cook-grecipe">Specific recipe and generic recipe</a></li>
@@ -83,9 +85,11 @@
           <ul>
             <li><a href="#topic-framework">Command-line Scripting Framework</a></li>
 
-            <li><a href="#topc-debug-mode">Debug mode</a></li>
-
             <li><a href="#topic-short-command">Short command</a></li>
+
+            <li><a href="#topic-short-notation">Short notation</a></li>
+
+            <li><a href="#topic-debug-mode">Debug mode</a></li>
 
             <li><a href="#topic-forcedly">Invoke Recipes Forcedly</a></li>
 
@@ -145,23 +149,42 @@
       </div>
       <pre class="program">
 # product "hello" depends on "hello.o".
-@recipe
-@product("hello")
-@ingreds("hello.o")
+<strong>@recipe</strong>
+<strong>@product("hello")</strong>
+<strong>@ingreds("hello.o")</strong>
 def file_hello(c):
     """generates hello command"""           # recipe description
     system("gcc -g -o hello hello.o")
 
 # product "hello.o" depends on "hello.c" and "hello.h".
-@recipe
-@product("hello.o")
-@ingreds("hello.c", "hello.h")
+<strong>@recipe</strong>
+<strong>@product("hello.o")</strong>
+<strong>@ingreds("hello.c", "hello.h")</strong>
 def file_hello_o(c):
     """compile 'hello.c' and 'hello.h'"""   # recipe description
     system("gcc -g -c hello.c")
 </pre>
 
-      <p>The following is an example of invoking <code>pykook</code> command<sup>(<a href="#fnref:1" name="fnlink:1" id="fnlink:1">*1</a>)</sup>. Command-line option '<code>-l</code>' shows recipes which have description. It means that recipes which have description are public recipes. Command-line option '<code>-L</code>' shows all recipes.</p><a name="Kookbook1.recipe.result" id="Kookbook1.recipe.result"></a>
+      <p>pyKook also provides short-notation. See the following example which is equivarent to the above, or see <a href="#topic-short-notation">this section</a> for details.</p>
+
+      <div class="program_caption">
+        Example of Short-notation
+      </div>
+      <pre class="program">
+# product "hello" depends on "hello.o".
+<strong>@recipe("hello", ["hello.o"])</strong>
+def file_hello(c):
+    """generates hello command"""           # recipe description
+    system("gcc -g -o hello hello.o")
+
+# product "hello.o" depends on "hello.c" and "hello.h".
+<strong>@recipe("hello.o", ["hello.c", "hello.h"])</strong>
+def file_hello_o(c):
+    """compile 'hello.c' and 'hello.h'"""   # recipe description
+    system("gcc -g -c hello.c")
+</pre>
+
+      <p>The following is an example of invoking <code>pykook</code> command. Command-line option '<code>-l</code>' shows recipes which have description. It means that recipes which have description are public recipes. Command-line option '<code>-L</code>' shows all recipes.</p><a name="Kookbook1.recipe.result" id="Kookbook1.recipe.result"></a>
 
       <div class="terminal_caption">
         command-line example
@@ -185,7 +208,12 @@ $ gcc -g -c hello.c
 $ gcc -g -o hello hello.o
 </pre>
 
-      <p>pyKook checks both timestamps and contents of files (= products, ingredients).</p>
+      <p>pyKook also provides <code>kk</code> command which is equivarent to <code>pykook</code>, because <code>pykook</code> is too long to type many times :) See <a href="#topic-short-command">this section</a> for details.</p><br>
+      <a name="cookbook-timestamp" id="cookbook-timestamp"></a>
+
+      <h3 class="section2">Timestamp and content</h3>
+
+      <p>pyKook checks both timestamp and content of files (= products, ingredients).</p>
 
       <ul type="disc">
         <li>If product is older than ingredients, that recipe will be executed.</li>
@@ -218,15 +246,7 @@ sh&gt; pykook <strong>-F</strong> hello            # 4th time (forcedly)
 $ gcc -g -c hello.c
 ### * hello (recipe=file_hello)
 $ gcc -g -o hello hello.o
-</pre>
-
-      <div class="footnote">
-        <dl compact>
-          <dt>(<a name="fnref:1" href="#fnlink:1" id="fnref:1">*1</a>)</dt>
-
-          <dd>pyKook also provides <code>kk</code> command which is equivarent to <code>pykook</code>, because <code>pykook</code> is too long to type many times :)</dd>
-        </dl>
-      </div><br>
+</pre><br>
       <a name="cookbook-prod" id="cookbook-prod"></a>
 
       <h3 class="section2">Product and Ingredients</h3>
@@ -992,30 +1012,33 @@ rests: ('AAA', 'BBB')
         <li>Add 'kook_desc = "..script description.."'.</li>
 
         <li>Define specific task recipes which are regarded as sub-command.</li>
-      </ul>
+      </ul><a name="appsvr" id="appsvr"></a>
 
       <div class="program_caption">
-        'hello' script
+        'appsvr' script
       </div>
       <pre class="program">
 <strong>#!/usr/bin/env pykook -X</strong>
 
 from kook.utils import CommandOptionError
 
-<strong>kook_desc =</strong> "example script to show pyKook's CLI framework feature"
+<strong>kook_desc =</strong> "start/stop web application server"
+
+app = prop('app', 'helloworld')
 
 @recipe
-def hello(c):
-    """prints hello world"""      # description of sub-command
-    echo("Hello world!")
+@spices("-p port: port number", "-d: debug")
+def start(c, *args, **kwargs):
+    """start server process"""
+    p = kwargs.get("p", 8080)
+    d = kwargs.get("d") and "-d" or ""
+    _app = args and args[0] or app
+    system("nohup python dev_appserver.py -p %s %s %s &amp;" % (p, d, _app))
 
 @recipe
-@spices("-u user: username")
-def sweet(c, *args, **kwargs):
-    """prints words of love"""    # description of sub-command
-    user = kwargs.get('u', "you")
-      # or raise CommandOptionError("sweet: required '-u username' option.")
-    echo("I love %s!" % user)
+def stop(c):
+    """stop server process"""
+    system_f("ps auxw | awk '/python dev_appserver.py/ &amp;&amp; !/awk/{print $2}' | xargs kill")
 </pre>
 
       <div class="terminal_caption">
@@ -1023,32 +1046,86 @@ def sweet(c, *args, **kwargs):
       </div>
       <pre class="terminal">
 ### Don't forget to make script executable!
-sh&gt; chmod a+w hello
+sh&gt; chmod a+w appsvr
 
 ### Show help
-sh&gt; ./hello <strong>-h</strong>
-hello - example script to show pyKook's CLI framework
+sh&gt; ./appsvr <strong>-h</strong>
+appsvr - start/stop web application server
 
 sub-commands:
-  hello           : prints hello world
-  sweet           : prints words of love
+  start           : start server process
+  stop            : stop server process
 
-(Type 'hello -h subcommand' to show options of sub-commands.)
+(Type 'appsvr -h subcommand' to show options of sub-commands.)
 
 ### Show help for each sub-command
-sh&gt; ./hello <strong>-h sweet</strong>
-hello sweet - prints words of love
-  -u user              : username
+sh&gt; ./appsvr <strong>-h start</strong>
+appsvr start - start server process
+  -p port              : port number
+  -d                   : debug
 
 ### Invoke sub-command
-sh&gt; ./hello hello
-Hello world!
-sh&gt; ./hello sweet
-I love you!
-sh&gt; ./hello sweet -u Haruhi
-I love Haruhi!
+sh&gt; ./appsvr <strong>start -p 4223</strong>
+appending output to nohup.out
+sh&gt; ./appsvr <strong>stop</strong>
 </pre><br>
-      <a name="topc-debug-mode" id="topc-debug-mode"></a>
+      <a name="topic-short-command" id="topic-short-command"></a>
+
+      <h3 class="section2">Short command</h3>
+
+      <p>pyKook provides <code>kk</code> command which is the same as <code>pykook</code> command, because <code>pykook</code> is too long to type many times :)</p>
+      <pre class="terminal">
+sh&gt; kk all    # this is more confortable to type than pykook :)
+</pre>
+
+      <p>In fact, <code>kk</code> is a shell script to invoke <code>pykook</code> or <code>plkook</code> command according to filename of cookbook. For example, <code>pykook</code> will be invoked by <code>kk</code> when <code>Kookbook.py</code> exists, or <code>plkook</code> will be invoked when <code>Kookbook.pl</code> exists. Therefore <strong><code>kk</code> script requires <code>Kookbook.py</code> to invoke <code>pykook</code> command</strong>.</p>
+      <pre class="terminal">
+### you can't invoke kk when Kookbook.py doesn't exist
+sh&gt; ls Kookbook.py
+ls: Kookbook.py: No such file or directory
+sh&gt; kk -h
+kk: No kookbook found.
+</pre>
+
+      <p>If you set <code>$KK_CLIMB</code> environment variable to <code>1</code>, <code>kk</code> script searches kookbook in the parent directory.</p>
+      <pre class="terminal">
+sh&gt; ls -F
+Kookbook.py    src/    test/
+sh&gt; cd src/foo/bar/
+sh&gt; kk clean                       # ERROR
+kk: No kookbook found.
+sh&gt; <strong>export KK_CLIMB=1</strong>
+sh&gt; kk clean                       # OK
+### * clean (recipe=clean)
+$ rm **/*.pyc
+</pre><br>
+      <a name="topic-short-notation" id="topic-short-notation"></a>
+
+      <h3 class="section2">Short notation</h3>
+
+      <p>pyKook provides short notation of recipe.</p>
+      <pre class="program">
+### normal notation                   ### short notation
+@recipe                               <strong>@recipe('*.o', ['$(1).c', '$(1).h'])</strong>
+@product('*.o')                       def file_o(c):
+@ingreds('$(1).c', '$(1).h')             system(c%"gcc -o $(ingred)")
+def file_o(c):
+   system(c%"gcc -c $(ingred)")
+
+@recipe                               <strong>@recipe('build', ['hello.o'])</strong>
+@ingreds('hello.o')                   def <strong>task_</strong>build(c):
+def build(c):                            system(c%"gcc -o hello *.o")
+   system(c%"gcc -o hello *.o")
+</pre>
+
+      <p><code>@recipe()</code> decorator can take two arguments.</p>
+
+      <ul type="disc">
+        <li>1st argument represents product. If you pass <code>None</code>, it will be ignored.</li>
+
+        <li>2nd argument represents ingredients and should be list or tuple of string. And 2nd argument is optional.</li>
+      </ul><br>
+      <a name="topic-debug-mode" id="topic-debug-mode"></a>
 
       <h3 class="section2">Debug mode</h3>
 
@@ -1071,14 +1148,6 @@ $ gcc -g -c hello.c
 ### * hello (recipe=file_hello)
 $ gcc -g -o hello hello.o
 *** debug: + end hello (content changed)
-</pre><br>
-      <a name="topic-short-command" id="topic-short-command"></a>
-
-      <h3 class="section2">Short command</h3>
-
-      <p>pyKook provides <code>kk</code> command which is the same as <code>pykook</code> command, because <code>pykook</code> is too long to type many times :)</p>
-      <pre class="terminal">
-sh&gt; kk all    # this is more confortable to type than pykook :)
 </pre><br>
       <a name="topic-forcedly" id="topic-forcedly"></a>
 
