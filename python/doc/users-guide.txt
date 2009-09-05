@@ -1122,7 +1122,11 @@ sh> kk -h
 kk: No kookbook found.
 .====================
 
-If you set {{,$KK_CLIMB,}} environment variable to {{,1,}}, {{,kk,}} script searches kookbook in the parent directory.
+
+
+.$$ Search kookbook in parent directory		| topic-recursive
+
+If you set {{,$KK_CLIMB,}} environment variable to {{,1,}}, {{,kk,}} script searches parent directory recursively for kookbook.
 
 .====================
 sh> ls -F
@@ -1135,6 +1139,22 @@ sh> kk clean                       # OK
 ### * clean (recipe=clean)
 $ rm **/*.pyc
 .====================
+
+Or if you specify '{{,-R,}}' command-line option to pykook, it searches parent directory recursively for kookbook.
+
+.====================
+sh> ls -F
+Kookbook.py    src/    test/
+sh> cd src/foo/bar/
+sh> pykook clean                   # ERROR
+pykook: Kookbook.py: not found.
+sh> pykook {{*-R*}} clean
+### * clean (recipe=clean)
+$ rm **/*.pyc
+.====================
+
+{{!NOTICE!}} : In both cases, current directory will be changed to parent directory in which Kookbook.py exists.
+
 
 
 
@@ -1160,6 +1180,7 @@ def build(c):                            system(c%"gcc -o hello *.o")
 .* 1st argument represents product. If you pass {{,None,}}, it will be ignored.
 .* 2nd argument represents ingredients and should be list or tuple of string.
    And 2nd argument is optional.
+
 
 
 
