@@ -33,6 +33,19 @@ releases:
            ### * clean (recipe=clean)
            $ rm **/*.pyc
 
+      - New command-line option '-R' (recursively) supported.
+        If you specify '-R', pykook command searches Kookbook.py
+	in parent directory recursively.
+        ex::
+           sh> ls -F
+           Kookbook.py    src/    test/
+           sh> cd src/foo/bar/
+           sh> pykook clean                # ERROR
+           pykook: Kookbook.py: not found.
+           sh> pykook -R clean             # OK
+           ### * clean (recipe=clean)
+           $ rm **/*.pyc
+
 
 
   - release:  0.0.3
