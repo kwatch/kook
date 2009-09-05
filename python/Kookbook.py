@@ -38,6 +38,7 @@ def task_package(c):
     #rm_f('MANIFEST')
     system('python setup.py sdist')
     #system('python setup.py sdist --keep-temp')
+    #
     with chdir('dist') as d:
         #pkgs = kook.utils.glob2(c%"$(package)-$(release).tar.gz");
         #pkg = pkgs[0]
@@ -135,8 +136,9 @@ def file_users_guide_html(c):
     #system(c%"kwaser -t html-css    $(ingred) | tidy -q -i -wrap 9999 > $(product)")
     system(c%"kwaser -t html-css    $(ingred) > $(product).tmp")
     system_f(c%"tidy -q -i -wrap 9999 $(product).tmp > $(product)")
-    rm(c%"$(product).tmp")
-    mv(c.byprod, "doc")
+    rm(c.product + '.tmp')
+    #mv(c.byprod, "doc")
+    rm(c.byprod)
 
 @recipe('doc/users-guide.txt', ['../doc/users-guide.eruby'])
 #@product('doc/users-guide.txt')
