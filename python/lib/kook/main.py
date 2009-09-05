@@ -68,6 +68,7 @@ class MainCommand(MainObject):
         "-n:      not execute (dry run)",
         "-l:      list public recipes",
         "-L:      list all recipes",
+        "-R:      search parent directory recursively for Kookbook",
         "--name=value: property name and value",
         "--name:       property name and value(=True)",
     )
@@ -93,18 +94,30 @@ class MainCommand(MainObject):
             if v is None:
                 raise CommandOptionError('-D%s: integer is required.' % opts['D'])
             config.debug_level = v
-        if opts.get('f'):
-            arg = opts['f']
-            if not os.path.exists(arg): raise CommandOptionError("-f %s: not found." % arg)
-            if not os.path.isfile(arg): raise CommandOptionError("-f %s: not a file." % arg)
+        ## find cookbook
+        bookname = opts.get('f', config.cookbook_filename)
+        bookpath = bookname
+        if opts.get('R'):
+            abspath = os.path.abspath
+            while not os.path.exists(bookpath):
+                tmp = os.path.join("..", bookpath)
+                if abspath(tmp) == abspath(bookpath): break
+                bookpath = tmp
+        if not os.path.exists(bookpath):
+            msg = opts.get('f', None) and '-f %s: not found.' or '%s: not found.'
+            raise CommandOptionError(msg % bookname)
+        if not os.path.isfile(bookpath):
+            msg = opts.get('f', None) and '-f %s: not a file.' or '%s: not a file.'
+            raise CommandOptionError(msg % bookname)
+        ## change directory if $PYKOOK_COLIMB is set
+        if bookname != bookpath:
+            path = bookpath[:-len(bookname)]
+            os.chdir(path)
         ## property file
         props = self._load_property_file()
         if longopts:
             props.update(longopts)
         ## create cookbook
-        bookname = opts.get('f', config.cookbook_filename)
-        if not os.path.isfile(bookname):
-            raise CommandOptionError("%s: not found." % bookname)
         cookbook = Cookbook.new(bookname, props)
         ## list recipes
         if opts.get('l') or opts.get('L'):

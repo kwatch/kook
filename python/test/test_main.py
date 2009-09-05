@@ -129,6 +129,7 @@ pykook - build tool like Make, Rake, Ant, or Cook
   -n                  : not execute (dry run)
   -l                  : list public recipes
   -L                  : list all recipes
+  -R                  : search parent directory recursively for Kookbook
   --name=value        : property name and value
   --name              : property name and value(=True)
 """[1:]
@@ -519,6 +520,39 @@ File recipes:
         expected = re.sub(r'\n\(Tips:.*\n', '\n', expected)
         ok(soutput, '==', expected)
         ok(eoutput, '==', "")
+
+    def ktest_search_recursively(self):
+        curr_dir = os.getcwd()
+        tmp_root = str(random.random())
+        tmp_dir  = os.path.join(tmp_root, "foo", "bar")
+        book_content = r"""
+@recipe
+def cwd(c):
+    import os
+    echo("cwd=" + os.getcwd())
+"""
+        try:
+            os.makedirs(tmp_dir)
+            bookpath = os.path.join(tmp_root, "Kookbook.py")
+            write_file(bookpath, book_content)
+            os.chdir(tmp_dir)
+            #
+            soutput, eoutput, status = _main_command("pykook cwd")
+            ok(soutput, '==', "")
+            ok(eoutput, '==', "pykook: Kookbook.py: not found.\n")
+            #
+            expected = r'''
+### * cwd (recipe=cwd)
+$ echo cwd=/Users/kwatch/src/kook2/python/%s
+cwd=/Users/kwatch/src/kook2/python/%s
+'''[1:] % (tmp_root, tmp_root)
+            soutput, eoutput, status = _main_command("pykook -R cwd")
+            ok(soutput, '==', expected)
+            ok(eoutput, '==', "")
+            #
+        finally:
+            os.chdir(curr_dir)
+            shutil.rmtree(tmp_root)
 
 
 SCRIPT = r"""
