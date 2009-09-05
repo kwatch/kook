@@ -1237,7 +1237,11 @@ sh> kk -h
 kk: No kookbook found.
 .====================
 
-If you set {{,$KK_CLIMB,}} environment variable to {{,1,}}, {{,kk,}} script searches kookbook in the parent directory.
+
+
+.$$ Search kookbook in parent directory		| topic-recursive
+
+If you set {{,$KK_CLIMB,}} environment variable to {{,1,}}, {{,kk,}} script searches parent directory recursively for kookbook.
 
 .====================
 sh> ls -F
@@ -1250,6 +1254,22 @@ sh> kk clean                       # OK
 ### * clean (recipe=clean)
 $ rm **/*.pyc
 .====================
+
+Or if you specify '{{,-R,}}' command-line option to [%= COMMAND %], it searches parent directory recursively for kookbook.
+
+.====================
+sh> ls -F
+[%= BOOKNAME %]    src/    test/
+sh> cd src/foo/bar/
+sh> [%= COMMAND %] clean                   # ERROR
+[%= COMMAND %]: [%= BOOKNAME %]: not found.
+sh> [%= COMMAND %] {{*-R*}} clean
+### * clean (recipe=clean)
+$ rm **/*.pyc
+.====================
+
+{{!NOTICE!}} : In both cases, current directory will be changed to parent directory in which [%= BOOKNAME %] exists.
+
 
 
 % if PYTHON     #####
@@ -1278,6 +1298,7 @@ def build(c):                            system(c%"gcc -o hello *.o")
    And 2nd argument is optional.
 
 % end    ##### if PYTHON
+
 
 
 .$$ Debug mode				| topic-debug-mode
