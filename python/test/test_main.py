@@ -6,7 +6,7 @@
 
 import oktest
 from oktest import *
-import sys, os, re
+import sys, os, re, shutil, random
 from glob import glob
 try:
     from StringIO import StringIO      # 2.x
@@ -76,21 +76,19 @@ char *command = "hello";
 
 class KookMainCommandTest(object):
 
-
     def before_each(self):
+        self._currdir = os.getcwd()
+        self._tmpdir  = str(random.random())
+        os.mkdir(self._tmpdir)
+        os.chdir(self._tmpdir)
         #_setup_stdio()
         write_file('hello.c', HELLO_C)
         write_file('hello.h', HELLO_H)
 
     def after_each(self):
-        for x in glob('Kookbook*.py'):
-            os.unlink(x)
-        for x in glob('hello*'):
-            os.unlink(x)
         #_teardown_stdio()
-        if hasattr(self, 'byprods'):
-            for x in self.byprods:
-                os.unlink(x)
+        os.chdir(self._currdir)
+        shutil.rmtree(self._tmpdir)
 
 
     def test_init(self):
@@ -295,7 +293,6 @@ def file_html(c):
         _write(input)
         write_file("index.html", "xxx")
         write_file("index.txt", "foobar")
-        self.byprods = ('index.txt', 'index.html', )
         ## recipe should not be invoked because product is newer
         soutput, eoutput, status = _main_command("pykook index.html")
         ok(soutput, '==', "")
@@ -330,7 +327,6 @@ def file_html(c):
 """[1:]
         _write(input)
         write_file("index.txt", "xxx")
-        self.byprods = ['index.txt']
         ## products should not be created!
         try:
             soutput, eoutput, status = _main_command("pykook -n index.xhtml")
@@ -442,7 +438,6 @@ CC = 'tcc'
 """[1:]
         filename = "Properties.py"
         write_file(filename, input)
-        self.byprods = [filename]
         ## Properties.py overrides property value
         expected = r"""
 ### * echo (recipe=task_echo)
