@@ -125,7 +125,7 @@ pykook - build tool like Make, Rake, Ant, or Cook
   -D[N]               : debug level (default: 1)
   -q                  : quiet
   -f file             : kookbook
-  -F                  : forcedly
+  -F                  : run forcedly (ignore timestamps)
   -n                  : not execute (dry run)
   -l                  : list public recipes
   -L                  : list all recipes
