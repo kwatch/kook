@@ -11,13 +11,14 @@ package Kook::Sandbox;
 use strict;
 use Data::Dumper;
 
-use Kook ('recipe');
+use Kook::Recipe;
 use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf rmdir mv store store_p cd edit);
 use Kook::Utils ('repr');
 
-our @_recipes         = ();   # out
-our %_properties      = ();   # in
-our @_property_tuples = ();   # out
+our @_recipes         = ();     # out
+our %_properties      = ();     # in
+our @_property_tuples = ();     # out
+our $kook_default     = undef;  # out
 
 sub recipe {
     my $recipe_obj = Kook::Recipe->new(@_);
@@ -45,6 +46,7 @@ sub _eval {
     @_recipes         = ();
     %_properties      = $_context ? %$_context : ();
     @_property_tuples = ();
+    $kook_default     = undef;
     eval "# line 1 \"$_filename\"\n".$_script;
 }
 

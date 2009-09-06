@@ -4,7 +4,7 @@ my $release   = prop('release', "0.0.1");
 my $copyright = "copyright(c) 2009 kuwata-lab.com all rights reserved.";
 my $license   = prop('license', "MIT License");
 
-$Kook::default_product = "test";
+$kook_default = "test";
 
 recipe "test", {
     method  => sub {

@@ -30,6 +30,7 @@ sub new {
         _property_names_dict  => undef,
         property_tuples       => [],
         context               => undef,
+        default               => undef,
     };
     $this = bless $this, $class;
     $this->load_file($bookname, $properties) if $bookname;
@@ -64,7 +65,8 @@ sub all_properties {
 sub default_product {
     my ($this) = @_;
     #return $this->{context}->{kook_default_product};
-    return $Kook::default_product;
+    #return $Kook::default_product;
+    return $this->{default};
 }
 
 sub load_file {
@@ -88,6 +90,7 @@ sub load {
     Kook::Sandbox::_eval($content, $bookname, $context);
     ! $@  or die("[ERROR] kookbook has error:\n$@\n");
     $this->{property_tuples} = \@Kook::Sandbox::_property_tuples;
+    $this->{default} = $Kook::Sandbox::kook_default if $Kook::Sandbox::kook_default;
     ## masks
     my $TASK     = 0x0;
     my $FILE     = 0x1;

@@ -132,7 +132,7 @@ sub invoke {
             my $command = $this->{command};
             print STDERR "*** $command: target is not given.\n";
             print STDERR "*** '$command -l' or '$command -L' shows recipes and properties.\n";
-            print STDERR "*** (or set '$Kook::default_product' in your kookbook.)\n";
+            print STDERR "*** (or set '\$kook_default' in your kookbook.)\n";
             return 1;
         }
         $rests = [$default_product];

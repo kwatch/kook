@@ -9,10 +9,10 @@
 use strict;
 use Data::Dumper;
 use Cwd;
-use Test::Simple tests => 42;
+use Test::Simple tests => 46;
 
 use Kook::Main;
-use Kook::Utils ('write_file');
+use Kook::Utils ('read_file', 'write_file');
 
 use IPC::Open3;
 use Symbol;
@@ -613,9 +613,45 @@ after_each();
 
 
 ###
+### error: no product specified
+###
+before_each();
+if ("no product specified") {
+    my ($output, $errmsg) = _system 'plkook';
+    my $expected = <<'END';
+*** plkook: target is not given.
+*** 'plkook -l' or 'plkook -L' shows recipes and properties.
+*** (or set '$kook_default' in your kookbook.)
+END
+    ok($output eq "");
+    ok($errmsg eq $expected);
+}
+after_each();
+
+
+###
+### $kook_default
+###
+before_each();
+if ('$kook_default is specified') {
+    my $s = read_file('Kookbook.pl');
+    $s = "\$kook_default = 'test1';\n" . $s;
+    write_file('Kookbook.pl', $s);
+    my ($output, $errmsg) = _system 'plkook';
+    my $expected = <<'END';
+### * test1 (recipe=test1)
+opts={}
+rest=[]
+END
+    ok($output eq $expected);
+    ok($errmsg eq "");
+}
+after_each();
+
+
+###
 ### after_all
 ###
 chdir "..";
 unlink glob("_sandbox/*");
 rmdir "_sandbox"  or die;
-
