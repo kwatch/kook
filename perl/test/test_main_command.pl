@@ -66,6 +66,8 @@ write_file("hello2.c", $HELLO2_C);
 my $KOOKBOOK = <<'END';
 my $CC = prop('CC', 'gcc');
 
+$kook_default = 'build';
+
 recipe "build", {
     desc => "build all files",
     ingreds => ["hello"],
@@ -278,7 +280,7 @@ Properties:
   prop2                : ["a","b","c"]
   prop3                : {"y" => 20,"x" => 10}
 
-Task recipes
+Task recipes (default=build):
   build                : build all files
   test1                : test of spices
     -v                     verbose
@@ -286,7 +288,7 @@ Task recipes
     -i[N]                  indent
     --name=str             name string
 
-File recipes
+File recipes:
   hello                : build hello command
   *.o                  : compile *.c
 
@@ -314,7 +316,7 @@ Properties:
   prop3                : {"y" => 20,"x" => 10}
   prop4                : "hoge"
 
-Task recipes
+Task recipes (default=build):
   build                : build all files
   test1                : test of spices
     -v                     verbose
@@ -323,7 +325,7 @@ Task recipes
     --name=str             name string
   show-props           : 
 
-File recipes
+File recipes:
   hello                : build hello command
   hello.h              : 
   *.o                  : compile *.c
@@ -605,6 +607,29 @@ after_each();
 
 
 ###
+### $kook_default
+###
+before_each();
+if ('$kook_default is specified') {
+    my ($output, $errmsg) = _system('plkook');
+    my $expected = <<'END';
+### **** hello.h (recipe=hello.h)
+$ cp hello.h.txt hello.h
+### *** hello1.o (recipe=*.o)
+$ gcc -c hello1.c
+### *** hello2.o (recipe=*.o)
+$ gcc -c hello2.c
+### ** hello (recipe=hello)
+$ gcc -o hello hello1.o hello2.o
+### * build (recipe=build)
+END
+    ok($output eq $expected);
+    ok($errmsg eq "");
+}
+after_each();
+
+
+###
 ### properties
 ###
 before_each();
@@ -689,6 +714,9 @@ after_each();
 ###
 before_each();
 if ("no product specified") {
+    my $s = read_file('Kookbook.pl');
+    $s =~ s/^\$kook_default.*$//m;
+    write_file('Kookbook.pl', $s);
     my ($output, $errmsg) = _system('plkook');
     my $expected = <<'END';
 *** plkook: target is not given.
@@ -697,26 +725,6 @@ if ("no product specified") {
 END
     ok($output eq "");
     ok($errmsg eq $expected);
-}
-after_each();
-
-
-###
-### $kook_default
-###
-before_each();
-if ('$kook_default is specified') {
-    my $s = read_file('Kookbook.pl');
-    $s = "\$kook_default = 'test1';\n" . $s;
-    write_file('Kookbook.pl', $s);
-    my ($output, $errmsg) = _system('plkook');
-    my $expected = <<'END';
-### * test1 (recipe=test1)
-opts={}
-rest=[]
-END
-    ok($output eq $expected);
-    ok($errmsg eq "");
 }
 after_each();
 

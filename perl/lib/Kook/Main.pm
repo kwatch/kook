@@ -149,6 +149,15 @@ sub _list_recipes {
     my $show_all = $opts->{L};
     my $format   = $Kook::Config::RECIPE_LIST_FORMAT;  # "  %-20s: %s\n";
     my $format2  = $Kook::Config::RECIPE_OPTS_FORMAT;  # "    %-20s  %s\n";
+    ## find default recipe
+    my $default_recipe;
+    my $default = $cookbook->default_product();
+    if ($default) {
+        $default_recipe = $cookbook->find_recipe($default);
+        if (! $default_recipe) {
+            print STDOUT "*** kook_default = '$default': recipe not found.\n";
+        }
+    }
     ## properties
     print "Properties:\n";
     for (@{$cookbook->{property_tuples}}) {
@@ -160,19 +169,17 @@ sub _list_recipes {
     ## task and file recipes
     my @task_recipes = ( @{$cookbook->{specific_task_recipes}}, @{$cookbook->{generic_task_recipes}} );
     my @file_recipes = ( @{$cookbook->{specific_file_recipes}}, @{$cookbook->{generic_file_recipes}} );
-    $this->__list_recipes("Task recipes", \@task_recipes, $format, $format2, $show_all);
+    my $kind = $default_recipe ? $default_recipe->{kind} : undef;
+    my $s = " (default=$default)";
+    my $title = "Task recipes" . ($kind eq 'task' ? $s : '') . ':';
+    $this->__list_recipes($title, \@task_recipes, $format, $format2, $show_all);
     print "\n";
-    $this->__list_recipes("File recipes", \@file_recipes, $format, $format2, $show_all);
+    my $title = "File recipes" . ($kind eq 'file' ? $s : '') . ':';
+    $this->__list_recipes($title, \@file_recipes, $format, $format2, $show_all);
     print "\n";
-    ## default product
-    my $default_product = $cookbook->default_product();
-    if ($default_product) {
-        print "$Kook::default_product: $default_product\n";
-        print "\n";
-    }
     ## tips
     if (! $opts->{q}) {
-        my $tip = $this->get_tip($default_product);
+        my $tip = $this->get_tip($default);
         print "(Tips: $tip)\n";
     }
     return 0;
