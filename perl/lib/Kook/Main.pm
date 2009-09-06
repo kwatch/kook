@@ -64,6 +64,7 @@ package Kook::MainCommand;
 use strict;
 use Data::Dumper;
 our @ISA = ('Kook::Main');
+use Cwd ('realpath');
 
 use Kook::Utils ('repr');
 
@@ -78,6 +79,7 @@ my $optdef_strs = [
     "-n:      not execute (dry run)",
     "-l:      list public recipes",
     "-L:      list all recipes",
+    "-R:      search Kookbook in parent directory recursively",
     "--name=value: property name and value",
     "--name:       property name and value(=True)",
 ];
@@ -108,17 +110,28 @@ sub invoke {
         $v =~ /^\d+$/  or die "-D$v: integer is required.\n";
         $Kook::Config::DEBUG_LEVEL = 0 + $v;
     }
-    if ($opts->{f}) {
-        my $arg = $opts->{f};
-        -e $arg  or die "-f $arg: file not found.\n";
-        -f $arg  or die "-f $arg: not a file.\n";
+    ## find cookbook
+    my $bookname = $opts->{f} || $Kook::Config::COOKBOOK_FILENAME;
+    my $bookpath = $bookname;
+    if ($opts->{R}) {
+        while (! -e $bookpath) {
+            my $parent = "../$bookpath";
+            last if realpath($parent) eq realpath($bookpath);
+            $bookpath = $parent;
+        }
+    }
+    my $s = $opts->{f} ? '-f ' : '';
+    -e $bookpath  or die "$s$bookname: not found.\n";
+    -f $bookpath  or die "$s$bookname: not a file.\n";
+    ## change directory if cookbook is in parent directory
+    if ($bookname ne $bookpath) {
+        my $path = substr($bookpath, 0, - length($bookname));
+        chdir $path;
     }
     ## property file
     my $props = $this->_load_property_file();
     map { $props->{$_} = $longopts->{$_} } keys %$longopts if %$longopts;
     ## create cookbook
-    my $bookname = $opts->{f} || $Kook::Config::COOKBOOK_FILENAME;
-    -f $bookname  or die "$bookname: not found.\n";
     my $cookbook = Kook::Cookbook->new($bookname, $props);
     ## list recipes
     if ($opts->{l} || $opts->{L}) {

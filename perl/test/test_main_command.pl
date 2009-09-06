@@ -9,7 +9,7 @@
 use strict;
 use Data::Dumper;
 use Cwd;
-use Test::Simple tests => 51;
+use Test::Simple tests => 57;
 
 use Kook::Main;
 use Kook::Utils ('read_file', 'write_file');
@@ -64,6 +64,8 @@ write_file("hello2.c", $HELLO2_C);
 ### Kookbook.pl
 ###
 my $KOOKBOOK = <<'END';
+use Cwd ('getcwd');
+
 my $CC = prop('CC', 'gcc');
 
 $kook_default = 'build';
@@ -127,7 +129,13 @@ recipe "show-props", {
         print '$prop3 = ', repr($prop3), "\n";
         print '$prop4 = ', repr($prop4), "\n";
     }
-}
+};
+
+recipe "cwd", {
+    method => sub {
+        echo getcwd();
+    }
+};
 END
     ;
 
@@ -245,6 +253,7 @@ plkook - build tool like Make, Rake, Ant, or Cook
   -n                  : not execute (dry run)
   -l                  : list public recipes
   -L                  : list all recipes
+  -R                  : search Kookbook in parent directory recursively
   --name=value        : property name and value
   --name              : property name and value(=True)
 END
@@ -324,6 +333,7 @@ Task recipes (default=build):
     -i[N]                  indent
     --name=str             name string
   show-props           : 
+  cwd                  : 
 
 File recipes:
   hello                : build hello command
@@ -395,7 +405,7 @@ before_each();
 if (_test_p("option -D2 specified")) {
     my $output = `plkook -D2 build`;
     my $expected = <<'END';
-*** debug: specific task recipes: ["build","test1","show-props"]
+*** debug: specific task recipes: ["build","test1","show-props","cwd"]
 *** debug: specific file recipes: ["hello","hello.h"]
 *** debug: generic  task recipes: []
 *** debug: generic  file recipes: ["*.o"]
@@ -446,7 +456,7 @@ END
     utime $now, $now, "hello.h";
     $output = `plkook -D2 build`;
     $expected = <<'END';
-*** debug: specific task recipes: ["build","test1","show-props"]
+*** debug: specific task recipes: ["build","test1","show-props","cwd"]
 *** debug: specific file recipes: ["hello","hello.h"]
 *** debug: generic  task recipes: []
 *** debug: generic  file recipes: ["*.o"]
@@ -577,6 +587,40 @@ after_each();
 
 
 ###
+### -R
+###
+before_each();
+if (_test_p("option -R specified")) {
+    my $cwd = getcwd();
+    CORE::mkdir "foo";
+    CORE::mkdir "foo/bar";
+    chdir "foo/bar";
+    #
+    my ($output, $errmsg) = _system('plkook cwd');
+    ok($output eq "");
+    ok($errmsg eq "Kookbook.pl: not found.\n");
+    #
+    my ($output, $errmsg) = _system('plkook -f Kookbook.pl cwd');
+    ok($output eq "");
+    ok($errmsg eq "-f Kookbook.pl: not found.\n");
+    #
+    my ($output, $errmsg) = _system('plkook -R cwd');   # change cwd to parent dir
+    my $expected = <<END;
+### * cwd (recipe=cwd)
+\$ echo $cwd
+$cwd
+END
+    ok($output eq $expected);
+    ok($errmsg eq "");
+    #
+    chdir $cwd;
+    CORE::rmdir "foo/bar";
+    CORE::rmdir "foo";
+}
+after_each();
+
+
+###
 ### spices
 ###
 before_each();
@@ -682,7 +726,7 @@ if (_test_p("invalid options specified")) {
     if ("argument file of -f is not found") {
         my ($output, $errmsg) = _system('plkook -foobar');
         ok($output eq "");
-        ok($errmsg eq "-f oobar: file not found.\n");
+        ok($errmsg eq "-f oobar: not found.\n");
     }
     if ("argument of -f is directory") {
         my ($output, $errmsg) = _system('plkook -f..');
