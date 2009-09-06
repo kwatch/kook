@@ -85,7 +85,6 @@ sub load {
         $context = \%tmp;
     }
     $this->{context} = $context;
-    $Kook::all_recipes = [];
     Kook::Sandbox::_eval($content, $bookname, $context);
     ! $@  or die("[ERROR] kookbook has error:\n$@\n");
     $this->{property_tuples} = \@Kook::Sandbox::_property_tuples;
@@ -102,7 +101,7 @@ sub load {
         [],    # GNERIC   | FILE
     ];
     ## TODO: materials
-    for my $recipe (@$Kook::all_recipes) {
+    for my $recipe (@Kook::Sandbox::_recipes) {
         my $flag = $recipe->{kind} eq 'task' ? $TASK : $FILE;
         $flag = $flag | ($recipe->{pattern} ? $GENERIC : $SPECIFIC);
         push @{$recipes->[$flag]}, $recipe;
