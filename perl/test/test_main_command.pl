@@ -76,6 +76,11 @@ write_file("hello2.c", $HELLO2_C);
 ### Kookbook.pl
 ###
 my $KOOKBOOK = <<'END';
+my $CC = prop('CC', 'gcc');
+my $prop1 = prop('prop1', 12345);
+my $prop2 = prop('prop2', ['a', 'b', 'c']);
+my $prop3 = prop('prop3', {'x'=>10, 'y'=>20});
+
 recipe "build", {
     desc => "build all files",
     ingreds => ["hello"],
@@ -89,7 +94,7 @@ recipe "hello", {
     method  => sub {
         my ($c) = @_;
         my $s = join " ", @{$c->{ingreds}};
-        sys "gcc -o $c->{product} $s";
+        sys "$CC -o $c->{product} $s";
     }
 };
 
@@ -98,7 +103,7 @@ recipe "*.o", {
     desc    => "compile *.c",
     method  => sub {
         my ($c) = @_;
-        sys "gcc -c $c->{ingred}";
+        sys "$CC -c $c->{ingred}";
     }
 };
 
@@ -269,6 +274,10 @@ if ("option -l specified") {
     my $output = `plkook -l`;
     my $expected = <<'END';
 Properties:
+  CC                   : "gcc"
+  prop1                : 12345
+  prop2                : ["a","b","c"]
+  prop3                : {"y" => 20,"x" => 10}
 
 Task recipes
   build                : build all files

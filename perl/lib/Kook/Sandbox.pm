@@ -15,13 +15,14 @@ use Kook ('recipe');
 use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf rmdir mv store store_p cd edit);
 use Kook::Utils ('repr');
 
-our %_properties     = ();
-our %_property_descs = ();
+our %_properties      = ();   # in
+our @_property_tuples = ();   # out
 
 sub prop {
     my ($name, $default_value, $desc) = @_;
-    $_property_descs{$name} = $desc if $desc;
-    return exists($_properties{$name}) ? $_properties{$name} : $default_value;
+    my $value = exists($_properties{$name}) ? $_properties{$name} : $default_value;
+    push @_property_tuples, [$name, $value, $desc];
+    return $value;
 }
 
 sub _eval {
@@ -34,11 +35,8 @@ sub _eval {
     #undef @_list;
     #eval $_code;  #, $_context;
     #undef $_code;
-    %_properties     = ();
-    %_property_descs = ();
-    if ($_context) {
-        $_properties{$_} = $_context->{$_} for (keys %$_context);
-    }
+    %_properties      = $_context ? %$_context : ();
+    @_property_tuples = ();
     eval "# line 1 \"$_filename\"\n".$_script;
 }
 

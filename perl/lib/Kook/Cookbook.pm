@@ -28,6 +28,7 @@ sub new {
         materials             => [],
         property_names        => [],
         _property_names_dict  => undef,
+        property_tuples       => [],
         context               => undef,
     };
     $this = bless $this, $class;
@@ -79,15 +80,15 @@ sub load {
     $bookname = '(kook)' if ! $bookname;
     #my $context = $this->create_context();
     my $context = {};
-    ## merge hash
     if ($properties) {
-        $context->{$_} = $properties->{$_} for (keys %$properties);
+        my %tmp = %$properties;
+        $context = \%tmp;
     }
-    #python: context['prop'] = self.prop
     $this->{context} = $context;
     $Kook::all_recipes = [];
     Kook::Sandbox::_eval($content, $bookname, $context);
     ! $@  or die("[ERROR] kookbook has error:\n$@\n");
+    $this->{property_tuples} = \@Kook::Sandbox::_property_tuples;
     ## masks
     my $TASK     = 0x0;
     my $FILE     = 0x1;

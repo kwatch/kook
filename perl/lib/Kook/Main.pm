@@ -65,6 +65,8 @@ use strict;
 use Data::Dumper;
 our @ISA = ('Kook::Main');
 
+use Kook::Utils ('repr');
+
 my $optdef_strs = [
     "-h:      help",
     #"--help: help",
@@ -149,10 +151,9 @@ sub _list_recipes {
     my $format2  = $Kook::Config::RECIPE_OPTS_FORMAT;  # "    %-20s  %s\n";
     ## properties
     print "Properties:\n";
-    my $all_props = $cookbook->all_properties();
-    for (@$all_props) {
-        my ($pname, $pvalue) = @$_;
-        printf($format, $pname, $pvalue);  # TODO: pretty print
+    for (@{$cookbook->{property_tuples}}) {
+        my ($name, $value, $desc) = @$_;
+        printf($format, $name, repr($value));
     }
     print "\n";
     ## task and file recipes
