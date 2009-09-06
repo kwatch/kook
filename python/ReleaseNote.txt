@@ -1,5 +1,168 @@
 .################################################################################
 
+.$ [ANN] pyKook 0.0.4 - a smart build tool similar to Make, Rake, or Ant
+
+Hi,
+
+I have released pyKook 0.0.4.
+http://pypi.python.org/pypi/Kook/0.0.4
+http://www.kuwata-lab.com/kook/
+http://www.kuwata-lab.com/kook/pykook-users-guide.html
+
+In this release, recipe syntax is changed (see below).
+
+
+Overview
+========
+
+pyKook is a smart build tool similar to Make, Rake, Ant, or Cook.
+pyKook regards software project as cooking.
+Terms used in pyKook are cooking terms.
+For example:
+
+    cookbook    -  Makefile
+    product     -  target file
+    ingredient  -  source file
+    recipe      -  how to create target from source
+    spices      -  command-line options for recipe
+
+
+Cookbook (= Makefile) is written in pure Python.
+You can write any statements or expressions in cookbook.
+
+NOTICE: pyKook is under alpha release. Spec and features may be changed
+in the future without previous announcement.
+
+
+Example
+=======
+
+Example of cookbook (Kookbook.py):
+
+    --------------------------------------------------
+    ##
+    ## properties
+    ##
+    cc     = prop('cc',     'gcc')
+    cflags = prop('cflags', '-g -Wall')
+    
+    
+    ##
+    ## recipes
+    ##
+    @recipe
+    @ingreds("hello")
+    def all(c):        # or task_all(c)
+        pass
+    
+    @recipe
+    @product("hello")
+    @ingreds("hello.o")
+    def file_command(c):
+        """generates hello command"""
+        system(c%"$(cc) $(cflags) -o $(product) $(ingred)")
+    
+    @recipe
+    @product("*.o")
+    @ingreds("$(1).c", if_exists("$(1).h"))
+    def file_ext_o(c):
+        """compile '*.c' and '*.h'"""
+        system(c%"$(cc) $(cflags) -c $(1).c")
+    
+    @recipe
+    def clean(c):
+        rm_f("*.o")
+    --------------------------------------------------
+
+
+Exampe of result:
+
+    --------------------------------------------------
+    bash> ls
+    Kookbook.py   hello.c    hello.h
+    
+    bash> pykook -l
+    Properties:
+      cc                  : 'gcc'
+      cflags              : '-g -Wall'
+    
+    Task recipes:
+      all                 : cook all products
+      clean               : remove by-products
+    
+    File recipes:
+      hello               : generates hello command
+      *.o                 : compile '*.c' and '*.h'
+    
+    (Tips: you can set 'kook_default_product' variable in your kookbook.)
+    
+    bash> pykook all           # or, pykook --cc=gcc4 all
+    ### *** hello.o (func=file_ext_o)
+    $ gcc -g -Wall -c hello.c
+    ### ** hello (func=file_command)
+    $ gcc -g -Wall -o hello hello.o
+    ### * all (func=task_all)
+    --------------------------------------------------
+
+
+See users-guide for more details.
+http://www.kuwata-lab.com/kook/pykook-users-guide.html
+
+
+Enhancements sice 0.0.3
+=======================
+
+- Compact style of @recipe decorator supported.
+  ex::
+     ## normal style
+	   @recipe
+	   @product('*.o')
+	   @ingreds('$(1).c', '$(1).h')
+	   def file_o(c):
+	       system(c%"gcc -c $(ingre)")
+
+     ## compact style
+	   @recipe('*.o', ['$(1).c', '$(1).h'])
+	   def file_o(c):
+	       system(c%"gcc -c $(ingre)")
+
+- 'kk' script supports '$KK_CLIMB' environment variable.
+  If you set it, 'kk' script searches parent directories
+  when 'Kookbook.py' is not found.
+  ex::
+     sh> ls -F
+     Kookbook.py    src/    test/
+     sh> cd src/foo/bar/
+     sh> kk clean                    # ERROR
+     kk: No kookbook found.
+     sh> export KK_CLIMB=1
+     sh> kk clean                    # OK
+     ### * clean (recipe=clean)
+     $ rm **/*.pyc
+
+- New command-line option '-R' (recursively) supported.
+  If you specify '-R', pykook command searches Kookbook.py
+	in parent directory recursively.
+  ex::
+     sh> ls -F
+     Kookbook.py    src/    test/
+     sh> cd src/foo/bar/
+     sh> pykook clean                # ERROR
+     pykook: Kookbook.py: not found.
+     sh> pykook -R clean             # OK
+     ### * clean (recipe=clean)
+     $ rm **/*.pyc
+  
+
+Have fun!
+
+--
+regards,
+makoto kuwata
+
+
+.################################################################################
+
 .$ [ANN] pyKook 0.0.3 - a smart build tool similar to Make, Rake, or Ant
 
 Hi,
