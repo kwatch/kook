@@ -14,20 +14,8 @@ use Test::Simple tests => 51;
 use Kook::Main;
 use Kook::Utils ('read_file', 'write_file');
 
-use IPC::Open3;
-use Symbol;
-
-sub _system {
-    my ($command) = @_;
-    my ($IN, $OUT, $ERR) = (gensym, gensym, gensym);
-    open3($IN, $OUT, $ERR, $command);
-    my @output = <$OUT>;
-    my @error  = <$ERR>;
-    close $IN;
-    close $OUT;
-    close $ERR;
-    return join("", @output), join("", @error);
-}
+use File::Basename;
+require(dirname(__FILE__) . "/_test_helper.pl");
 
 
 ###
@@ -592,7 +580,7 @@ after_each();
 before_each();
 if ("spices") {
     if ("spices specified") {
-        my ($output, $errmsg) = _system 'plkook test1 -vDf file1.txt -i AAA BBB';
+        my ($output, $errmsg) = _system('plkook test1 -vDf file1.txt -i AAA BBB');
         my $expected = <<'END';
 	### * test1 (recipe=test1)
 	opts={"D"=>1, "f"=>"file1.txt", "i"=>1, "v"=>1}
@@ -603,12 +591,12 @@ END
         ok($errmsg eq "");
     }
     if ("invalid option (-ifoo) specified") {
-        my ($output, $errmsg) = _system 'plkook test1 -ifoo AAA BBB';
+        my ($output, $errmsg) = _system('plkook test1 -ifoo AAA BBB');
         ok($output eq "### * test1 (recipe=test1)\n");
         ok($errmsg eq "-ifoo: integer required.\n");
     }
     if ("argument is not passed to '-f'") {
-        my ($output, $errmsg) = _system 'plkook test1 -f';
+        my ($output, $errmsg) = _system('plkook test1 -f');
         ok($output eq "### * test1 (recipe=test1)\n");
         ok($errmsg eq "-f: file required.\n");
     }
@@ -622,7 +610,7 @@ after_each();
 before_each();
 if ('properties') {
     if ('properties are not specified') {
-        my ($output, $errmsg) = _system 'plkook show-props';
+        my ($output, $errmsg) = _system('plkook show-props');
         my $expected = <<'END';
 	### * show-props (recipe=show-props)
 	$prop1 = 12345
@@ -635,7 +623,7 @@ END
         ok($errmsg eq "");
     }
     if ('properties are specified') {
-        my ($output, $errmsg) = _system 'plkook --prop1=456 --prop4=geji show-props';
+        my ($output, $errmsg) = _system('plkook --prop1=456 --prop4=geji show-props');
         my $expected = <<'END';
 	### * show-props (recipe=show-props)
 	$prop1 = 456
@@ -657,22 +645,22 @@ after_each();
 before_each();
 if ("invalid options specified") {
     if ("not-an-integer specified for -D") {
-        my ($output, $errmsg) = _system 'plkook -Dh build';
+        my ($output, $errmsg) = _system('plkook -Dh build');
         ok($output eq "");
         ok($errmsg eq "-Dh: integer required.\n");
     }
     if ("argument is not passed for -f") {
-        my ($output, $errmsg) = _system 'plkook -f';
+        my ($output, $errmsg) = _system('plkook -f');
         ok($output eq "");
         ok($errmsg eq "-f: file required.\n");
     }
     if ("argument file of -f is not found") {
-        my ($output, $errmsg) = _system 'plkook -foobar';
+        my ($output, $errmsg) = _system('plkook -foobar');
         ok($output eq "");
         ok($errmsg eq "-f oobar: file not found.\n");
     }
     if ("argument of -f is directory") {
-        my ($output, $errmsg) = _system 'plkook -f..';
+        my ($output, $errmsg) = _system('plkook -f..');
         ok($output eq "");
         ok($errmsg eq "-f ..: not a file.\n");
     }
@@ -685,11 +673,11 @@ after_each();
 ###
 before_each();
 if ("there is no recipes which matches to specified target") {
-    my ($output, $errmsg) = _system 'plkook foobar';
+    my ($output, $errmsg) = _system('plkook foobar');
     ok($output eq "");
     ok($errmsg eq "foobar: no such recipe or material.\n");
     #
-    ($output, $errmsg) = _system 'plkook hello3.o';
+    ($output, $errmsg) = _system('plkook hello3.o');
     ok($output eq "");
     ok($errmsg eq "hello3.c: no such recipe or material (required for 'hello3.o').\n");
 }
@@ -701,7 +689,7 @@ after_each();
 ###
 before_each();
 if ("no product specified") {
-    my ($output, $errmsg) = _system 'plkook';
+    my ($output, $errmsg) = _system('plkook');
     my $expected = <<'END';
 *** plkook: target is not given.
 *** 'plkook -l' or 'plkook -L' shows recipes and properties.
@@ -721,7 +709,7 @@ if ('$kook_default is specified') {
     my $s = read_file('Kookbook.pl');
     $s = "\$kook_default = 'test1';\n" . $s;
     write_file('Kookbook.pl', $s);
-    my ($output, $errmsg) = _system 'plkook';
+    my ($output, $errmsg) = _system('plkook');
     my $expected = <<'END';
 ### * test1 (recipe=test1)
 opts={}

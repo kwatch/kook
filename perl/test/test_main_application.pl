@@ -14,20 +14,8 @@ use Test::Simple tests => 15;
 use Kook::Main;
 use Kook::Utils ('write_file');
 
-use IPC::Open3;
-use Symbol;
-
-sub _system {
-    my ($command) = @_;
-    my ($IN, $OUT, $ERR) = (gensym, gensym, gensym);
-    open3($IN, $OUT, $ERR, $command);
-    my @output = <$OUT>;
-    my @error  = <$ERR>;
-    close $IN;
-    close $OUT;
-    close $ERR;
-    return join("", @output), join("", @error);
-}
+use File::Basename;
+require(dirname(__FILE__) . "/_test_helper.pl");
 
 
 ###
@@ -92,7 +80,7 @@ sub after_each {
 ###
 before_each();
 if ("'-h' specified") {
-    my ($output, $errmsg) = _system "./peko -h";
+    my ($output, $errmsg) = _system("./peko -h");
     my $expected = <<'END'
 	peko - example of plkook scripting framework feature
 	
@@ -115,7 +103,7 @@ after_each();
 ###
 before_each();
 if ("'-h subcommand' specified") {
-    my ($output, $errmsg) = _system "./peko -h echo";
+    my ($output, $errmsg) = _system("./peko -h echo");
     my $expected = <<'END'
 	peko echo - echo arguments
 	  -v                   : version
@@ -136,7 +124,7 @@ after_each();
 ###
 before_each();
 if ("'-h unknown' specified") {
-    my ($output, $errmsg) = _system "./peko -h foobar";
+    my ($output, $errmsg) = _system("./peko -h foobar");
     ok($output eq "");
     ok($errmsg eq "foobar: sub command not found.\n");
 }
@@ -148,7 +136,7 @@ after_each();
 ###
 before_each();
 if ("invoke sub-command") {
-    my ($output, $errmsg) = _system "./peko print AAA BBB";
+    my ($output, $errmsg) = _system("./peko print AAA BBB");
     ok($output eq "AAA\nBBB\n");
 }
 after_each();
@@ -159,7 +147,7 @@ after_each();
 ###
 before_each();
 if ("sub-command is unknown") {
-    my ($output, $errmsg) = _system "./peko hoge";
+    my ($output, $errmsg) = _system("./peko hoge");
     ok($output eq "");
     ok($errmsg eq "hoge: sub-command not found.\n");
 }
@@ -171,7 +159,7 @@ after_each();
 ###
 before_each();
 if ("invoke sub-command with spices") {
-    my ($output, $errmsg) = _system "./peko echo -vDffile.txt -i AAA BBB";
+    my ($output, $errmsg) = _system("./peko echo -vDffile.txt -i AAA BBB");
     my $expected = <<'END';
 	opts={"D"=>1, "f"=>"file.txt", "i"=>1, "v"=>1}
 	rest=["AAA","BBB"]
@@ -189,7 +177,7 @@ after_each();
 ###
 before_each();
 if ("invoke sub-command with spices") {
-    my ($output, $errmsg) = _system "./peko echo -ifoo AAA BBB";
+    my ($output, $errmsg) = _system("./peko echo -ifoo AAA BBB");
     ok($output eq "");
     ok($errmsg eq "-ifoo: integer required.\n");
 }
@@ -197,7 +185,7 @@ after_each();
 #
 before_each();
 if ("invoke sub-command with spices") {
-    my ($output, $errmsg) = _system "./peko echo -f";
+    my ($output, $errmsg) = _system("./peko echo -f");
     ok($output eq "");
     ok($errmsg eq "-f: file required.\n");
 }

@@ -14,11 +14,9 @@ use Cwd;
 use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf rmdir mv store store_p cd edit);
 use Kook::Utils qw(read_file write_file ob_start ob_get_clean repr has_metachar mtime);
 
+use File::Basename;
+require(dirname(__FILE__) . "/_test_helper.pl");
 
-sub _test_p {
-    my ($test_name) = @_;
-    return ! $ENV{'TEST'} || $ENV{'TEST'} eq $test_name;
-}
 
 
 my $HELLO_C = <<'END';
