@@ -43,17 +43,9 @@ sub prop {
 }
 
 sub _eval {
-    my ($_script, $_filename, $_context) = @_;
-    #my @_list = ();
-    #for my $_k (keys %$_context) {
-    #    push @_list, "my \$$_k=%\$_context->{$_k};";
-    #}
-    #my $_code = join "", @_list;
-    #undef @_list;
-    #eval $_code;  #, $_context;
-    #undef $_code;
+    my ($_script, $_filename, $_props) = @_;
     __init();
-    %_properties      = %$_context if $_context;
+    %_properties      = %$_props if $_props;
     eval "# line 1 \"$_filename\"\n".$_script;
 }
 

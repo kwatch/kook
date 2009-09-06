@@ -26,40 +26,13 @@ sub new {
         specific_file_recipes => [],
         generic_task_recipes  => [],
         materials             => [],
-        property_names        => [],
-        _property_names_dict  => undef,
         property_tuples       => [],
-        context               => undef,
         default               => undef,
+        desc                  => undef,
     };
     $this = bless $this, $class;
     $this->load_file($bookname, $properties) if $bookname;
     return $this;
-}
-
-sub prop {
-    my ($this, $name, $value) = @_;
-    my $found;
-    if (! exists $this->{_property_names_dict}->{$name}) {
-        $this->{_property_names_dict}->{$name} = 1;
-        push @{$this->{property_names}}, $name;
-    }
-    if (exists $this->{context}->{$name}) {
-        $value = $this->{context}->{$name};
-    }
-    else {
-        $this->{context}->{$name} = $value;
-    }
-    return $value;
-}
-
-sub all_properties {
-    my ($this) = @_;
-    my @tuples;
-    for (@{$this->{property_names}}) {
-        push @tuples, [$_, $this->{context}->{$_}];
-    }
-    return \@tuples;
 }
 
 sub default_product {
@@ -80,14 +53,7 @@ sub load_file {
 sub load {
     my ($this, $content, $bookname, $properties) = @_;
     $bookname = '(kook)' if ! $bookname;
-    #my $context = $this->create_context();
-    my $context = {};
-    if ($properties) {
-        my %tmp = %$properties;
-        $context = \%tmp;
-    }
-    $this->{context} = $context;
-    Kook::Sandbox::_eval($content, $bookname, $context);
+    Kook::Sandbox::_eval($content, $bookname, $properties);
     ! $@  or die("[ERROR] kookbook has error:\n$@\n");
     $this->{property_tuples} = \@Kook::Sandbox::_property_tuples;
     $this->{default} = $Kook::Sandbox::kook_default if $Kook::Sandbox::kook_default;
