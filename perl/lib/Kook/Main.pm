@@ -99,7 +99,7 @@ sub invoke {
         return 0;
     }
     if ($opts->{V}) {
-        print $Kook::RELEASE, "\n";
+        print $Kook::VERSION, "\n";
         return 0;
     }
     if ($opts->{q}) { $Kook::Config::VERBOSE = 0; }

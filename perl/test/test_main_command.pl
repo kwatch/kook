@@ -269,7 +269,7 @@ after_each();
 before_each();
 if (_test_p("option -V specified")) {
     my $output = `plkook -V`;
-    my $expected = "".$Kook::RELEASE."\n";
+    my $expected = "".$Kook::VERSION."\n";
     ok($output eq $expected);
     ok(length($output) > 5);     # not empty
 }
