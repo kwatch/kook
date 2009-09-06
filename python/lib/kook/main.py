@@ -100,16 +100,15 @@ class MainCommand(MainObject):
         if opts.get('R'):
             abspath = os.path.abspath
             while not os.path.exists(bookpath):
-                tmp = os.path.join("..", bookpath)
-                if abspath(tmp) == abspath(bookpath): break
-                bookpath = tmp
+                parent = os.path.join("..", bookpath)
+                if abspath(parent) == abspath(bookpath): break
+                bookpath = parent
+        s = opts.get('f') and '-f ' or ''
         if not os.path.exists(bookpath):
-            msg = opts.get('f', None) and '-f %s: not found.' or '%s: not found.'
-            raise CommandOptionError(msg % bookname)
+            raise CommandOptionError('%s%s: not found.' % (s, bookname))
         if not os.path.isfile(bookpath):
-            msg = opts.get('f', None) and '-f %s: not a file.' or '%s: not a file.'
-            raise CommandOptionError(msg % bookname)
-        ## change directory if $PYKOOK_COLIMB is set
+            raise CommandOptionError('%s%s: not a file.' % (s, bookname))
+        ## change directory if cookbook is in parent directory
         if bookname != bookpath:
             path = bookpath[:-len(bookname)]
             os.chdir(path)
