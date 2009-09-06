@@ -32,8 +32,8 @@ detail   = (
            )
 license  = 'MIT License'
 platforms = 'any'
-#download = 'http://pypi.python.org/packages/source/K/Kook/Kook-%s.tar.gz' % version
-download = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
+download = 'http://pypi.python.org/packages/source/K/%s/%s-%s.tar.gz' % (name, name, version)
+#download = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
 #download = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
 #download = 'http://jaist.dl.sourceforge.net/sourceforge/kook/%s-%s.tar.gz' % (name, version)
 classifiers = [
