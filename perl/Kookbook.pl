@@ -1,6 +1,8 @@
 
+use Kook::Utils ('read_file', 'write_file');
+
 my $project   = prop('project', "plkook");
-my $release   = prop('release', "0.0.1");
+my $release   = prop('release', "0.0.0");
 my $copyright = "copyright(c) 2009 kuwata-lab.com all rights reserved.";
 my $license   = prop('license', "MIT License");
 
@@ -17,19 +19,26 @@ recipe "test", {
 };
 
 recipe "package", {
+    ingreds => ["dist"],
     desc   => "create package",
     method => sub {
-        rm_rf "dist";
-        my $dir = "dist/$project-$release";
-        mkdir_p $dir;
-        store "bin/*", "lib/**/*.pm", "test/**/*.pl", $dir;
-        edit {
-            s/\$Release\$/$release/g;
-            s/\$Release:.*?\$/\$Release: $release \$/g;
-            s/\$Copyright\$/$copyright/g;
-            s/\$License\$/$license/g;
-            $_;
-        } "$dir/**/*";
+        rm_rf "dist/*"   if -d "dist";
+        mkdir "dist" unless -d "dist";
+        cd "dist", sub {
+            my $base = "Kook-$release";
+            mv "../$base.tar.gz", ".";
+            sys "tar xzf $base.tar.gz";
+            edit {
+                s/\$Release\$/$release/g;
+                s/\$Release:.*?\$/\$Release: $release \$/g;
+                s/\$Copyright\$/$copyright/g;
+                s/\$License\$/$license/g;
+                $_;
+            } "$base/**/*";
+            mv "$base.tar.gz", "$base.tar.gz.bkup";
+            sys "tar czf $base.tar.gz $base";
+        };
+        rm_rf "Makefile", "MANIFEST", "pm_to_blib", "blib";
     }
 };
 
@@ -42,8 +51,53 @@ recipe "bin/kk", {
         my ($c) = @_;
         cp($c->{ingred}, $c->{product});
     }
-}
+};
 
 
-#$x = 1;
-#print '*** ', Dumper($x);
+### for CPAN package
+
+recipe "edit-version", {
+    method => sub {
+        my $s = read_file("lib/Kook.pm");
+        $s =~ m/^our \$VERSION = '(.*)';/m  or die "*** \$VERSION not found in lib/Kook.pm";
+        if ($1 ne $release) {
+            edit {
+                s/^(our \$VERSION = ).*$/$1'$release';/m;
+                $_
+            } "lib/Kook.pm";
+        }
+    }
+};
+
+recipe "MANIFEST", {
+    ingreds => ["edit-version", "clean"],
+    method => sub {
+        my ($c) = @_;
+        rm_f $c->{product};
+        sys "perl Makefile.PL";
+        sys "make";
+        sys "make manifest";
+    }
+};
+
+recipe "clean", {
+    method => sub {
+        sys "make distclean" if -f "Makefile";
+        rm_f "Kook-*.tar.gz";
+    }
+};
+
+recipe "dist", {
+    ingreds => ["clean", "MANIFEST", "Kook-$release.tar.gz"],
+};
+
+recipe "Kook-*.tar.gz", {
+    method => sub {
+        #sys "make distclean";
+        #sys "perl Makefile.PL";
+        #sys "make";
+        #sys "make disttest";
+        sys "make dist";
+    }
+};
+
