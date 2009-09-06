@@ -9,7 +9,7 @@
 use strict;
 use Data::Dumper;
 use Cwd;
-use Test::Simple tests => 47;
+use Test::Simple tests => 51;
 
 use Kook::Main;
 use Kook::Utils ('read_file', 'write_file');
@@ -77,10 +77,6 @@ write_file("hello2.c", $HELLO2_C);
 ###
 my $KOOKBOOK = <<'END';
 my $CC = prop('CC', 'gcc');
-my $prop1 = prop('prop1', 12345);
-my $prop2 = prop('prop2', ['a', 'b', 'c']);
-my $prop3 = prop('prop3', {'x'=>10, 'y'=>20});
-my $_prop4 = prop('_prop4', 12345);
 
 recipe "build", {
     desc => "build all files",
@@ -128,6 +124,20 @@ recipe "test1", {
         print "rest=", repr($rest), "\n";
     }
 };
+
+my $prop1 = prop('prop1', 12345);
+my $prop2 = prop('prop2', ['a', 'b', 'c']);
+my $prop3 = prop('prop3', {'x'=>10, 'y'=>20});
+my $_prop4 = prop('_prop4', 12345);
+
+recipe "show-props", {
+    method => sub {
+        print '$prop1 = ', repr($prop1), "\n";
+        print '$prop2 = ', repr($prop2), "\n";
+        print '$prop3 = ', repr($prop3), "\n";
+        print '$_prop4 = ', repr($_prop4), "\n";
+    }
+}
 END
     ;
 
@@ -323,6 +333,7 @@ Task recipes
     -f file                file
     -i[N]                  indent
     --name=str             name string
+  show-props           : 
 
 File recipes
   hello                : build hello command
@@ -394,7 +405,7 @@ before_each();
 if ("option -D2 specified") {
     my $output = `plkook -D2 build`;
     my $expected = <<'END';
-*** debug: specific task recipes: ["build","test1"]
+*** debug: specific task recipes: ["build","test1","show-props"]
 *** debug: specific file recipes: ["hello","hello.h"]
 *** debug: generic  task recipes: []
 *** debug: generic  file recipes: ["*.o"]
@@ -445,7 +456,7 @@ END
     utime $now, $now, "hello.h";
     $output = `plkook -D2 build`;
     $expected = <<'END';
-*** debug: specific task recipes: ["build","test1"]
+*** debug: specific task recipes: ["build","test1","show-props"]
 *** debug: specific file recipes: ["hello","hello.h"]
 *** debug: generic  task recipes: []
 *** debug: generic  file recipes: ["*.o"]
@@ -600,6 +611,41 @@ END
         my ($output, $errmsg) = _system 'plkook test1 -f';
         ok($output eq "### * test1 (recipe=test1)\n");
         ok($errmsg eq "-f: file required.\n");
+    }
+}
+after_each();
+
+
+###
+### properties
+###
+before_each();
+if ('properties') {
+    if ('properties are not specified') {
+        my ($output, $errmsg) = _system 'plkook show-props';
+        my $expected = <<'END';
+	### * show-props (recipe=show-props)
+	$prop1 = 12345
+	$prop2 = ["a","b","c"]
+	$prop3 = {"y" => 20,"x" => 10}
+	$_prop4 = 12345
+END
+        $expected =~ s/^\t//mg;
+        ok($output eq $expected);
+        ok($errmsg eq "");
+    }
+    if ('properties are specified') {
+        my ($output, $errmsg) = _system 'plkook --prop1=456 --_prop4=foo show-props';
+        my $expected = <<'END';
+	### * show-props (recipe=show-props)
+	$prop1 = 456
+	$prop2 = ["a","b","c"]
+	$prop3 = {"y" => 20,"x" => 10}
+	$_prop4 = "foo"
+END
+        $expected =~ s/^\t//mg;
+        ok($output eq $expected);
+        ok($errmsg eq "");
     }
 }
 after_each();
