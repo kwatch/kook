@@ -91,6 +91,7 @@ sub load {
     ! $@  or die("[ERROR] kookbook has error:\n$@\n");
     $this->{property_tuples} = \@Kook::Sandbox::_property_tuples;
     $this->{default} = $Kook::Sandbox::kook_default if $Kook::Sandbox::kook_default;
+    $this->{desc}    = $Kook::Sandbox::kook_desc    if $Kook::Sandbox::kook_desc;
     ## masks
     my $TASK     = 0x0;
     my $FILE     = 0x1;

@@ -347,7 +347,7 @@ sub _show_help_for {
 sub _show_help_all {
     my ($this, $cookbook, $optparser) = @_;
     my $recipes = $cookbook->{specific_task_recipes};
-    my $desc = $Kook::desc;
+    my $desc = $cookbook->{desc};
     print "$this->{command} - $desc\n";
     if (0) {
         print "\n";

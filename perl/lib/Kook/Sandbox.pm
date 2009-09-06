@@ -19,6 +19,7 @@ our @_recipes         = ();     # out
 our %_properties      = ();     # in
 our @_property_tuples = ();     # out
 our $kook_default     = undef;  # out
+our $kook_desc        = undef;  # out
 
 sub recipe {
     my $recipe_obj = Kook::Recipe->new(@_);
@@ -47,6 +48,7 @@ sub _eval {
     %_properties      = $_context ? %$_context : ();
     @_property_tuples = ();
     $kook_default     = undef;
+    $kook_desc        = undef;
     eval "# line 1 \"$_filename\"\n".$_script;
 }
 

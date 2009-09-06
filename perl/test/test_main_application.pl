@@ -43,7 +43,7 @@ chdir "_sandbox"  or die;
 my $SCRIPT = <<'END';
 	#!/usr/bin/env plkook -X
 	
-	$Kook::desc = 'example of plkook scripting framework feature';
+	$kook_desc = 'example of plkook scripting framework feature';
 	
 	recipe "print", {
 	    desc  => "print args",
