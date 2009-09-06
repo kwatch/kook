@@ -15,6 +15,9 @@ use Kook::Kitchen;
 use Kook::Utils ('write_file', 'ob_start', 'ob_get_clean');
 use Kook::Config;
 
+use File::Basename;
+require(dirname(__FILE__) . "/_test_helper.pl");
+
 
 ###
 ### before_all()
@@ -41,7 +44,7 @@ sub _create_kitchen {
 ###
 ### Kook::Kitchen  # tree, not looped
 ###
-if ("recipes are not looped") {
+if (_test_p("recipes are not looped")) {
 
     ### before all
     my $HELLO_C = <<'END';
@@ -213,7 +216,7 @@ END
 ###
 ### Kook::Kitchen  # DAG, not looped
 ###
-if ("recipe tree is DAG") {
+if (_test_p("recipe tree is DAG")) {
     my $HELLO_H_TXT = <<'END';
 	/*extern char *command;*/
 	#define COMMAND "hello"
@@ -433,7 +436,7 @@ END
 ###
 ### Kook::Kitchen  # LOOPED
 ###
-if ("recipes are looped") {
+if (_test_p("recipes are looped")) {
 
     my $HELLO_H_TXT = <<'END';
 	extern char *command;
@@ -510,7 +513,7 @@ END
 ###
 ### Kook::Kitchen  # spices
 ###
-if ("recipe has species") {
+if (_test_p("recipe has species")) {
 
     my $input = <<'END';
 	recipe "test1", {

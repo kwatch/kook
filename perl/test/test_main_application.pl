@@ -79,7 +79,7 @@ sub after_each {
 ### -h
 ###
 before_each();
-if ("'-h' specified") {
+if (_test_p("'-h' specified")) {
     my ($output, $errmsg) = _system("./peko -h");
     my $expected = <<'END'
 	peko - example of plkook scripting framework feature
@@ -102,7 +102,7 @@ after_each();
 ### -h sub-command
 ###
 before_each();
-if ("'-h subcommand' specified") {
+if (_test_p("'-h subcommand' specified")) {
     my ($output, $errmsg) = _system("./peko -h echo");
     my $expected = <<'END'
 	peko echo - echo arguments
@@ -123,7 +123,7 @@ after_each();
 ### ERROR: -h with unknown sub-command
 ###
 before_each();
-if ("'-h unknown' specified") {
+if (_test_p("'-h unknown' specified")) {
     my ($output, $errmsg) = _system("./peko -h foobar");
     ok($output eq "");
     ok($errmsg eq "foobar: sub command not found.\n");
@@ -135,7 +135,7 @@ after_each();
 ### invoke sub-command
 ###
 before_each();
-if ("invoke sub-command") {
+if (_test_p("invoke sub-command")) {
     my ($output, $errmsg) = _system("./peko print AAA BBB");
     ok($output eq "AAA\nBBB\n");
 }
@@ -146,7 +146,7 @@ after_each();
 ### ERROR: unknown sub command sub-command
 ###
 before_each();
-if ("sub-command is unknown") {
+if (_test_p("sub-command is unknown")) {
     my ($output, $errmsg) = _system("./peko hoge");
     ok($output eq "");
     ok($errmsg eq "hoge: sub-command not found.\n");
@@ -158,7 +158,7 @@ after_each();
 ### invoke sub-command with spices
 ###
 before_each();
-if ("invoke sub-command with spices") {
+if (_test_p("invoke sub-command with spices")) {
     my ($output, $errmsg) = _system("./peko echo -vDffile.txt -i AAA BBB");
     my $expected = <<'END';
 	opts={"D"=>1, "f"=>"file.txt", "i"=>1, "v"=>1}
@@ -176,7 +176,7 @@ after_each();
 ### ERROR: invoke sub-command with invalid spices
 ###
 before_each();
-if ("invoke sub-command with spices") {
+if (_test_p("invoke sub-command with spices")) {
     my ($output, $errmsg) = _system("./peko echo -ifoo AAA BBB");
     ok($output eq "");
     ok($errmsg eq "-ifoo: integer required.\n");
@@ -184,7 +184,7 @@ if ("invoke sub-command with spices") {
 after_each();
 #
 before_each();
-if ("invoke sub-command with spices") {
+if (_test_p("invoke sub-command with spices")) {
     my ($output, $errmsg) = _system("./peko echo -f");
     ok($output eq "");
     ok($errmsg eq "-f: file required.\n");

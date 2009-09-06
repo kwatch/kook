@@ -13,9 +13,12 @@ use Test::Simple tests => 5;
 use Kook::Sandbox;
 use Kook::Utils ('ob_start', 'ob_get_clean', 'repr');
 
+use File::Basename;
+require(dirname(__FILE__) . "/_test_helper.pl");
+
 
 ##
-if ('property is given, it\'s value is used instead of default value') {
+if (_test_p('property is given, it\'s value is used instead of default value')) {
     my $str = <<'END';
       my $val1 = prop('val1', "default1", "description1");
       print Dumper($val1);
@@ -28,7 +31,7 @@ END
 
 
 ##
-if ('property is not given, default value is used') {
+if (_test_p('property is not given, default value is used')) {
     my $str = <<'END';
       my $val2 = prop('val2', "default2", "description2");
       print Dumper($val2);
@@ -41,7 +44,7 @@ END
 
 
 ##
-if ('properties hash table is cleared when Kook::Sandbox::_eval() called') {
+if (_test_p('properties hash table is cleared when Kook::Sandbox::_eval() called')) {
     my $str = <<'END';
       print Dumper(\%prperties);
 END
@@ -53,7 +56,7 @@ END
 
 
 ###
-if ('Sandbok::_eval() is called then properties name and value are kept in @Kook::Sandbox::_property_tuples in declared order') {
+if (_test_p('Sandbok::_eval() is called then properties name and value are kept in @Kook::Sandbox::_property_tuples in declared order')) {
     my $str = <<'END';
       my $A = prop('A', 10);
       my $B = prop('B', 20);
@@ -69,7 +72,7 @@ END
 
 
 ##
-if ('property is not scalar nor ref') {
+if (_test_p('property is not scalar nor ref')) {
     my $str = <<'END';
       my $prop1 = prop('prop1', 12345);
       my $prop2 = prop('prop2', ['a', 'b', 'c']);

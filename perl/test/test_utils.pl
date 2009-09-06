@@ -13,6 +13,9 @@ use File::Path;
 
 use Kook::Utils ('read_file', 'write_file', 'ob_start', 'ob_get_clean', 'has_metachar', 'meta2rexp', 'repr', 'flatten', 'glob2');
 
+use File::Basename;
+require(dirname(__FILE__) . "/_test_helper.pl");
+
 
 ###
 ### before_all()
@@ -25,7 +28,7 @@ chdir "_sandbox"  or die;
 ###
 ### read_file() and write_file()
 ###
-if (1) {
+if (_test_p('read_file, write_file')) {
     my $input = "foo\nbar\nbaz\n";
     my $filename = "_test.tmp";
     write_file($filename, $input);
@@ -40,7 +43,7 @@ if (1) {
 ###
 ### ob_start(), ob_get_clean()
 ###
-if (1) {
+if (_test_p('ob_start, ob_get_clean')) {
     ob_start();
     print "YES";
     my $output = ob_get_clean();
@@ -56,7 +59,7 @@ if (1) {
 ###
 ### has_metachar()
 ###
-if (1) {
+if (_test_p('has_metachar')) {
     ok(has_metachar("*.html") == 1);
     ok(has_metachar("index.htm?") == 1);
     ok(has_metachar("index.{txt,htm}") == 1);
@@ -70,7 +73,7 @@ if (1) {
 ###
 ### meta2rexp()
 ###
-if (1) {
+if (_test_p('meta2rexp')) {
     ok(meta2rexp("*.html") eq '^(.*?)\.html$');
     ok(meta2rexp("index.htm?") eq '^index\\.htm(.)$');
     ok(meta2rexp("index.{txt,html,xml}") eq '^index\\.(txt|html|xml)$');
@@ -82,7 +85,7 @@ if (1) {
 ###
 ### repr()
 ###
-if (1) {
+if (_test_p('repr')) {
     ok(repr(["foo\n", 123, undef]) eq '["foo\n",123,undef]');
     my $s = repr({'x'=>10, 'y'=>20});
     ok($s eq '{"x" => 10,"y" => 20}' || $s eq '{"y" => 20,"x" => 10}');
@@ -92,7 +95,7 @@ if (1) {
 ###
 ### flatten()
 ###
-if (1) {
+if (_test_p('flatten')) {
     my $arr = ["foo", ["bar", ["baz"]]];
     my @arr2 = flatten(@$arr);
     ok(repr(\@arr2) eq '["foo","bar","baz"]');
@@ -102,7 +105,7 @@ if (1) {
 ###
 ### glob2()
 ###
-if (1) {
+if (_test_p('glob2')) {
     mkdir "hello.d";
     mkdir "hello.d/src";
     mkdir "hello.d/src/lib";
@@ -134,7 +137,7 @@ if (1) {
 ### Kook::Utils::CommandOptionParser
 ###
 
-if (1) {
+if (_test_p('CommandOptionParser')) {
     ### new()
     my $parser;
     my $optdef_strs;

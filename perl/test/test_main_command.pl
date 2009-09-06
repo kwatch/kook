@@ -156,7 +156,7 @@ sub after_each {
 ### invoke recipe
 ###
 before_each();
-if ("recipe is invoked") {
+if (_test_p("recipe is invoked")) {
     ## 1st
     if ("recipe is invoked then hello should be created") {
         my $output = `plkook build`;
@@ -230,7 +230,7 @@ after_each();
 ### -h
 ###
 before_each();
-if ("option -h specified") {
+if (_test_p("option -h specified")) {
     my $output = `plkook -hlL`;
     #my $main = Kook::MainCommand->new(["-hlL"], "plkook");
     #$main->invoke();
@@ -258,7 +258,7 @@ after_each();
 ### -V
 ###
 before_each();
-if ("option -V specified") {
+if (_test_p("option -V specified")) {
     my $output = `plkook -V`;
     my $expected = "".$Kook::RELEASE."\n";
     ok($output eq $expected);
@@ -271,7 +271,7 @@ after_each();
 ### -l
 ###
 before_each();
-if ("option -l specified") {
+if (_test_p("option -l specified")) {
     my $output = `plkook -l`;
     my $expected = <<'END';
 Properties:
@@ -306,7 +306,7 @@ after_each();
 ### -L
 ###
 before_each();
-if ("option -L specified") {
+if (_test_p("option -L specified")) {
     my $output = `plkook -L`;
     my $expected = <<'END';
 Properties:
@@ -344,7 +344,7 @@ after_each();
 ### -D
 ###
 before_each();
-if ("option -D specified") {
+if (_test_p("option -D specified")) {
     my $output = `plkook -D build`;
     my $expected = <<'END';
 *** debug: ++ Cookbook#find_recipe(): target=build, func=, product=build
@@ -392,7 +392,7 @@ after_each();
 ### -D2
 ###
 before_each();
-if ("option -D2 specified") {
+if (_test_p("option -D2 specified")) {
     my $output = `plkook -D2 build`;
     my $expected = <<'END';
 *** debug: specific task recipes: ["build","test1","show-props"]
@@ -505,7 +505,7 @@ after_each();
 ### -q
 ###
 before_each();
-if ("option -q specified") {
+if (_test_p("option -q specified")) {
     ok(! -f "hello");
     my $output = `plkook -q build`;
     ok($output eq "");
@@ -518,7 +518,7 @@ after_each();
 ### -f file
 ###
 before_each();
-if ("option -f specified") {
+if (_test_p("option -f specified")) {
     rename "Kookbook.pl", "_Kookbook.xxx";
     #
     ok(! -f "hello");
@@ -536,7 +536,7 @@ after_each();
 ### -F
 ###
 before_each();
-if ("option -F specified") {
+if (_test_p("option -F specified")) {
     my $output = `plkook build`;
     my $expected = $output;
     #
@@ -553,7 +553,7 @@ after_each();
 ### -n
 ###
 before_each();
-if ("option -n specified") {
+if (_test_p("option -n specified")) {
     ok(! -f "hello.h");
     ok(! -f "hello");
     my $output = `plkook -n build`;
@@ -580,7 +580,7 @@ after_each();
 ### spices
 ###
 before_each();
-if ("spices") {
+if (_test_p("spices")) {
     if ("spices specified") {
         my ($output, $errmsg) = _system('plkook test1 -vDf file1.txt -i AAA BBB');
         my $expected = <<'END';
@@ -610,7 +610,7 @@ after_each();
 ### $kook_default
 ###
 before_each();
-if ('$kook_default is specified') {
+if (_test_p('$kook_default is specified')) {
     my ($output, $errmsg) = _system('plkook');
     my $expected = <<'END';
 ### **** hello.h (recipe=hello.h)
@@ -633,7 +633,7 @@ after_each();
 ### properties
 ###
 before_each();
-if ('properties') {
+if (_test_p('properties')) {
     if ('properties are not specified') {
         my ($output, $errmsg) = _system('plkook show-props');
         my $expected = <<'END';
@@ -668,7 +668,7 @@ after_each();
 ### error: invalid options
 ###
 before_each();
-if ("invalid options specified") {
+if (_test_p("invalid options specified")) {
     if ("not-an-integer specified for -D") {
         my ($output, $errmsg) = _system('plkook -Dh build');
         ok($output eq "");
@@ -697,7 +697,7 @@ after_each();
 ### error: no recipe or material
 ###
 before_each();
-if ("there is no recipes which matches to specified target") {
+if (_test_p("there is no recipes which matches to specified target")) {
     my ($output, $errmsg) = _system('plkook foobar');
     ok($output eq "");
     ok($errmsg eq "foobar: no such recipe or material.\n");
@@ -713,7 +713,7 @@ after_each();
 ### error: no product specified
 ###
 before_each();
-if ("no product specified") {
+if (_test_p("no product specified")) {
     my $s = read_file('Kookbook.pl');
     $s =~ s/^\$kook_default.*$//m;
     write_file('Kookbook.pl', $s);
