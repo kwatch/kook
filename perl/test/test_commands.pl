@@ -6,7 +6,7 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 361;
+use Test::Simple tests => 362;
 use File::Path;
 use File::Basename;
 use Cwd;
@@ -1065,7 +1065,8 @@ if (_test_p("edit")) {
         before_each();
         #
         ob_start();
-        edit { s/\$COPYRIGHT\$/MIT License/g; $_ } "hello.d/**/*.c", "hello.d/**/*.h";
+        #edit { s/\$COPYRIGHT\$/MIT License/g; $_ } "hello.d/**/*.c", "hello.d/**/*.h";
+        edit "hello.d/**/*.c", "hello.d/**/*.h", sub { s/\$COPYRIGHT\$/MIT License/g; $_ };
         my $output = ob_get_clean();
         die $@ if $@;
         #
@@ -1079,16 +1080,27 @@ if (_test_p("edit")) {
         ok($expected ne $HELLO_H);
         ok(read_file("hello.d/src/include/hello.h") eq $expected);
         ok(read_file("hello.d/src/include/hello2.h") eq $expected);
+	#
+	after_each();
     }
     if ("directory names are specified") {
         before_each();
         #
         ob_start();
-        edit { s/\$COPYRIGHT\$/MIT License/g; $_ } "hello.d/src";
+        #edit { s/\$COPYRIGHT\$/MIT License/g; $_ } "hello.d/src";
+        edit "hello.d/src", sub { s/\$COPYRIGHT\$/MIT License/g; $_ };
         my $output = ob_get_clean();
         die $@ if $@;
         #
         ok(! $@);
+        #
+        after_each();
+    }
+    if ("closure is not specified") {
+        before_each();
+        #
+        eval { edit "hello.d/src"; };
+        ok($@ eq "edit(): last argument should be closure.\n");
         #
         after_each();
     }

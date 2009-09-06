@@ -227,6 +227,7 @@ sub new {
         "m"      => $m,
         cooked   => undef,
         argv     => [],
+        children => [],
     };
     return bless $this, $class;
 }

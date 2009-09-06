@@ -391,9 +391,12 @@ sub _cd {
 
 ## edit files
 ## ex.
-##   edit { s/\$RELEASE\$/1.2.3/g; $_ } "dist/src/*/*.pl";
-sub edit (&@) {
-    my ($closure, @filenames) = @_;
+##   edit "dist/src/*/*.pl", sub { s/\$RELEASE\$/1.2.3/g; $_ };
+sub edit {      # or sub edit (&@) { ...
+    #my ($closure, @filenames) = @_;
+    my $closure = pop @_;
+    ref($closure) eq 'CODE'  or die "edit(): last argument should be closure.\n";
+    my (@filenames) = @_;
     my @fnames = _prepare('edit', @filenames);
     return if $Kook::Config::NOEXEC;
     for my $fname (@fnames) {

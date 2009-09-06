@@ -28,13 +28,13 @@ recipe "package", {
             my $base = "Kook-$release";
             mv "../$base.tar.gz", ".";
             sys "tar xzf $base.tar.gz";
-            edit {
+            edit "$base/**/*", sub {
                 s/\$Release\$/$release/g;
                 s/\$Release:.*?\$/\$Release: $release \$/g;
                 s/\$Copyright\$/$copyright/g;
                 s/\$License\$/$license/g;
                 $_;
-            } "$base/**/*";
+            };
             mv "$base.tar.gz", "$base.tar.gz.bkup";
             sys "tar czf $base.tar.gz $base";
         };
@@ -61,10 +61,10 @@ recipe "edit-version", {
         my $s = read_file("lib/Kook.pm");
         $s =~ m/^our \$VERSION = '(.*)';/m  or die "*** \$VERSION not found in lib/Kook.pm";
         if ($1 ne $release) {
-            edit {
+            edit "lib/Kook.pm", sub {
                 s/^(our \$VERSION = ).*$/$1'$release';/m;
                 $_
-            } "lib/Kook.pm";
+            };
         }
     }
 };
