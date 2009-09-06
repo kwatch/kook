@@ -6,7 +6,7 @@
 
 use strict;
 use Data::Dumper;
-use Test::Simple tests => 362;
+use Test::Simple tests => 367;
 use File::Path;
 use File::Basename;
 use Cwd;
@@ -1080,8 +1080,8 @@ if (_test_p("edit")) {
         ok($expected ne $HELLO_H);
         ok(read_file("hello.d/src/include/hello.h") eq $expected);
         ok(read_file("hello.d/src/include/hello2.h") eq $expected);
-	#
-	after_each();
+        #
+        after_each();
     }
     if ("directory names are specified") {
         before_each();
@@ -1096,11 +1096,49 @@ if (_test_p("edit")) {
         #
         after_each();
     }
-    if ("closure is not specified") {
+    if ("closure is not specified then report error") {
         before_each();
         #
         eval { edit "hello.d/src"; };
         ok($@ eq "edit(): last argument should be closure.\n");
+        #
+        after_each();
+    }
+    if ("closure returns false value then report error") {
+        before_each();
+        #
+        my $expected = "edit(): closure should return non-empty string but %s returned.\n";
+        ob_start();
+        $@ = undef;
+        eval { edit "hello.d/**/*", sub { undef }; };
+        ok($@ eq sprintf($expected, 'undef'));
+        $@ = undef;
+        eval { edit "hello.d/**/*", sub { "" }; };
+        ok($@ eq sprintf($expected, 'empty string'));
+        $@ = undef;
+        eval { edit "hello.d/**/*", sub { 0 }; };
+        ok($@ eq sprintf($expected, 'zero'));
+        $@ = undef;
+        ob_get_clean();
+        #
+        after_each();
+    }
+    if ("closure returns number then report error") {
+        before_each();
+        #
+        ob_start();
+        my $expected = "edit(): closure should return non-empty string but %s returned.\n";
+        $@ = undef;
+        eval { edit "hello.d/**/*", sub { 123 }; };
+        ok($@ eq sprintf($expected, 123));
+        $@ = undef;
+        #eval { edit "hello.d/**/*", sub { 3.14 }; };
+        #ok($@ eq sprintf($expected, 3.14));
+        #ok($@ eq $expected);
+        #$@ = undef;
+        eval { edit "hello.d/**/*", sub { 0 == 0 }; };
+        ok($@ eq sprintf($expected, 1));
+        ob_get_clean();
         #
         after_each();
     }

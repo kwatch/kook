@@ -399,11 +399,17 @@ sub edit {      # or sub edit (&@) { ...
     my (@filenames) = @_;
     my @fnames = _prepare('edit', @filenames);
     return if $Kook::Config::NOEXEC;
+    my $errmsg = "edit(): closure should return non-empty string but %s returned.\n";
     for my $fname (@fnames) {
         next unless -f $fname;
         $_ = read_file($fname);
-        $_ = &{$closure}();
-        write_file($fname, $_);
+        my $s = &{$closure}();
+        defined($s)     or die sprintf($errmsg, 'undef');
+        length($s) > 0  or die sprintf($errmsg, 'empty string');
+        "$s" ne "0"     or die sprintf($errmsg, 'zero');
+        my $is_number = $s =~ /\A\d+(\.\d+)?\Z/ && Dumper($s) !~ /['"]/;
+        ! $is_number    or die sprintf($errmsg, $s);
+        write_file($fname, $s);
     }
 }
 
