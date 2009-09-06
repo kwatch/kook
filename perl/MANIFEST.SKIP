@@ -1,0 +1,12 @@
+^blib/
+^tmp/
+^dist/
+^pm_to_blib$
+^hoge
+~$
+\.tar.gz$
+\.swp$
+\.bak$
+\.SKIP$
+\.profile$
+
