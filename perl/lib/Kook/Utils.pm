@@ -271,7 +271,7 @@ sub _parse {
         }
         ## long opts
         if ($cmd_arg =~ /^--/) {
-            $cmd_arg =~ /^--([a-zA-Z][-\w]+)(?:=(.*))?$/  or
+            $cmd_arg =~ /^--([a-zA-Z_][-\w]+)(?:=(.*))?$/  or
                 die "$cmd_arg: invalid option.\n";
             my $name = $1;
             my $arg  = $2;
