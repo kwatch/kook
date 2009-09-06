@@ -9,7 +9,7 @@
 use strict;
 use Data::Dumper;
 use Cwd;
-use Test::Simple tests => 46;
+use Test::Simple tests => 47;
 
 use Kook::Main;
 use Kook::Utils ('read_file', 'write_file');
@@ -80,6 +80,7 @@ my $CC = prop('CC', 'gcc');
 my $prop1 = prop('prop1', 12345);
 my $prop2 = prop('prop2', ['a', 'b', 'c']);
 my $prop3 = prop('prop3', {'x'=>10, 'y'=>20});
+my $_prop4 = prop('_prop4', 12345);
 
 recipe "build", {
     desc => "build all files",
@@ -289,6 +290,43 @@ Task recipes
 
 File recipes
   hello                : build hello command
+  *.o                  : compile *.c
+
+(Tips: it is able to separate properties into 'Properties.pl' file.)
+END
+    ;
+    $output   =~ s/^\(Tips:.*\n//m;
+    $expected =~ s/^\(Tips:.*\n//m;
+    ok($output eq $expected);
+}
+after_each();
+
+
+###
+### -L
+###
+before_each();
+if ("option -L specified") {
+    my $output = `plkook -L`;
+    my $expected = <<'END';
+Properties:
+  CC                   : "gcc"
+  prop1                : 12345
+  prop2                : ["a","b","c"]
+  prop3                : {"y" => 20,"x" => 10}
+  _prop4               : 12345
+
+Task recipes
+  build                : build all files
+  test1                : test of spices
+    -v                     verbose
+    -f file                file
+    -i[N]                  indent
+    --name=str             name string
+
+File recipes
+  hello                : build hello command
+  hello.h              : 
   *.o                  : compile *.c
 
 (Tips: it is able to separate properties into 'Properties.pl' file.)
