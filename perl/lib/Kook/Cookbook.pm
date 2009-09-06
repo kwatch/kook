@@ -81,9 +81,7 @@ sub load {
     my $context = {};
     ## merge hash
     if ($properties) {
-        for my $k (keys %$properties) {
-            $context->{$k} = $properties->{$k};
-        }
+        $context->{$_} = $properties->{$_} for (keys %$properties);
     }
     #python: context['prop'] = self.prop
     $this->{context} = $context;
