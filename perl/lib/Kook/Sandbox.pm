@@ -15,11 +15,19 @@ use Kook::Recipe;
 use Kook::Commands qw(sys sys_f echo echo_n cp cp_p cp_r cp_pr mkdir mkdir_p rm rm_r rm_f rm_rf rmdir mv store store_p cd edit);
 use Kook::Utils ('repr');
 
-our @_recipes         = ();     # out
-our %_properties      = ();     # in
-our @_property_tuples = ();     # out
-our $kook_default     = undef;  # out
-our $kook_desc        = undef;  # out
+our @_recipes;          # out
+our %_properties;       # in
+our @_property_tuples;  # out
+our $kook_default;      # out
+our $kook_desc;         # out
+
+sub __init {
+   @_recipes         = ();
+   %_properties      = ();
+   @_property_tuples = ();
+   $kook_default     = undef;
+   $kook_desc        = undef;
+}
 
 sub recipe {
     my $recipe_obj = Kook::Recipe->new(@_);
@@ -44,11 +52,8 @@ sub _eval {
     #undef @_list;
     #eval $_code;  #, $_context;
     #undef $_code;
-    @_recipes         = ();
-    %_properties      = $_context ? %$_context : ();
-    @_property_tuples = ();
-    $kook_default     = undef;
-    $kook_desc        = undef;
+    __init();
+    %_properties      = %$_context if $_context;
     eval "# line 1 \"$_filename\"\n".$_script;
 }
 
