@@ -153,7 +153,7 @@ sub _list_recipes {
     print "Properties:\n";
     for (@{$cookbook->{property_tuples}}) {
         my ($name, $value, $desc) = @$_;
-        next if ! $show_all && $name =~ /\A_/;
+        next if ! $show_all && $desc == -1;
         printf($format, $name, repr($value));
     }
     print "\n";

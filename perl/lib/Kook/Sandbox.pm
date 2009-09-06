@@ -42,6 +42,11 @@ sub prop {
     return $value;
 }
 
+sub private_prop {
+    my ($name, $default_value, $desc) = @_;
+    return prop($name, $default_value, -1);   # if $desc is -1, that property is regarded as private
+}
+
 sub _eval {
     my ($_script, $_filename, $_props) = @_;
     __init();

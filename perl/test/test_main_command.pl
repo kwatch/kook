@@ -128,14 +128,14 @@ recipe "test1", {
 my $prop1 = prop('prop1', 12345);
 my $prop2 = prop('prop2', ['a', 'b', 'c']);
 my $prop3 = prop('prop3', {'x'=>10, 'y'=>20});
-my $_prop4 = prop('_prop4', 12345);
+my $prop4 = private_prop('prop4', 'hoge');   # private
 
 recipe "show-props", {
     method => sub {
         print '$prop1 = ', repr($prop1), "\n";
         print '$prop2 = ', repr($prop2), "\n";
         print '$prop3 = ', repr($prop3), "\n";
-        print '$_prop4 = ', repr($_prop4), "\n";
+        print '$prop4 = ', repr($prop4), "\n";
     }
 }
 END
@@ -324,7 +324,7 @@ Properties:
   prop1                : 12345
   prop2                : ["a","b","c"]
   prop3                : {"y" => 20,"x" => 10}
-  _prop4               : 12345
+  prop4                : "hoge"
 
 Task recipes
   build                : build all files
@@ -628,20 +628,20 @@ if ('properties') {
 	$prop1 = 12345
 	$prop2 = ["a","b","c"]
 	$prop3 = {"y" => 20,"x" => 10}
-	$_prop4 = 12345
+	$prop4 = "hoge"
 END
         $expected =~ s/^\t//mg;
         ok($output eq $expected);
         ok($errmsg eq "");
     }
     if ('properties are specified') {
-        my ($output, $errmsg) = _system 'plkook --prop1=456 --_prop4=foo show-props';
+        my ($output, $errmsg) = _system 'plkook --prop1=456 --prop4=geji show-props';
         my $expected = <<'END';
 	### * show-props (recipe=show-props)
 	$prop1 = 456
 	$prop2 = ["a","b","c"]
 	$prop3 = {"y" => 20,"x" => 10}
-	$_prop4 = "foo"
+	$prop4 = "geji"
 END
         $expected =~ s/^\t//mg;
         ok($output eq $expected);
