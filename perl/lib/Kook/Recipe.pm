@@ -22,7 +22,18 @@ our $DEFAULT_DESCS = {
 
 
 sub new {
-    my ($class, $product, $values) = @_;
+    my ($class, $product, $ingreds, $values) = @_;
+    if (ref($ingreds) eq 'ARRAY') {    # short notation
+        if    (! defined($values))     { $values = { ingreds => $ingreds }; }
+        elsif (ref($values) eq 'HASH') { $values->{'ingreds'} = $ingreds;   }
+        else { die "Recipe->new(): invalid datatype for 3rd argument."; }
+    }
+    elsif (ref($ingreds) eq 'HASH') {  # normal notation
+        $values = $ingreds;
+    }
+    else {
+        die "Recipe->new(): invalid datatype for 2nd argument.";
+    }
     my %hash = %$values;
     ## pattern;
     my $pattern;

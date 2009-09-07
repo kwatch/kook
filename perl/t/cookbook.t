@@ -45,9 +45,8 @@ recipe "*.html", {
     }
 };
 
-recipe "index.html", {
+recipe "index.html", ["index.wiki"], {   # short notation
     desc => "generate index.html",
-    ingreds => ["index.wiki"],
     method => sub {
         my ($c) = @_;
         print "wiki2html index.wiki > index.html";
