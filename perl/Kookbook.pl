@@ -2,7 +2,7 @@
 use Kook::Utils ('read_file', 'write_file');
 
 my $project   = prop('project', "plkook");
-my $release   = prop('release', "0.0.0");
+my $release   = prop('release', "0.0.1");
 my $copyright = "copyright(c) 2009 kuwata-lab.com all rights reserved.";
 my $license   = prop('license', "MIT License");
 
