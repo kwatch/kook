@@ -5,6 +5,7 @@
 %   when 'kook', 'phkook';  project = 'phKook'
 %   when 'rook', 'rbkook';  project = 'rbKook'
 %   when 'pook', 'pykook';  project = 'pyKook'
+%   when         'plkook';  project = 'plKook'
 %   else raise "*** internal error: ENV['PROJECT']=#{ENV['PROJECT']}"
 %   end
 % else
@@ -12,6 +13,7 @@
 %   when /\b(php|phkook)\b/;     project = 'phKook'
 %   when /\b(ruby|rbkook)\b/;    project = 'rbRook'
 %   when /\b(python|pykook)\b/;  project = 'pyKook'
+%   when /\b(perl|plkook)\b/;    project = 'plKook'
 %   else raise "*** could not detect target project."
 %   end
 % end
@@ -19,13 +21,14 @@
 % when "phKook";  phkook = true;  tuple = %w[PHP    php phkook kk]
 % when "rbKook";  rbkook = true;  tuple = %w[Ruby   rb  rbkook kk]
 % when "pyKook";  pykook = true;  tuple = %w[Python py  pykook kk]
+% when "plKook";  plkook = true;  tuple = %w[Perl   pl  plkook kk]
 % end
 % lang, suffix, command, short_command = tuple
 % LANG, SUFFIX, COMMAND, SHORT_COMMAND = tuple
 % PROJECT = project
 % BASENAME = basename = 'Kookbook'
 % BOOKNAME = bookname = basename + '.' + suffix
-% PHP, RUBY, PYTHON = phpkook, rbkook, pykook
+% PHP, RUBY, PYTHON, PERL = phpkook, rbkook, pykook, plkook
 %
 % def error
 %   ex = StandardError.new("*** internal error")
@@ -101,6 +104,8 @@ For exaple, function 'k_sys()' invokes OS-depend command.
 % elsif RUBY
 For exaple, function 'sys()' invokes OS-depend command.
 % elsif PYTHON
+For exaple, function '{{,system(),}}' invokes OS-depend command.
+% elsif PERL
 For exaple, function '{{,system(),}}' invokes OS-depend command.
 % else error() end
 See {{<References|#refs>}} for details about helper functions.
@@ -224,6 +229,11 @@ Product and ingredient names are referable as property of recipe function's argu
 .* Property 'c.product' represents product.
 .* Property 'c.ingreds' represents ingredients.
 .* Property 'c.ingred' represents the first item of ingredients (= c.ingreds[0]).
+% elsif PERL
+Product and ingredient names are referable as property of recipe function's argument.
+.* Property '$c->{product}' represents product.
+.* Property '$c->{ingreds}' represents ingredients.
+.* Property '$c->{ingred}' represents the first item of ingredients (= $c->{ingreds}->[0]).
 % else error() end
 
 .? [%= BOOKNAME %]: Use {{,c.product,}} and {{,c.ingreds,}}
@@ -300,6 +310,9 @@ Product name of generic recipe is a pattern with metacharacter or regular expres
 % elsif PYTHON
 Generic recipe is a recipe which is combined to a pattern of file name.
 Product name of generic recipe is a pattern with metacharacter or regular expression.
+% elsif PERL
+Generic recipe is a recipe which is combined to a pattern of file name.
+Product name of generic recipe is a pattern with metacharacter.
 % else error() end
 
 [%= PROJECT %] converts file name pattern into regular expression.
@@ -313,6 +326,10 @@ and {{,'*.??.txt',}} to {{,/^(.*)\.(.)(.)\.txt$/,}}.
 For example:
 .* {{,'*.o',}} will be coverted into {{,r'^(.*?)\.o$',}}.
 .* {{,'*.??.txt',}} will be converted into to {{,r'^(.*?)\.(..)\.txt$',}}.
+% elsif PERL
+For example:
+.* {{,'*.o',}} will be coverted into {{,/^(.*?)\.o$/,}}.
+.* {{,'*.??.txt',}} will be converted into to {{,/^(.*?)\.(..)\.txt$/,}}.
 % else error() end
 
 % if PHP
@@ -321,6 +338,8 @@ Matched strings with metacharacter ('*' or '?') are accessable by '$(1)', '$(2)'
 Matched strings with metacharacter ('*' or '?') are accessable by '$(1)', '$(2)', ... in recipe definition and instance variable '@m' in 'method*:' part.
 % elsif PYTHON
 Matched strings with metacharacter ('*' or '?') are accessable by {{,$(1),}}, {{,$(2),}}, ... in {{,@ingreds(),}} decorator.
+% elsif PERL
+Matched strings with metacharacter ('*' or '?') are accessable by {{,$(1),}}, {{,$(2),}}, ... in recipe definition.
 % else error() end
 
 .? [%= BOOKNAME %]: Compile hello.c so that to generate 'hello' command.
@@ -369,6 +388,7 @@ $ gcc -g -o hello hello.o
 % if PHP            ; prod_rexp = %q|'/^(.*)\\.o$/'|   ; prod_pat = %q|'*.o'|
 % elsif RUBY        ; prod_rexp = %q|/^(.*)\\.o$/|     ; prod_pat = %q|*.o|
 % elsif PYTHON      ; prod_rexp = %q|@product(re.compile(r'^(.*)\\.o$'))| ; prod_pat = %q|@product('*.o')|
+% elsif PERL        ; prod_rexp = %q|/^(.*)\\.o$/|     ; prod_pat = %q|'*.o'|
 % else error() end
 
 It is able to specify regular expression instead of filename pattern.
@@ -409,12 +429,16 @@ For example when '{{,toppings:  [hello.h],}}' is specified in recipe definition,
 % elsif PYTHON
 In this case, you can use {{,if_exists(),}} helper function which resolve the problem.
 For example, when {{,if_exists("hello.h"),}} is specified in {{,@ingreds(),}}, [%= PROJECT %] detect dependency as following.
+% elsif PERL
+In this case, you can use {{,if_exists(),}} helper function which resolve the problem.
+For example, when {{,if_exists("hello.h"),}} is specified as ingredient, [%= PROJECT %] detect dependency as following.
 % else error() end
 .* If file 'hello.h' exists, product 'hello.o' depends on ingredients 'hello.c' and 'hello.h'.
 .* If file 'hello.h' doesn't exist, product 'hello.o' depends on only 'hello.c'.
 
 % if    PHP || RUBY   ;  s = "'toppings:' part"
 % elsif PYTHON        ;  s = "{{,if_exists(),}}"
+% elsif PERL          ;  s = "{{,if_exists(),}}"
 % else error() end
 [%= s %] is useful especially when used with generic recipes.
 
@@ -699,6 +723,10 @@ Property name should match to regular expression '/^[_a-zA-Z]\w*$/'.
 Notice that period ('.') or hyphen ('-') are not available as property name character.
 
 % elsif PYTHON
+
+Property is defined by {{,prop(),}} function. It takes property name and default value as arguments.
+
+% elsif PERL
 
 Property is defined by {{,prop(),}} function. It takes property name and default value as arguments.
 
@@ -2056,4 +2084,5 @@ copyright(c)
 #!/usr/bin/env ruby
 .--------------------
 % elsif PYTHON
+% elsif PERL
 % else error() end
