@@ -128,7 +128,7 @@ Command-line example::
     $ rm -f *.o
 
 
-See 'doc/users-guide.html' for details.
+#See 'doc/users-guide.html' for details.   <- coming soon!
 
 
 License
