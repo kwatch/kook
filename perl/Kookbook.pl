@@ -32,7 +32,10 @@ recipe "package", {
                 $_;
             };
             mv "$base.tar.gz", "$base.tar.gz.bkup";
-            sys "tar czf $base.tar.gz $base";
+            #sys "tar czf $base.tar.gz $base";
+            my $base2 = "plkook-$release";
+            mv $base, $base2;
+            sys "tar czf $base2.tar.gz $base2";
         };
         rm_rf "Makefile", "MANIFEST", "pm_to_blib", "blib";
     }
