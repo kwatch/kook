@@ -50,6 +50,40 @@ recipe "bin/kk", {
 };
 
 
+## for documents
+
+recipe "doc", ['doc/users-guide.html', 'doc/docstyle.css'];
+
+recipe "doc/users-guide.html", ['doc/users-guide.txt'], {
+    byprods => ['users-guide.toc.html', 'users-guide.tmp'],
+    method => sub {
+        my ($c) = @_;
+        my $tmp = $c->{byprods}->[1];
+        sys "kwaser -t html-css -T $c->{ingred} > $c->{byprod}";
+        sys "kwaser -t html-css    $c->{ingred} > $tmp";
+        sys_f "tidy -q -i -wrap 9999 $tmp > $c->{product}";
+        rm_f $c->{byprods};
+    }
+};
+
+recipe "doc/users-guide.txt", ['../doc/users-guide.eruby'], {
+    method => sub {
+        my ($c) = @_;
+        mkdir "doc" unless -d "doc";
+        sys "erubis -E PercentLine -p '\\[% %\\]' $c->{ingred} > $c->{product}";
+    }
+};
+
+recipe 'doc/docstyle.css', ['../doc/docstyle.css'], {
+    method => sub {
+        my ($c) = @_;
+        mkdir "doc" unless -d "doc";
+        cp $c->{ingred}, $c->{product};
+    }
+};
+
+
+
 ### for CPAN package
 
 recipe "edit-version", {
