@@ -1,10 +1,4 @@
-*~
 *.pyc
-*.rbc
-*.DS_Store
-tmp/
-misc/
-dist/
-doc/*.toc.html
-archives/
-test/data/
+archives/*
+dist/*
+tmp/*
