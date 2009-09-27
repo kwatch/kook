@@ -6,11 +6,11 @@ die() {
 }
 
 command=`basename $0`
-if [ -z "$KK_CLIMB" ]; then
-	n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
-	[ $n -eq 0 ] && die "$command: No kookbook found."
-	[ $n -gt 1 ] && die "$command: Kookbook.*: Two or more kookbooks found."
-else
+#if [ -z "$KK_CLIMB" ]; then
+#	n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
+#	[ $n -eq 0 ] && die "$command: No kookbook found."
+#	[ $n -gt 1 ] && die "$command: Kookbook.*: Two or more kookbooks found."
+#else
 	cwd=`pwd`
 	while [ true ]; do
 		n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
@@ -21,7 +21,7 @@ else
 		cwd=`pwd`
 		[ "$cwd" == "$old" ] && die "$command: No kookbook found."
 	done
-fi
+#fi
 
 kookbook=`echo Kookbook.*`
 case $kookbook in
