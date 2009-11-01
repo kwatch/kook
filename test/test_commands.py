@@ -411,6 +411,38 @@ $ chdir -   # back to %s
             ok(sout, '==', expected)
             ok(serr, '==', "")
 
+    def test_chdir2(self):
+        curr_dir = os.getcwd()
+        if "function is passed as 2nd argument":
+            inner_dir = [None]
+            def f():
+                inner_dir[0] = os.getcwd()
+            obj = chdir('hello.d', f)
+            outer_dir = os.getcwd()
+            ok(outer_dir, '==', curr_dir)
+            ok(inner_dir[0], '==', os.path.join(curr_dir, 'hello.d'))
+            #
+            expected = r"""
+$ chdir hello.d
+$ chdir -   # back to %s
+"""[1:]     % curr_dir
+            sout, serr = _getvalues()
+            ok(sout, '==', expected)
+            ok(serr, '==', "")
+        #
+        if "function passed as 2nd argument raises exception":
+            inner_dir = [None]
+            def f():
+                inner_dir[0] = os.getcwd()
+                raise TypeError('***')
+            def should_raise():
+                obj = chdir('hello.d', f)
+            ok(should_raise, 'raises', TypeError, '***')
+            #
+            outer_dir = os.getcwd()
+            ok(outer_dir, '==', curr_dir)
+            ok(inner_dir[0], '==', os.path.join(curr_dir, 'hello.d'))
+
     def test_ch(self):
         cwd = os.getcwd()
         try:

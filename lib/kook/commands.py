@@ -313,9 +313,25 @@ class Chdir(object):
         os.chdir(self.cwd)
 
 
-def chdir(dirname):
+def chdir(dirname, block=None):
     #return _chdir(dirname, 'chdir', 'chdir')
-    return Chdir(dirname, 'chdir', 'chdir')
+    obj = Chdir(dirname, 'chdir', 'chdir')
+    if block:
+        ex_type = ex_obj = traceback = None
+        try:
+            obj.__enter__()
+            block.__call__()
+        except Exception:
+            ex_type, ex_obj, traceback = sys.exc_info();
+        finally:
+            obj.__exit__(ex_type, ex_obj, traceback)
+            if ex_obj:
+                raise
+    def __exit__(self, type, value, traceback):   # type and value is not used
+        _prepare(['-', '  # back to '+self.cwd], self.cmd)
+        os.chdir(self.cwd)
+
+    return obj
 
 def cd(dirname):
     return _chdir(dirname, 'cd', 'cd')
