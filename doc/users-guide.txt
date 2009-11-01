@@ -1122,38 +1122,33 @@ sh> kk -h
 kk: No kookbook found.
 .====================
 
-
-
-.$$ Search kookbook in parent directory		| topic-recursive
-
-If you set {{,$KK_CLIMB,}} environment variable to {{,1,}}, {{,kk,}} script searches parent directory recursively for kookbook.
+In addition, {{,kk,}} searches Kookbook.py in parent directory recursively.
 
 .====================
 sh> ls -F
 Kookbook.py    src/    test/
 sh> cd src/foo/bar/
-sh> kk clean                       # ERROR
-kk: No kookbook found.
-sh> {{*export KK_CLIMB=1*}}
+sh> ls Kookbook.py
+ls: Kookbook.py: No such file or directory
 sh> kk clean                       # OK
 ### * clean (recipe=clean)
 $ rm **/*.pyc
 .====================
 
-Or if you specify '{{,-R,}}' command-line option to pykook, it searches parent directory recursively for kookbook.
+.#Or if you specify '{{,-R,}}' command-line option to pykook, it searches parent directory recursively for kookbook.
+.#
+.#.====================
+.#sh> ls -F
+.#Kookbook.py    src/    test/
+.#sh> cd src/foo/bar/
+.#sh> pykook clean                   # ERROR
+.#pykook: Kookbook.py: not found.
+.#sh> pykook {{*-R*}} clean
+.#### * clean (recipe=clean)
+.#$ rm **/*.pyc
+.#.====================
 
-.====================
-sh> ls -F
-Kookbook.py    src/    test/
-sh> cd src/foo/bar/
-sh> pykook clean                   # ERROR
-pykook: Kookbook.py: not found.
-sh> pykook {{*-R*}} clean
-### * clean (recipe=clean)
-$ rm **/*.pyc
-.====================
-
-{{!NOTICE!}} : In both cases, current directory will be changed to parent directory in which Kookbook.py exists.
+{{!NOTICE!}} : Current directory will be changed to parent directory in which Kookbook.py exists.
 
 
 
@@ -1524,13 +1519,22 @@ The following functions are available in recipe.
 	cd(cwd)              # back to current directry
 	.--------------------
 
-.[ chdir({{/dir/}}) ]
+.[ chdir({{/dir/}}, {{/callable=None/}}) ]
 	Change current directory temporary. If this is used with Python's with-statement, current directory will be backed automatically.
 	.--------------------
-	with chdir("build") as d:
-	   ...     # into "build" directory
-	# back to current directry automatically
+	with chdir('test') as d:
+	    ## in 'test' directory
+	    system('python test_all.py')
+	## back to current directry automatically
 	.--------------------
+	Or, if you are using Python 2.4 or older, callable object is available as 2nd argument in order the same purpose as with-statemnet.
+	.--------------------
+	def f():
+	    sytem('python test_all.py')
+	chdir('test', f)   ## f() is called at 'test' directory
+	## back to current directry automatically
+	.--------------------
+
 
 .#.[ chmod({{/mode/}}, {{/path/}}[, {{/path2/}}, ...]) ]
 .#	Change permission of {{/path/}}.

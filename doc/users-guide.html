@@ -87,8 +87,6 @@
 
             <li><a href="#topic-short-command">Short command</a></li>
 
-            <li><a href="#topic-recursive">Search kookbook in parent directory</a></li>
-
             <li><a href="#topic-short-notation">Short notation</a></li>
 
             <li><a href="#topic-debug-mode">Debug mode</a></li>
@@ -1087,37 +1085,21 @@ sh&gt; ls Kookbook.py
 ls: Kookbook.py: No such file or directory
 sh&gt; kk -h
 kk: No kookbook found.
-</pre><br>
-      <a name="topic-recursive" id="topic-recursive"></a>
+</pre>
 
-      <h3 class="section2">Search kookbook in parent directory</h3>
-
-      <p>If you set <code>$KK_CLIMB</code> environment variable to <code>1</code>, <code>kk</code> script searches parent directory recursively for kookbook.</p>
+      <p>In addition, <code>kk</code> searches Kookbook.py in parent directory recursively.</p>
       <pre class="terminal">
 sh&gt; ls -F
 Kookbook.py    src/    test/
 sh&gt; cd src/foo/bar/
-sh&gt; kk clean                       # ERROR
-kk: No kookbook found.
-sh&gt; <strong>export KK_CLIMB=1</strong>
+sh&gt; ls Kookbook.py
+ls: Kookbook.py: No such file or directory
 sh&gt; kk clean                       # OK
 ### * clean (recipe=clean)
 $ rm **/*.pyc
 </pre>
 
-      <p>Or if you specify '<code>-R</code>' command-line option to pykook, it searches parent directory recursively for kookbook.</p>
-      <pre class="terminal">
-sh&gt; ls -F
-Kookbook.py    src/    test/
-sh&gt; cd src/foo/bar/
-sh&gt; pykook clean                   # ERROR
-pykook: Kookbook.py: not found.
-sh&gt; pykook <strong>-R</strong> clean
-### * clean (recipe=clean)
-$ rm **/*.pyc
-</pre>
-
-      <p><span style="color:#FF0000">NOTICE</span> : In both cases, current directory will be changed to parent directory in which Kookbook.py exists.</p><br>
+      <p><span style="color:#FF0000">NOTICE</span> : Current directory will be changed to parent directory in which Kookbook.py exists.</p><br>
       <a name="topic-short-notation" id="topic-short-notation"></a>
 
       <h3 class="section2">Short notation</h3>
@@ -1334,14 +1316,21 @@ cd(cwd)              # back to current directry
       </dl>
 
       <dl class="dl3">
-        <dt class="dt3"><b>chdir(<em>dir</em>)</b></dt>
+        <dt class="dt3"><b>chdir(<em>dir</em>, <em>callable=None</em>)</b></dt>
 
         <dd class="dd3">
           Change current directory temporary. If this is used with Python's with-statement, current directory will be backed automatically.
           <pre class="program">
-with chdir("build") as d:
-   ...     # into "build" directory
-# back to current directry automatically
+with chdir('test') as d:
+    ## in 'test' directory
+    system('python test_all.py')
+## back to current directry automatically
+</pre>Or, if you are using Python 2.4 or older, callable object is available as 2nd argument in order the same purpose as with-statemnet.
+          <pre class="program">
+def f():
+    sytem('python test_all.py')
+chdir('test', f)   ## f() is called at 'test' directory
+## back to current directry automatically
 </pre>
         </dd>
       </dl>
