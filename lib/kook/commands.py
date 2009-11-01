@@ -327,10 +327,6 @@ def chdir(dirname, block=None):
             obj.__exit__(ex_type, ex_obj, traceback)
             if ex_obj:
                 raise
-    def __exit__(self, type, value, traceback):   # type and value is not used
-        _prepare(['-', '  # back to '+self.cwd], self.cmd)
-        os.chdir(self.cwd)
-
     return obj
 
 def cd(dirname):
