@@ -1,6 +1,29 @@
 
 releases:
 
+  - release:  0.0.5
+    date:     2009-11-02
+    enhances:
+
+      - Command 'chdir()' can now take callable object as 2nd argument.
+        In this case, (1) change directory, (2) call callable object,
+	and (3) back to original directory.
+	This feature is provided for Python 2.4 or older which doesn't
+	support with-statement.
+	    
+            def f():
+	       system 'python test_all.py'
+	    chdir('test', f)
+            ## above is same as:
+	    #with chdir('test', f):
+	    #    system 'python test_all.py'
+
+    changes:
+
+      - 'kk' command now searches Kookbook.py in parent directory recursively
+        without $KK_CLIMB=1 setting.
+	    
+
   - release:  0.0.4
     date:     2009-09-06
     changes:
