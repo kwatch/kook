@@ -140,16 +140,16 @@ def file_users_guide_html(c):
     #mv(c.byprod, "doc")
     rm(c.byprod)
 
-@recipe('doc/users-guide.txt', ['../doc/users-guide.eruby'])
+@recipe('doc/users-guide.txt', ['../common/doc/users-guide.eruby'])
 #@product('doc/users-guide.txt')
-#@ingreds('../doc/users-guide.eruby')
+#@ingreds('../common/doc/users-guide.eruby')
 def file_users_guide_txt(c):
     os.path.isdir('doc') or mkdir('doc')
     system(c%"erubis -E PercentLine -p '\\[% %\\]' $(ingred) > $(product)")
 
-@recipe('doc/docstyle.css', ['../doc/docstyle.css'])
+@recipe('doc/docstyle.css', ['../common/doc/docstyle.css'])
 #@product('doc/docstyle.css')
-#@ingreds('../doc/docstyle.css')
+#@ingreds('../common/doc/docstyle.css')
 def file_users_guide_css(c):
     os.path.isdir('doc') or mkdir('doc')
     cp(c.ingred, c.product)
