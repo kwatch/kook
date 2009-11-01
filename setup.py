@@ -1,5 +1,5 @@
 ###
-### $Release: 0.0.4 $
+### $Release: 0.0.5 $
 ### copyright(c) 2008-2009 kuwata-lab.com all rights reserved.
 ### MIT License
 ###
@@ -18,7 +18,7 @@ else:
 
 
 name     = 'Kook'
-version  = '0.0.4'
+version  = '0.0.5'
 author   = 'makoto kuwata'
 email    = 'kwa@kuwata-lab.com'
 maintainer = author
