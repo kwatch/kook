@@ -94,7 +94,7 @@ class Cookbook(object):
                 if not isinstance(obj, (tuple, list)):
                     raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(obj))
                 self.materials = obj
-            elif type(obj) == types.FunctionType:
+            elif Recipe.is_recipe(obj):
                 func = obj
                 if getattr(func, '_kook_recipe', None):      # added by @recipe decorator
                     #if hasattr(func, '_kook_kind'):
