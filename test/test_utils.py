@@ -77,5 +77,24 @@ class KookUtilsTest(object):
                     os.unlink(f)
 
 
+    def test_is_func_or_method(self):
+        from kook.utils import is_func_or_method
+        if "function is passed then returns True":
+            def f1(c):
+                pass
+            ok(is_func_or_method(f1), 'is', True)
+        if "method is passed then returns True":
+            class Foo(object):
+                def f2(c):
+                    pass
+            ok(is_func_or_method(Foo.f2), 'is', True)
+        if "other data is passed then returns False":
+            ok(is_func_or_method(None), 'is', False)
+            ok(is_func_or_method('str'), 'is', False)
+            class Bar(object):
+                pass
+            ok(is_func_or_method(Bar), 'is', False)
+
+
 if __name__ == '__main__':
     oktest.invoke_tests('Test$')

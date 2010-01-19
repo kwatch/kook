@@ -6,7 +6,7 @@
 ### $License$
 ###
 
-import sys, os, re
+import sys, os, re, types
 from glob import glob
 
 python2 = sys.version_info[0] == 2
@@ -421,6 +421,9 @@ if python2:
         return func.func_name
     def get_funclineno(func):
         return func.func_code.co_firstlineno
+    def is_func_or_method(func):
+        t = type(func)
+        return t is types.FunctionType or t is types.UnboundMethodType
 elif python3:
     def _is_str(obj):
         return isinstance(obj, (str, bytes))
@@ -428,5 +431,5 @@ elif python3:
         return func.__code__.co_name
     def get_funclineno(func):
         return func.__code__.co_firstlineno
-
-
+    def is_func_or_method(func):
+        return type(func) is types.FunctionType
