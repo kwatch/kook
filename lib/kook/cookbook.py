@@ -75,15 +75,18 @@ class Cookbook(object):
         context['prop'] = self.prop
         self.context = context
         exec(code_obj, context, context)
+        ## kook_materials
+        name = 'kook_materials'
+        if name in context:
+            obj = context.get(name)
+            if not isinstance(obj, (tuple, list)):
+                raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(obj))
+            self.materials = obj
         ## collect recipe functions
         tuples = []
         for name in context:         # dict.iteritems() is not available in Python 3.0
             obj = context.get(name)
-            if name == 'kook_materials':
-                if not isinstance(obj, (tuple, list)):
-                    raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(obj))
-                self.materials = obj
-            elif Recipe.is_recipe_func(obj):
+            if Recipe.is_recipe_func(obj):
                 func = obj
                 tuples.append((name, func, None))
             elif type(obj) is type and issubclass(obj, Category):
