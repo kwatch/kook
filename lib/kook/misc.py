@@ -36,7 +36,7 @@ def if_exists(*args):
 class Category(object):
     """Namespace of recipes"""
 
-    pass
+    _outer = None
 
 
 ###

@@ -66,6 +66,19 @@ class Cookbook(object):
         content = kook.utils.read_file(filename)
         self.load(content, filename, properties)
 
+    def _collect_recipe_functions(self, dct, category_class, _tuples=None):
+        if _tuples is None: _tuples = []
+        for name in dct:       # dict.iteritems() is not available in Python 3.0
+            obj = dct.get(name)
+            if Recipe.is_recipe_func(obj):
+                func = obj
+                _tuples.append((name, func, category_class))
+            elif type(obj) is type and issubclass(obj, Category):
+                klass = obj
+                self._collect_recipe_functions(klass.__dict__, klass, _tuples)
+                klass._outer = category_class
+        return _tuples
+
     def load(self, content, bookname='(kook)', properties={}):  ## TODO: refactoring
         ## eval content
         self.bookname = bookname
@@ -74,6 +87,7 @@ class Cookbook(object):
         if properties: context.update(properties)
         context['prop'] = self.prop
         self.context = context
+        #exec code_obj in context, context
         exec(code_obj, context, context)
         ## kook_materials
         name = 'kook_materials'
@@ -82,17 +96,8 @@ class Cookbook(object):
             if not isinstance(obj, (tuple, list)):
                 raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(obj))
             self.materials = obj
-        ## collect recipe functions
-        tuples = []
-        for name in context:         # dict.iteritems() is not available in Python 3.0
-            obj = context.get(name)
-            if Recipe.is_recipe_func(obj):
-                func = obj
-                tuples.append((name, func, None))
-            elif type(obj) is type and issubclass(obj, Category):
-                klass = obj
-                tuples.extend([ (k, v, klass) for k, v in klass.__dict__.items()
-                                              if Recipe.is_recipe_func(v) ])
+        ## collect recipe functions recursively
+        tuples = self._collect_recipe_functions(context, None)
         ## masks
         TASK     = 0x0
         FILE     = 0x1
@@ -258,7 +263,13 @@ class TaskRecipe(Recipe):
     def set_category(self, category_class):
         Recipe.set_category(self, category_class)
         ## use category class name as product prefix
-        self.product = category_class.__name__ + ':' + self.product
+        names = []
+        while category_class:
+            names.append(category_class.__name__)
+            category_class = category_class._outer
+        names.reverse()
+        names.append(self.product)
+        self.product = ':'.join(names)
 
 
 class FileRecipe(Recipe):

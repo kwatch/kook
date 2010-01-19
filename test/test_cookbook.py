@@ -240,6 +240,36 @@ class stash(Category):
         ok(recipes[0].product, '==', 'stash:save')
         ok(recipes[1].product, '==', 'stash:pop')
 
+    def test_load__category_recursively(self):
+        input = r"""
+class db(Category):
+  class schema(Category):
+    @recipe
+    def load(c):
+      pass
+    class migration(Category):
+      @recipe
+      def up(c):
+        pass
+      @recipe
+      def down(c):
+        pass
+      def reset(c):
+        pass
+  @recipe
+  def backup(c):
+    pass
+"""[1:]
+        book = Cookbook.new(None)
+        book.load(input)
+        recipes = book.specific_task_recipes[:]
+        ok(len(recipes), '==', 4)
+        recipes.sort(key=lambda r: r.product)
+        ok(recipes[0].product, '==', 'db:backup')
+        ok(recipes[1].product, '==', 'db:schema:load')
+        ok(recipes[2].product, '==', 'db:schema:migration:down')
+        ok(recipes[3].product, '==', 'db:schema:migration:up')
+
     def test_material_p(self):
         input = r"""
 kook_materials = ('index.html', )
@@ -319,6 +349,37 @@ class stash(Category):
         ok(recipe.product, '==', 'stash:pop')
         ok(recipe.name, '==', 'pop')
         recipe = book.find_recipe('stash:abort')
+        ok(recipe, 'is', None)
+
+    def test_find_recipe__category_recursively(self):
+        input = r"""
+class db(Category):
+  class schema(Category):
+    @recipe
+    def load(c):
+      pass
+    class migration(Category):
+      @recipe
+      def up(c):
+        pass
+      @recipe
+      def down(c):
+        pass
+      def reset(c):
+        pass
+  @recipe
+  def backup(c):
+    pass
+"""[1:]
+        book = Cookbook.new(None)
+        book.load(input)
+        recipe = book.find_recipe('db:schema:migration:down')
+        ok(recipe, 'is a', TaskRecipe)
+        ok(recipe.product, '==', 'db:schema:migration:down')
+        recipe = book.find_recipe('db:backup')
+        ok(recipe, 'is a', TaskRecipe)
+        ok(recipe.product, '==', 'db:backup')
+        recipe = book.find_recipe('db:schema:migration:reset')
         ok(recipe, 'is', None)
 
 
