@@ -167,6 +167,7 @@ class Recipe(object):
     kind = None
     prefix = ''
     name = None
+    category = None
 
     def __init__(self, product=None, ingreds=(), byprods=(), func=None, desc=None, spices=None):
         self.product = product
@@ -205,6 +206,9 @@ class Recipe(object):
     def is_generic(self):
         return self.pattern is not None
 
+    def set_category(self, category_class):
+        self.category = category_class
+
     def match(self, target):
         if self.pattern:
             return re.match(self.pattern, target)
@@ -241,6 +245,11 @@ class TaskRecipe(Recipe):
 
     kind   = 'task'
     prefix = 'task_'
+
+    def set_category(self, category_class):
+        Recipe.set_category(self, category_class)
+        ## use category class name as product prefix
+        self.product = category_class.__name__ + ':' + self.product
 
 
 class FileRecipe(Recipe):
