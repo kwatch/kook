@@ -268,7 +268,8 @@ class TaskRecipe(Recipe):
             names.append(category_class.__name__)
             category_class = category_class._outer
         names.reverse()
-        names.append(self.product)
+        if self.product != '__index__':
+            names.append(self.product)
         self.product = ':'.join(names)
 
 

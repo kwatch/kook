@@ -245,7 +245,7 @@ class stash(Category):
 class db(Category):
   class schema(Category):
     @recipe
-    def load(c):
+    def __index__(c):
       pass
     class migration(Category):
       @recipe
@@ -266,7 +266,7 @@ class db(Category):
         ok(len(recipes), '==', 4)
         recipes.sort(key=lambda r: r.product)
         ok(recipes[0].product, '==', 'db:backup')
-        ok(recipes[1].product, '==', 'db:schema:load')
+        ok(recipes[1].product, '==', 'db:schema')
         ok(recipes[2].product, '==', 'db:schema:migration:down')
         ok(recipes[3].product, '==', 'db:schema:migration:up')
 
@@ -356,7 +356,7 @@ class stash(Category):
 class db(Category):
   class schema(Category):
     @recipe
-    def load(c):
+    def __index__(c):
       pass
     class migration(Category):
       @recipe
@@ -373,14 +373,21 @@ class db(Category):
 """[1:]
         book = Cookbook.new(None)
         book.load(input)
+        #
         recipe = book.find_recipe('db:schema:migration:down')
         ok(recipe, 'is a', TaskRecipe)
         ok(recipe.product, '==', 'db:schema:migration:down')
+        #
         recipe = book.find_recipe('db:backup')
         ok(recipe, 'is a', TaskRecipe)
         ok(recipe.product, '==', 'db:backup')
+        #
         recipe = book.find_recipe('db:schema:migration:reset')
         ok(recipe, 'is', None)
+        #
+        recipe = book.find_recipe('db:schema')
+        ok(recipe, 'is a', TaskRecipe)
+        ok(recipe.product, '==', 'db:schema')
 
 
 if __name__ == '__main__':
