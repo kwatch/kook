@@ -96,23 +96,13 @@ class Cookbook(object):
                 self.materials = obj
             elif Recipe.is_recipe(obj):
                 func = obj
-                if getattr(func, '_kook_recipe', None):      # added by @recipe decorator
-                    #if hasattr(func, '_kook_kind'):
-                    #    kind = getattr(func, '_kook_kind')
-                    #    if   kind == 'file':  flag = FILE
-                    #    elif kind == 'task':  flag = TASK
-                    #    else:
-                    #        raise KookRecipeError("%s(: )%s: _kook_kind should be 'task' or 'file'." % (name, repr(kind)))
-                    #else:
-                        if   name.startswith('file_'):  flag = FILE
-                        elif name.startswith('task_'):  flag = TASK
-                        else:
-                            #flag = getattr(func, '_kook_product', None) and FILE or TASK
-                            if getattr(func, '_kook_product', None):
-                                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
-                            flag = TASK   # regard as task recipe when prefix is not specified
+                if   name.startswith('file_'):  flag = FILE
+                elif name.startswith('task_'):  flag = TASK
                 else:
-                        continue
+                    #flag = getattr(func, '_kook_product', None) and FILE or TASK
+                    if getattr(func, '_kook_product', None):
+                        raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
+                    flag = TASK   # regard as task recipe when prefix is not specified
                 klass = flag == FILE and FileRecipe or TaskRecipe
                 recipe = klass.new(name, func)
                 flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
