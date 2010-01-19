@@ -83,7 +83,7 @@ class Cookbook(object):
                 if not isinstance(obj, (tuple, list)):
                     raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(obj))
                 self.materials = obj
-            elif Recipe.is_recipe(obj):
+            elif Recipe.is_recipe_func(obj):
                 func = obj
                 tuples.append((name, func))
         ## masks
@@ -199,7 +199,7 @@ class Recipe(object):
         return cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
 
     @staticmethod
-    def is_recipe(obj):
+    def is_recipe_func(obj):
         return kook.utils.is_func_or_method(obj) and hasattr(obj, '_kook_recipe')
 
     def is_generic(self):
