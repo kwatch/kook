@@ -209,6 +209,10 @@ class Recipe(object):
         if desc is None: desc = _default_descs.get(product)
         return cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
 
+    @staticmethod
+    def is_recipe(obj):
+        return kook.utils.is_func_or_method(obj) and hasattr(obj, '_kook_recipe')
+
     def is_generic(self):
         return self.pattern is not None
 
