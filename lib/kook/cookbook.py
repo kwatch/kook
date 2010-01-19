@@ -99,17 +99,19 @@ class Cookbook(object):
             [],    # GNERIC   | FILE
         )
         for name, func in tuples:
-                if   name.startswith('file_'):  flag = FILE
-                elif name.startswith('task_'):  flag = TASK
-                else:
-                    #flag = getattr(func, '_kook_product', None) and FILE or TASK
-                    if getattr(func, '_kook_product', None):
-                        raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
-                    flag = TASK   # regard as task recipe when prefix is not specified
-                klass = flag == FILE and FileRecipe or TaskRecipe
-                recipe = klass.new(name, func)
-                flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
-                recipes[flag].append(recipe)
+            ## detect recipe type
+            if   name.startswith('file_'):  flag = FILE
+            elif name.startswith('task_'):  flag = TASK
+            else:
+                #flag = getattr(func, '_kook_product', None) and FILE or TASK
+                if getattr(func, '_kook_product', None):
+                    raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
+                flag = TASK   # regard as task recipe when prefix is not specified
+            ## create recipe object
+            klass = flag == FILE and FileRecipe or TaskRecipe
+            recipe = klass.new(name, func)
+            flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
+            recipes[flag].append(recipe)
         #lambda1 = lambda recipe: kook.utils.get_funclineno(recipe.func)
           #=> SyntaxError: unqualified exec is not allowed in function 'load' it contains a nested function with free variables
         def lambda1(recipe, get_funclineno=kook.utils.get_funclineno):
