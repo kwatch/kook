@@ -10,7 +10,7 @@ import os
 from kook.utils import flatten
 import kook.config as config
 
-__all__ = ('if_exists', )
+__all__ = ('if_exists', 'Category', )
 
 
 class ConditionalFile(object):
@@ -31,6 +31,12 @@ class IfExists(ConditionalFile):
 
 def if_exists(*args):
     return [ IfExists(arg) for arg in flatten(args) ]
+
+
+class Category(object):
+    """Namespace of recipes"""
+
+    pass
 
 
 ###
