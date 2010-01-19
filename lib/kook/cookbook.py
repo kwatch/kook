@@ -8,7 +8,7 @@
 
 import os, re, types
 from kook import KookRecipeError
-from kook.misc import _debug, _trace
+from kook.misc import Category, _debug, _trace
 import kook.utils
 import kook.config as config
 
@@ -85,7 +85,11 @@ class Cookbook(object):
                 self.materials = obj
             elif Recipe.is_recipe_func(obj):
                 func = obj
-                tuples.append((name, func))
+                tuples.append((name, func, None))
+            elif type(obj) is type and issubclass(obj, Category):
+                klass = obj
+                tuples.extend([ (k, v, klass) for k, v in klass.__dict__.items()
+                                              if Recipe.is_recipe_func(v) ])
         ## masks
         TASK     = 0x0
         FILE     = 0x1
@@ -98,7 +102,7 @@ class Cookbook(object):
             [],    # GENERIC  | TASK
             [],    # GNERIC   | FILE
         )
-        for name, func in tuples:
+        for name, func, category_class in tuples:
             ## detect recipe type
             if   name.startswith('file_'):  flag = FILE
             elif name.startswith('task_'):  flag = TASK
@@ -110,6 +114,8 @@ class Cookbook(object):
             ## create recipe object
             klass = flag == FILE and FileRecipe or TaskRecipe
             recipe = klass.new(name, func)
+            if category_class:
+                recipe.set_category(category_class)
             flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
             recipes[flag].append(recipe)
         #lambda1 = lambda recipe: kook.utils.get_funclineno(recipe.func)

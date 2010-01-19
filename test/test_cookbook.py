@@ -221,6 +221,25 @@ kook_materials = ('index.html')
         errmsg = "'index.html': kook_materials should be tuple or list."
         ok(f, 'raises', KookRecipeError, errmsg)
 
+    def test_load__category(self):
+        input = r"""
+class stash(Category):
+  @recipe
+  def save(c, *args, **kwargs):
+    print('save to stash')
+  @recipe
+  def pop(c):
+    print('pop from stash')
+  def abort(c):
+    print('abort top on stash')
+"""[1:]
+        book = Cookbook.new(None)
+        book.load(input)
+        recipes = book.specific_task_recipes
+        ok(len(recipes), '==', 2)
+        ok(recipes[0].product, '==', 'stash:save')
+        ok(recipes[1].product, '==', 'stash:pop')
+
     def test_material_p(self):
         input = r"""
 kook_materials = ('index.html', )
@@ -276,6 +295,31 @@ def package_123(c):
         ok(recipe.name, '==', 'package_123')
         ## return None if not found
         ok(book.find_recipe('package123'), 'is', None)
+
+    def test_find_recipe__category(self):
+        input = r"""
+class stash(Category):
+  @recipe
+  def save(c, *args, **kwargs):
+    print('save to stash')
+  @recipe
+  def pop(c):
+    print('pop from stash')
+  def abort(c):
+    print('abort top on stash')
+"""[1:]
+        book = Cookbook.new(None)
+        book.load(input)
+        recipe = book.find_recipe('stash:save')
+        ok(recipe, 'is a', TaskRecipe)
+        ok(recipe.product, '==', 'stash:save')
+        ok(recipe.name, '==', 'save')
+        recipe = book.find_recipe('stash:pop')
+        ok(recipe, 'is a', TaskRecipe)
+        ok(recipe.product, '==', 'stash:pop')
+        ok(recipe.name, '==', 'pop')
+        recipe = book.find_recipe('stash:abort')
+        ok(recipe, 'is', None)
 
 
 if __name__ == '__main__':
