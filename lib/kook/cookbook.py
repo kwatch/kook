@@ -112,13 +112,7 @@ class Cookbook(object):
                                 raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
                             flag = TASK   # regard as task recipe when prefix is not specified
                 else:
-                    ## for backward compatibility with 0.0.2: the following may be removed in the future
-                    if   name.startswith('file_'):  flag = FILE
-                    elif name.startswith('task_'):  flag = TASK
-                    else:
                         continue
-                    config.stderr.write(config.warning_prompt + "%s(): use @recipe decorator.\n" % name)
-                    config.stderr.write(config.warning_prompt + "See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n")
                 klass = flag == FILE and FileRecipe or TaskRecipe
                 recipe = klass.new(name, func)
                 flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
