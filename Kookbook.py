@@ -93,12 +93,16 @@ def uninstall(c):
 
 
 @recipe
-def test(c):
+@spices('-v version: version of python')
+def test(c, *args, **kwargs):
     from glob import glob
+    ver = kwargs.get('v')
+    python_bin = ver and ('/usr/local/python/%s/bin/python' % ver) or 'python'
+    targets = [ 'test_%s.py' % arg for arg in args ]
     with chdir('test') as d:
         #system("python test_all.py 2>&1 >  test.log")
-        for fname in glob('test_*.py'):
-            system("python " + fname)
+        for fname in targets or glob('test_*.py'):
+            system(c%"$(python_bin) $(fname)")
 
 
 @recipe
