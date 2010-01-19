@@ -75,6 +75,17 @@ class Cookbook(object):
         context['prop'] = self.prop
         self.context = context
         exec(code_obj, context, context)
+        ## collect recipe functions
+        tuples = []
+        for name in context:         # dict.iteritems() is not available in Python 3.0
+            obj = context.get(name)
+            if name == 'kook_materials':
+                if not isinstance(obj, (tuple, list)):
+                    raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(obj))
+                self.materials = obj
+            elif Recipe.is_recipe(obj):
+                func = obj
+                tuples.append((name, func))
         ## masks
         TASK     = 0x0
         FILE     = 0x1
@@ -87,15 +98,7 @@ class Cookbook(object):
             [],    # GENERIC  | TASK
             [],    # GNERIC   | FILE
         )
-        for name in context:         # dict.iteritems() is not available in Python 3.0
-            obj = context.get(name)
-            flag = 0x0
-            if name == 'kook_materials':
-                if not isinstance(obj, (tuple, list)):
-                    raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(obj))
-                self.materials = obj
-            elif Recipe.is_recipe(obj):
-                func = obj
+        for name, func in tuples:
                 if   name.startswith('file_'):  flag = FILE
                 elif name.startswith('task_'):  flag = TASK
                 else:
