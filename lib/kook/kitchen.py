@@ -264,21 +264,10 @@ class Cooking(Cookable):
         assert child_status in (CONTENT_CHANGED, MTIME_UPDATED, NOT_INVOKED)
         ## there are some cases to skip recipe invocation (ex. product is newer than ingredients)
         if self._can_skip(child_status, depth):
-            if child_status == MTIME_UPDATED:
-                assert os.path.exists(self.product)
-                _report_msg("%s (%s)" % (self.product, self._r), depth)
-                _debug("touch and skip %s (%s)" % (self.product, self._r), depth)
-                _report_cmd("touch %s   # skipped" % self.product)
-                os.utime(self.product, None)    # update mtime of product file to current timestamp
-                self.cooked = MTIME_UPDATED
-                return MTIME_UPDATED    # skip recipe invocation
-            elif child_status == NOT_INVOKED:
-                _debug("skip %s (%s)" % (self.product, self._r), depth)
-                self.cooked = NOT_INVOKED
-                return NOT_INVOKED          # skip recipe invocation
-            else:
-                assert child_status == CONTENT_CHANGED
-                pass    # don't skip recipe invocation
+            assert child_status == MTIME_UPDATED or child_status == NOT_INVOKED
+            self._skip(child_status, depth)
+            self.cooked = child_status
+            return child_status
         ## invoke recipe function
         assert self.recipe.func is not None
         try:
@@ -338,6 +327,22 @@ class Cooking(Cookable):
         #            return False
         ##
         return True
+
+    def _skip(self, child_status, depth):
+        if child_status == MTIME_UPDATED:
+            assert os.path.exists(self.product)
+            _report_msg("%s (%s)" % (self.product, self._r), depth)
+            _debug("touch and skip %s (%s)" % (self.product, self._r), depth)
+            _report_cmd("touch %s   # skipped" % self.product)
+            os.utime(self.product, None)    # update mtime of product file to current timestamp
+            self.cooked = MTIME_UPDATED
+            return MTIME_UPDATED        # skip recipe invocation
+        elif child_status == NOT_INVOKED:
+            _debug("skip %s (%s)" % (self.product, self._r), depth)
+            self.cooked = NOT_INVOKED
+            return NOT_INVOKED          # skip recipe invocation
+        else:
+            assert 'unreachable'
 
     def _invoke_recipe_with(self, argv):
         if self.spices:
