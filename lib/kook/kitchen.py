@@ -274,8 +274,7 @@ class Cooking(Cookable):
             try:
                 ## if product file exists, rename it to temporary filename
                 if product_mtime:
-                    tmp_basename = ".kook.%s.kook" % os.path.basename(self.product)
-                    tmp_filename = os.path.join(os.path.dirname(self.product), tmp_basename)
+                    tmp_filename = self._tmp_filename(self.product)
                     os.rename(self.product, tmp_filename)
                 ## invoke recipe
                 s = is_file_recipe and 'create' or 'perform'
@@ -285,14 +284,14 @@ class Cooking(Cookable):
                 ## check whether product file created or not
                 if is_file_recipe and not config.noexec and not os.path.exists(self.product):
                     raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.recipe.name, ))
-                ## if new product file is same as old, return MTIME_UPDATED, else return CONTENT_CHANGED
+                ## if new product file is same as old one, return MTIME_UPDATED, else return CONTENT_CHANGED
                 if config.compare_contents and product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
-                    ret, msg = MTIME_UPDATED,   "end %s (content not changed, mtime updated)"
+                    _debug("end %s (content not changed, mtime updated)" % self.product, depth)
+                    self.cooked = MTIME_UPDATED
                 else:
-                    ret, msg = CONTENT_CHANGED, "end %s (content changed)"
-                _debug(msg % self.product, depth)
-                self.cooked = ret
-                return ret
+                    _debug("end %s (content changed)" % self.product, depth)
+                    self.cooked = CONTENT_CHANGED
+                return self.cooked
             except Exception:
                 ## if product file exists, remove it when error raised
                 if product_mtime:
@@ -300,6 +299,7 @@ class Cooking(Cookable):
                     if os.path.isfile(self.product): os.unlink(self.product)
                 raise
         finally:
+            ## remove temporary file
             if product_mtime: os.unlink(tmp_filename)
 
     def _can_skip(self, child_status, depth):
@@ -335,14 +335,15 @@ class Cooking(Cookable):
             _debug("touch and skip %s (%s)" % (self.product, self._r), depth)
             _report_cmd("touch %s   # skipped" % self.product)
             os.utime(self.product, None)    # update mtime of product file to current timestamp
-            self.cooked = MTIME_UPDATED
-            return MTIME_UPDATED        # skip recipe invocation
         elif child_status == NOT_INVOKED:
             _debug("skip %s (%s)" % (self.product, self._r), depth)
-            self.cooked = NOT_INVOKED
-            return NOT_INVOKED          # skip recipe invocation
         else:
             assert 'unreachable'
+
+    def _tmp_filename(self, filename):
+        tmp_basename = ".kook.%s.kook" % os.path.basename(filename)
+        tmp_filename = os.path.join(os.path.dirname(filename), tmp_basename)
+        return tmp_filename
 
     def _invoke_recipe_with(self, argv):
         if self.spices:
