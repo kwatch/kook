@@ -233,7 +233,7 @@ def file_ext_o(c):
         ok("hello.c", isfile)
         def _f():
             self._start(content, "hello.o")
-        errmsg = "hello.h: no such recipe or material (required for 'hello.o')."
+        errmsg = "hello.h: no such recipe nor material (required for 'hello.o')."
         ok(_f, 'raises', kook.KookRecipeError, errmsg)
 
     def test_error_when_recipe_not_found(self):
@@ -246,7 +246,7 @@ def file_ext_o(c):
 """
         def _f():
             self._start(content, "notfound")
-        errmsg = "notfound: no such recipe or material."
+        errmsg = "notfound: no such recipe nor material."
         ok(_f, 'raises', kook.KookRecipeError, errmsg)
 
 

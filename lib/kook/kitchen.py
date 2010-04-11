@@ -55,9 +55,9 @@ class Kitchen(object):
                 elif exists(target):  cookable = Material.new(target)
                 else:
                     if parent_product:
-                        raise KookRecipeError("%s: no such recipe or material (required for %s)." % (target, repr(parent_product)))
+                        raise KookRecipeError("%s: no such recipe nor material (required for %s)." % (target, repr(parent_product)))
                     else:
-                        raise KookRecipeError("%s: no such recipe or material." % target)
+                        raise KookRecipeError("%s: no such recipe nor material." % target)
             assert cookable is not None
             cookables[target] = cookable
             if cookable.ingreds:
