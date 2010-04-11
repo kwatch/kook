@@ -12,6 +12,7 @@ from glob import glob
 
 from kook.commands import *
 from kook.utils import read_file, write_file
+from kook.utils import CommandOptionParser, CommandOptionError, ArgumentError
 
 
 HELLO_C = """\
@@ -94,6 +95,36 @@ class KookUtilsTest(object):
             class Bar(object):
                 pass
             ok(is_func_or_method(Bar), 'is', False)
+
+
+class CommandOptionParserTest(object):
+
+    def test_parse_spices1(self):
+        spices = ('-h: help', '-p port: port', '-i[N]: indent',
+                  '--version: version', '--user[=root]: username', '--pass=password: password phrase')
+        parser = CommandOptionParser()
+        ret = parser.parse_spices(spices)
+        ok(type(ret), '==', tuple)
+        ok(len(ret), '==', 3)
+        ok(ret[0], '==', {'i': 1, 'h': False, 'p': 'port', 'version': False, 'user': True, 'pass': 'password'})
+        ok(ret[1], '==', None)
+        ok(ret[2], '==', [('-h', 'help'), ('-p port', 'port'), ('-i[N]', 'indent'), ('--version', 'version'), ('--user[=root]', 'username'), ('--pass=password', 'password phrase')])
+        ok(ret[0], 'is', parser.spices)
+        ok(ret[1], 'is', parser.arg_desc)
+        ok(ret[2], 'is', parser.helps)
+
+    def test_parse_spices2(self):
+        spices = ('-p port: port', 'url')
+        parser = CommandOptionParser()
+        ret = parser.parse_spices(spices)
+        ok(parser.spices, '==', {'p': 'port'})
+        ok(parser.arg_desc, '==', 'url')
+        ##
+        spices = ('-p port: port', 'url', '-h: help')
+        parser = CommandOptionParser()
+        def f():
+            parser.parse_spices(spices)
+        ok(f, 'raises', ArgumentError, "'url': invalid command option definition.")
 
 
 if __name__ == '__main__':
