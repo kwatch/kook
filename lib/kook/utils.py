@@ -192,43 +192,34 @@ class CommandOptionParser(object):
     def __init__(self, optdef_strs=()):
         self.parse_spices(optdef_strs)
 
-    #@classmethod
-    #def new(cls, optdef_strs=()):
-    #    return cls(optdef_strs)
+    SHORT_OPT_PATTERN = re.compile(r'^-(\w)(?:\s+(.+)|\[(\w+)\])?$')
+    LONG_OPT_PATTERN  = re.compile(r'^--([a-zA-Z][-\w]+)(?:=(.+)|\[=(.+)\])?$')
 
     def parse_spices(self, optdef_strs):
         helps = []
         spices = {}
         arg_desc = None
+        pattern1, pattern2 = self.SHORT_OPT_PATTERN, self.LONG_OPT_PATTERN
         count = len(optdef_strs)
         for i, optdef_str in enumerate(optdef_strs):
-            if not optdef_str.startswith('-'):
+            if optdef_str.startswith('-'):
+                opt, desc = optdef_str.split(':', 1)
+                if desc: desc = desc.strip()
+                opt = opt.strip()
+                helps.append((opt, desc))
+                m = re.match(pattern1, opt) or re.match(pattern2, opt)
+                if m:
+                    name, arg1, arg2 = m.group(1), m.group(2), m.group(3)
+                    #spices[name] = arg1 and arg1 or (arg2 and True or False)
+                    if   arg1:  spices[name] = arg1
+                    elif arg2:  spices[name] = arg2 == 'N' and 1 or True
+                    else:       spices[name] = False
+                    continue
+            else:
                 if i + 1 == count:
                     arg_desc = optdef_str
                     break
-                else:
-                    raise ArgumentError("%r: invalid command option definition." % optdef_str)
-            opt, desc = optdef_str.split(':', 1)
-            if desc: desc = desc.strip()
-            opt = opt.strip()
-            helps.append((opt, desc))
-            m = re.match(r'^-(\w)(?:\s+(.+)|\[(\w+)\])?$', opt)
-            if m:
-                name, arg1, arg2 = m.group(1), m.group(2), m.group(3)
-                #spices[name] = arg1 and arg1 or (arg2 and True or False)
-                if   arg1:  spices[name] = arg1
-                elif arg2:  spices[name] = arg2 == 'N' and 1 or True
-                else:       spices[name] = False
-                continue
-            m = re.match(r'^--([a-zA-Z][-\w]+)(?:=(.+)|\[=(.+)\])?$', opt)
-            if m:
-                name, arg1, arg2 = m.group(1), m.group(2), m.group(3)
-                #spices[name] = arg1 and arg1 or (arg2 and True or False)
-                if   arg1:  spices[name] = arg1
-                elif arg2:  spices[name] = arg2 == 'N' and 1 or True
-                else:       spices[name] = False
-                continue
-            raise ArgumentError("%s: invalid command option definition." % optdef_str)
+            raise ArgumentError("%r: invalid command option definition." % optdef_str)
         self.spices = spices
         self.helps = helps
         self.arg_desc = arg_desc
