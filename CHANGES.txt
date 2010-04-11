@@ -1,6 +1,85 @@
 
 releases:
 
+  - release:  0.6.0
+    date:     ????
+    enhances:
+
+      - Argument description is available.
+        In the following example, the last argument of @spices() is
+	argument description of task_copy().
+
+        Ex (Kookbook.py)::
+
+	    @recipe
+	    @spices('-r: recursive', 'src dest')   # argument description
+	    def task_copy(c, *args, **kwargs):
+	        """copy files"""
+		if kwargs.get('r'):
+		    cp_pr(*args)
+		else:
+		    cp_p(*args)
+
+        Argument desription is displayed when '-l' or '-L' option is specified.
+
+        Ex (command-line)::
+
+	    $ kk -l
+	    Properties:
+	    
+	    Task recipes:
+	      copy src dest       : copy files
+	        -r                    recursive
+	    
+	    File recipes:
+
+      - Namespace is now supported. It is called 'Category' in Kook.
+        Category can be nested.
+
+        Ex::
+
+            class git(Category):             # outer namespace
+
+              class stash(Category):         # nested namespace
+
+                @recipe
+                def __index__(c):            # task recipe (default)
+                  """git stash list"""
+                  system("git stash list")
+
+                @recipe
+                def save(c):                 # task recipe
+                  """git stash save"""
+                  system("git stash save")
+
+                @recipe
+                def pop(c):                  # task recipe
+                  """git stash pop"""
+                  system("git stash pop")
+
+        Result::
+
+            bash> pykook -l
+            Properties:
+            
+            Task recipes:
+              git:stash           : git stash list
+              git:stash:save      : git stash save
+              git:stash:pop       : git stash pop
+            
+            File recipes:
+            
+            bash> kk git:stash
+            ### * git:stash (recipe=__index__)
+            $ git stash list
+
+            bash> kk git:stash:save
+            ### * git:stash:save (recipe=save)
+            $ git stash save
+        
+        Currently only task recipe is available in Category.
+
+
   - release:  0.0.5
     date:     2009-11-02
     enhances:
