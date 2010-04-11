@@ -356,7 +356,7 @@ def task_all(c):           # well-known recipe
   pass
 
 @recipe
-@spices('-h: help', '-f file: filename')
+@spices('-h: help', '-f file: filename', '[files...]')
 def install(c, *args, **kwargs):        # with spices
   pass
 
@@ -379,7 +379,7 @@ Properties:
 
 Task recipes:
   all                 : cook all products
-  install             : install product
+  install [files...]  : install product
     -h                    help
     -f file               filename
 

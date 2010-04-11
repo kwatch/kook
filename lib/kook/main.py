@@ -154,11 +154,17 @@ class MainCommand(MainObject):
             write(title + ":\n")
             for recipe in recipes:
                 if show_all or recipe.desc:
-                    write(format % (recipe.product, recipe.desc or ''))
-                    if config.quiet or not recipe.spices: continue
-                    optparser = CommandOptionParser(recipe.spices)
-                    for opt, desc in optparser.helps:
-                        write(format2 % (opt, desc))
+                    prod_str = recipe.product
+                    if recipe.spices:
+                        optparser = CommandOptionParser(recipe.spices)
+                        if optparser.arg_desc:
+                            prod_str += ' ' + optparser.arg_desc
+                    write(format % (prod_str, recipe.desc or ''))
+                    if config.quiet:
+                        continue
+                    if recipe.spices:
+                        for opt, desc in optparser.helps:
+                            write(format2 % (opt, desc))
             write("\n")
         f("Task recipes", cookbook.specific_task_recipes + cookbook.generic_task_recipes)
         f("File recipes", cookbook.specific_file_recipes + cookbook.generic_file_recipes)

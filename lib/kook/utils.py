@@ -199,7 +199,11 @@ class CommandOptionParser(object):
     def parse_spices(self, optdef_strs):
         helps = []
         spices = {}
+        arg_desc = None
         for optdef_str in optdef_strs:
+            if not optdef_str.startswith('-'):
+                arg_desc = optdef_str
+                continue
             opt, desc = optdef_str.split(':', 1)
             if desc: desc = desc.strip()
             opt = opt.strip()
@@ -223,7 +227,8 @@ class CommandOptionParser(object):
             raise ArgumentError("%s: invalid command option definition." % optdef_str)
         self.spices = spices
         self.helps = helps
-        return spices, help
+        self.arg_desc = arg_desc
+        return spices, arg_desc, help
 
     def parse(self, cmd_args, command=None):
         opts, rests = self._parse(cmd_args, command, check_longopts=True)
