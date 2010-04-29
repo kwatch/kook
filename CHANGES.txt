@@ -33,7 +33,7 @@ releases:
 	    
 	    File recipes:
 
-      - Namespace is now supported. It is called 'Category' in Kook.
+      - Namespace is now supported. It is called as 'Category' in Kook.
         Category can be nested.
 
         Ex::
