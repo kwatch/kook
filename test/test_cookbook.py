@@ -34,22 +34,22 @@ def file_html(c):
         self.setup(input)
         ## if bookname is not specified, Kookbook is not loaded
         book = Cookbook.new(None)
-        ok(book, 'is a', Cookbook)
-        ok(book.bookname, '==', None)
-        ok(book.specific_file_recipes, '==', ())
+        ok (book).is_a(Cookbook)
+        ok (book.bookname) == None
+        ok (book.specific_file_recipes) == ()
         ## if bookname is specified, Kookbook is loaded automatically
         book = Cookbook.new(bookname)
-        ok(book, 'is a', Cookbook)
-        ok(book.bookname, '==', bookname)
+        ok (book).is_a(Cookbook)
+        ok (book.bookname) == bookname
         recipes = book.specific_file_recipes
-        ok(recipes, 'is a', list)
-        ok(len(recipes), '==', 1)
-        ok(recipes[0], 'is a', FileRecipe)
+        ok (recipes).is_a(list)
+        ok (len(recipes)) == 1
+        ok (recipes[0]).is_a(FileRecipe)
 
     def test_load_file(self):
         book = Cookbook.new(None)
-        ok(book.bookname, '==', None)
-        ok(book.specific_file_recipes, '==', ())
+        ok (book.bookname) == None
+        ok (book.specific_file_recipes) == ()
         input = r"""
 @recipe
 def file_html(c):
@@ -58,10 +58,10 @@ def file_html(c):
         self.setup(input)
         ## load Kookbook
         book.load_file(bookname)
-        ok(book.bookname, '==', bookname)
+        ok (book.bookname) == bookname
         recipes = book.specific_file_recipes
-        ok(recipes, 'is a', list)
-        ok(recipes[0], 'is a', FileRecipe)
+        ok (recipes).is_a(list)
+        ok (recipes[0]).is_a(FileRecipe)
 
     def test_load__set_self_bookname(self):
         "set self.bookname"
@@ -72,10 +72,10 @@ def compile(c):
 """[1:]
         ## before loading, bookname is None
         book = Cookbook.new(None)
-        ok(book.bookname, '==', None)
+        ok (book.bookname) == None
         ## after loaded, bookname is specified
         book.load(input, '<kookbook>')
-        ok(book.bookname, '==', '<kookbook>')
+        ok (book.bookname) == '<kookbook>'
 
     def test_load__task_recipes(self):
         input = r"""
@@ -95,8 +95,8 @@ def task_build_files(c):
         book = Cookbook.new(None)
         book.load(input, '<kookbook>')
         recipes = book.specific_task_recipes
-        ok(recipes, 'is a', list)
-        ok(len(recipes), '==', 3)
+        ok (recipes).is_a(list)
+        ok (len(recipes)) == 3
         expected = r"""
 #<TaskRecipe
   byprods=(),
@@ -108,7 +108,7 @@ def task_build_files(c):
   product='build',
   spices=None>
 """[1:-1]
-        ok(recipes[0]._inspect(), '==', expected)
+        ok (recipes[0]._inspect()) == expected
         expected = r"""
 #<TaskRecipe
   byprods=(),
@@ -120,7 +120,7 @@ def task_build_files(c):
   product='build',
   spices=None>
 """[1:-1]
-        ok(recipes[1]._inspect(), '==', expected)
+        ok (recipes[1]._inspect()) == expected
         expected = r"""
 #<TaskRecipe
   byprods=(),
@@ -132,7 +132,7 @@ def task_build_files(c):
   product='build',
   spices=None>
 """[1:-1]
-        ok(recipes[2]._inspect(), '==', expected)
+        ok (recipes[2]._inspect()) == expected
 
     def test_load__file_recipes(self):
         input = r"""
@@ -148,8 +148,8 @@ def file_html(c):
         book = Cookbook.new(None)
         book.load(input)
         # generic recipe
-        ok(book.generic_file_recipes, 'is a', list)
-        ok(len(book.generic_file_recipes), '==', 1)
+        ok (book.generic_file_recipes).is_a(list)
+        ok (len(book.generic_file_recipes)) == 1
         expected = r"""
 #<FileRecipe
   byprods=(),
@@ -161,10 +161,10 @@ def file_html(c):
   product='*.html',
   spices=None>
 """[1:-1]
-        ok(book.generic_file_recipes[0]._inspect(), '==', expected)
+        ok (book.generic_file_recipes[0]._inspect()) == expected
         # specific recipe
-        ok(book.specific_file_recipes, 'is a', list)
-        ok(len(book.specific_file_recipes), '==', 1)
+        ok (book.specific_file_recipes).is_a(list)
+        ok (len(book.specific_file_recipes)) == 1
         expected = r"""
 #<FileRecipe
   byprods=(),
@@ -176,7 +176,7 @@ def file_html(c):
   product='html',
   spices=None>
 """[1:-1]
-        ok(book.specific_file_recipes[0]._inspect(), '==', expected)
+        ok (book.specific_file_recipes[0]._inspect()) == expected
 
     def test_load__error_if_no_prefix_with_product(self):
         input = r"""
@@ -188,7 +188,7 @@ def ext_html(c):
         book = Cookbook.new(None)
         def f():
             book.load(input)
-        ok(f, 'raises', KookRecipeError, "ext_html(): prefix ('file_' or 'task_') required when @product() specified.")
+        ok (f).raises(KookRecipeError, "ext_html(): prefix ('file_' or 'task_') required when @product() specified.")
 
     def test_load__re_pattern(self):
         input = r"""
@@ -201,8 +201,8 @@ def file_html(c):
         book = Cookbook.new(None)
         book.load(input)
         recipe = book.generic_file_recipes[0]
-        ok(recipe.pattern, 'is a', type(re.compile('dummy')))
-        ok(recipe.pattern.pattern, '==', r'.*\.html')
+        ok (recipe.pattern).is_a(type(re.compile('dummy')))
+        ok (recipe.pattern.pattern) == r'.*\.html'
 
     def test_load__materials(self):
         input = r"""
@@ -210,7 +210,7 @@ kook_materials = ('index.html', )
 """[1:]
         book = Cookbook.new(None)
         book.load(input)
-        ok(book.materials, '==', ('index.html', ))
+        ok (book.materials) == ('index.html', )
         ## kook_materials should be tuple or list
         input = r"""
 kook_materials = ('index.html')
@@ -219,7 +219,7 @@ kook_materials = ('index.html')
         def f():
             book.load(input)
         errmsg = "'index.html': kook_materials should be tuple or list."
-        ok(f, 'raises', KookRecipeError, errmsg)
+        ok (f).raises(KookRecipeError, errmsg)
 
     def test_load__category(self):
         input = r"""
@@ -236,9 +236,9 @@ class stash(Category):
         book = Cookbook.new(None)
         book.load(input)
         recipes = book.specific_task_recipes
-        ok(len(recipes), '==', 2)
-        ok(recipes[0].product, '==', 'stash:save')
-        ok(recipes[1].product, '==', 'stash:pop')
+        ok (len(recipes)) == 2
+        ok (recipes[0].product) == 'stash:save'
+        ok (recipes[1].product) == 'stash:pop'
 
     def test_load__category_recursively(self):
         input = r"""
@@ -263,12 +263,12 @@ class db(Category):
         book = Cookbook.new(None)
         book.load(input)
         recipes = book.specific_task_recipes[:]
-        ok(len(recipes), '==', 4)
+        ok (len(recipes)) == 4
         recipes.sort(key=lambda r: r.product)
-        ok(recipes[0].product, '==', 'db:backup')
-        ok(recipes[1].product, '==', 'db:schema')
-        ok(recipes[2].product, '==', 'db:schema:migration:down')
-        ok(recipes[3].product, '==', 'db:schema:migration:up')
+        ok (recipes[0].product) == 'db:backup'
+        ok (recipes[1].product) == 'db:schema'
+        ok (recipes[2].product) == 'db:schema:migration:down'
+        ok (recipes[3].product) == 'db:schema:migration:up'
 
     def test_material_p(self):
         input = r"""
@@ -276,8 +276,8 @@ kook_materials = ('index.html', )
 """[1:]
         book = Cookbook.new(None)
         book.load(input)
-        ok(book.material_p('index.html'), '==', True)
-        ok(book.material_p('index.txt'), '==', False)
+        ok (book.material_p('index.html')) == True
+        ok (book.material_p('index.txt')) == False
 
     def test_find_recipe(self):
         ## for file recipes
@@ -296,12 +296,12 @@ def file_index_html(c):
         book.load(input)
         ## generic file recipe
         recipe = book.find_recipe('foo.html')
-        ok(recipe, 'is a', FileRecipe)
-        ok(recipe.name, '==', 'file_html')
+        ok (recipe).is_a(FileRecipe)
+        ok (recipe.name) == 'file_html'
         ## specific file recipe
         recipe = book.find_recipe('index.html')
-        ok(recipe, 'is a', FileRecipe)
-        ok(recipe.name, '==', 'file_index_html')
+        ok (recipe).is_a(FileRecipe)
+        ok (recipe.name) == 'file_index_html'
         ## for task recipe
         input = r"""
 @recipe
@@ -317,14 +317,14 @@ def package_123(c):
         book.load(input)
         ## generic task recipe
         recipe = book.find_recipe('package_100')
-        ok(recipe, 'is a', TaskRecipe)
-        ok(recipe.name, '==', 'task_package')
+        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.name) == 'task_package'
         ## specific task recipe
         recipe = book.find_recipe('package_123')
-        ok(recipe, 'is a', TaskRecipe)
-        ok(recipe.name, '==', 'package_123')
+        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.name) == 'package_123'
         ## return None if not found
-        ok(book.find_recipe('package123'), 'is', None)
+        ok (book.find_recipe('package123')).is_(None)
 
     def test_find_recipe__category(self):
         input = r"""
@@ -341,15 +341,15 @@ class stash(Category):
         book = Cookbook.new(None)
         book.load(input)
         recipe = book.find_recipe('stash:save')
-        ok(recipe, 'is a', TaskRecipe)
-        ok(recipe.product, '==', 'stash:save')
-        ok(recipe.name, '==', 'save')
+        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.product) == 'stash:save'
+        ok (recipe.name) == 'save'
         recipe = book.find_recipe('stash:pop')
-        ok(recipe, 'is a', TaskRecipe)
-        ok(recipe.product, '==', 'stash:pop')
-        ok(recipe.name, '==', 'pop')
+        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.product) == 'stash:pop'
+        ok (recipe.name) == 'pop'
         recipe = book.find_recipe('stash:abort')
-        ok(recipe, 'is', None)
+        ok (recipe).is_(None)
 
     def test_find_recipe__category_recursively(self):
         input = r"""
@@ -375,20 +375,20 @@ class db(Category):
         book.load(input)
         #
         recipe = book.find_recipe('db:schema:migration:down')
-        ok(recipe, 'is a', TaskRecipe)
-        ok(recipe.product, '==', 'db:schema:migration:down')
+        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.product) == 'db:schema:migration:down'
         #
         recipe = book.find_recipe('db:backup')
-        ok(recipe, 'is a', TaskRecipe)
-        ok(recipe.product, '==', 'db:backup')
+        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.product) == 'db:backup'
         #
         recipe = book.find_recipe('db:schema:migration:reset')
-        ok(recipe, 'is', None)
+        ok (recipe).is_(None)
         #
         recipe = book.find_recipe('db:schema')
-        ok(recipe, 'is a', TaskRecipe)
-        ok(recipe.product, '==', 'db:schema')
+        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.product) == 'db:schema'
 
 
 if __name__ == '__main__':
-    oktest.invoke_tests('Test$')
+    oktest.run('.*Test$')

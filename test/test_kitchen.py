@@ -100,15 +100,15 @@ def file_hello_o(c):
                      "invoked.\n" )
         ## without @recipe
         self._start(content, 'hello.o')
-        ok('hello.o', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok ('hello.o').is_file()
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## with @recipe
         self.after_each(); self.before_each()
         self._start("@recipe\n" + content, 'hello.o')
-        ok('hello.o', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok ('hello.o').is_file()
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
 
 
     def test_generic_file_cooking1(self):
@@ -125,15 +125,15 @@ def file_ext_o(c):
                      "invoked.\n" )
         ## without @recipe
         self._start(content, 'hello.o')
-        ok('hello.o', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok ('hello.o').is_file()
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## with @recipe
         self.after_each(); self.before_each()
         self._start("@recipe\n" + content, 'hello.o')
-        ok('hello.o', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok ('hello.o').is_file()
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
 
 
     def test_specific_task_cooking1(self):
@@ -148,15 +148,15 @@ def build(c):
                      "invoked.\n" )
         ## without @recipe
         self._start(content, 'build')
-        ok('hello', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok ('hello').is_file()
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## with @recipe
         self.after_each(); self.before_each()
         self._start("@recipe\n" + content, 'build')
-        ok('hello', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok ('hello').is_file()
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
 
 
     def test_generic_task_cooking1(self):
@@ -172,15 +172,15 @@ def task_build(c):
                      "invoked.\n" )
         ## without @recipe
         self._start(content, 'build_hello')
-        ok('hello', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok ('hello').is_file()
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## without @recipe
         self.after_each(); self.before_each()
         self._start("@recipe\n" + content, 'build_hello')
-        ok('hello', isfile)
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok ('hello').is_file()
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
 
 
 #    def test_recipe_decorator_without_task_prefix(self):
@@ -195,9 +195,9 @@ def task_build(c):
 #                     "$ gcc -o hello hello.c\n$ echo invoked.\n"
 #                     "invoked.\n" )
 #        self._start(content, 'build')
-#        ok('hello', isfile)
-#        ok(_stdout(), '==', expected)
-#        ok(_stderr(), '==', "")
+#        ok ('hello').is_file()
+#        ok (_stdout()) == expected
+#        ok (_stderr()) == ""
 #
 #
 #    def test_recipe_decorator_without_file_prefix(self):
@@ -216,9 +216,9 @@ def task_build(c):
 #invoked.
 #"""[1:]
 #        self._start(content, 'hello.o')
-#        ok('hello.o', isfile)
-#        ok(_stdout(), '==', expected)
-#        ok(_stderr(), '==', "")
+#        ok ('hello.o').is_file()
+#        ok (_stdout()) == expected
+#        ok (_stderr()) == ""
 
 
     def test_error_when_ingredients_not_found(self):
@@ -230,11 +230,11 @@ def file_ext_o(c):
     system(c%"gcc -c $(ingred)")
 """
         if os.path.isfile("hello.h"): os.unlink("hello.h")
-        ok("hello.c", isfile)
+        ok ("hello.c").is_file()
         def _f():
             self._start(content, "hello.o")
         errmsg = "hello.h: no such recipe nor material (required for 'hello.o')."
-        ok(_f, 'raises', kook.KookRecipeError, errmsg)
+        ok (_f).raises(kook.KookRecipeError, errmsg)
 
     def test_error_when_recipe_not_found(self):
         content = r"""
@@ -247,7 +247,7 @@ def file_ext_o(c):
         def _f():
             self._start(content, "notfound")
         errmsg = "notfound: no such recipe nor material."
-        ok(_f, 'raises', kook.KookRecipeError, errmsg)
+        ok (_f).raises(kook.KookRecipeError, errmsg)
 
 
     def test_if_exists1(self):
@@ -265,21 +265,21 @@ def file_ext_o(c):
         if os.path.exists("hello.o"): os.unlink("hello.o")
         if os.path.exists("hello.h"): os.unlink("hello.h")
         self._start(content, "hello.o")
-        ok("hello.o", isfile)
+        ok ("hello.o").is_file()
         expected = ( "### * hello.o (recipe=file_ext_o)\n"
                      "$ gcc -c hello.c\n" )
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## when hello.h exists (and newer than product)
         _setup_stdio()
         time.sleep(1)
         write_file("hello.h", "#include <stdio.h>\n")
         self._start(content, "hello.o")
-        ok("hello.o", isfile)
+        ok ("hello.o").is_file()
         expected = ( "### * hello.o (recipe=file_ext_o)\n"
                      "$ gcc -c hello.c hello.h\n" )
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
 
 
     def test_looped_cooking_tree1(self):
@@ -309,7 +309,7 @@ def all(c):
 """
         func = lambda: self._start(content, "all")
         errmsg = "hello: recipe is looped (hello->hello.o->hello.c->hello)."
-        ok(func, 'raises', KookRecipeError, errmsg)
+        ok (func).raises(KookRecipeError, errmsg)
 
 
     def test_recipe_spices1(self):
@@ -339,20 +339,20 @@ opts['file']=bar.txt
 opts['h']=True
 opts['help']=True
 """
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## command option error
         func = lambda: self._start(content, "build", "-f")
         errmsg = "build(): -f: file required."
-        ok(func, 'raises', CommandOptionError, errmsg)
+        ok (func).raises(CommandOptionError, errmsg)
         #
         func = lambda: self._start(content, "build", "-Dx")
         errmsg = "build(): -Dx: integer required."
-        ok(func, 'raises', CommandOptionError, errmsg)
+        ok (func).raises(CommandOptionError, errmsg)
         #
         func = lambda: self._start(content, "build", "--debug=x")
         errmsg = "build(): --debug=x: integer required."
-        ok(func, 'raises', CommandOptionError, errmsg)
+        ok (func).raises(CommandOptionError, errmsg)
 
 
     def test_content_compared1(self):
@@ -371,31 +371,31 @@ def file_ext_o(c):
 """
         ## 1st
         self._start(content, "hello")
-        ok("hello", isfile)
+        ok ("hello").is_file()
         expected = (
             "### ** hello.o (recipe=file_ext_o)\n"
             "$ gcc -c hello.c\n"
             "### * hello (recipe=file_command)\n"
             "$ gcc -o hello hello.o\n"
         )
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## 2nd (content compared)
         old_utime = os.path.getmtime("hello")
         time.sleep(1)
         os.utime("hello.c", None)
         _setup_stdio()
         self._start(content, "hello")
-        ok(os.path.getmtime("hello"), '>', old_utime)
-        ok("hello", isfile)
+        ok (os.path.getmtime("hello")) > old_utime
+        ok ("hello").is_file()
         expected = (
             "### ** hello.o (recipe=file_ext_o)\n"
             "$ gcc -c hello.c\n"
             "### * hello (recipe=file_command)\n"
             "$ touch hello   # skipped\n"             # content compared and skipped
         )
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
 
 
     def test_remove_produt_when_recipe_failed1(self):
@@ -411,19 +411,19 @@ def file_hello_txt(c):
     system(c%"gcc HOGE.c 2>/dev/null")
     #system(c%"gcc HOGE.c 2>&1 /dev/null")
 """
-        ok("hello.h", isfile)
+        ok ("hello.h").is_file()
         time.sleep(1)
         os.utime("hello.c", None)
         func = lambda: self._start(content, "hello.h")
-        ok(func, 'raises', kook.KookCommandError)
+        ok (func).raises(kook.KookCommandError)
         expected = (
             "### * hello.h (recipe=file_hello_txt)\n"
             "$ gcc HOGE.c 2>/dev/null\n"
             "### * (remove hello.h because unexpected error raised (recipe=file_hello_txt))\n"
         )
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
-        ok("hello.h", isfile, False)         # product should be removed
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
+        not_ok ("hello.h").is_file()
 
 
     def test_cooking_is_cooked_only_once(self):
@@ -461,8 +461,8 @@ $ echo task2 invoked.
 task2 invoked.
 ### * build (recipe=build)
 '''[1:]
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
 
     def test_complicated_cooking1(self):
         content = r"""
@@ -493,7 +493,7 @@ def task_all(c):
 """
         ## 1st
         self._start(content, "all")
-        ok("hello", isfile)
+        ok ("hello").is_file()
         expected = (
             "### **** hello.o (recipe=file_ext_o)\n"
             "$ gcc -c hello.c\n"
@@ -507,8 +507,8 @@ def task_all(c):
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## 2nd
         _setup_stdio()
         self._start(content, "all")
@@ -520,8 +520,8 @@ def task_all(c):
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## 3rd, content compared, if_exists()
         time.sleep(1)
         write_file("hello.h", "#include <stdio.h>\n")
@@ -540,8 +540,8 @@ def task_all(c):
             "$ echo all() invoked.\n"
             "all() invoked.\n"
         )
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
 
 
     def test_complicated_cooking2(self):   # DAG
@@ -605,15 +605,15 @@ def file_hello_h(c):
         kitchen = self._kitchen(kookbook_py)
         #
         ## 1st
-        ok('hello.h',  isfile, False)
-        ok('hello1.o', isfile, False)
-        ok('hello1.o', isfile, False)
-        ok('hello',    isfile, False)
+        not_ok ('hello.h').is_file()
+        not_ok ('hello1.o').is_file()
+        not_ok ('hello1.o').is_file()
+        not_ok ('hello').is_file()
         kitchen.start_cooking('build')
-        ok('hello.h',  isfile, True)
-        ok('hello1.o', isfile, True)
-        ok('hello1.o', isfile, True)
-        ok('hello',    isfile, True)
+        ok ('hello.h').is_file()
+        ok ('hello1.o').is_file()
+        ok ('hello1.o').is_file()
+        ok ('hello').is_file()
         expected = r'''
 ### **** hello.h (recipe=file_hello_h)
 $ cp hello.h.txt hello.h
@@ -625,8 +625,8 @@ $ gcc -c hello2.c
 $ gcc -o hello hello1.o hello2.o
 ### * build (recipe=build)
 '''[1:]
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## 2nd (sleep 1 sec, all recipes should be skipped)
         ts_hello    = os.path.getmtime("hello")
         ts_hello1_o = os.path.getmtime("hello1.o")
@@ -634,23 +634,23 @@ $ gcc -o hello hello1.o hello2.o
         ts_hello_h  = os.path.getmtime("hello.h")
         time.sleep(1)
         kitchen.start_cooking('build')
-        ok(os.path.getmtime('hello'),    '==', ts_hello)
-        ok(os.path.getmtime('hello1.o'), '==', ts_hello1_o)
-        ok(os.path.getmtime('hello2.o'), '==', ts_hello2_o)
-        ok(os.path.getmtime('hello.h'),  '==', ts_hello_h)
+        ok (os.path.getmtime('hello')) == ts_hello
+        ok (os.path.getmtime('hello1.o')) == ts_hello1_o
+        ok (os.path.getmtime('hello2.o')) == ts_hello2_o
+        ok (os.path.getmtime('hello.h')) == ts_hello_h
         expected = r'''
 ### * build (recipe=build)
 '''[1:]
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## 3rd (touch hello.h, hello should be skipped)
         now = time.time()
         os.utime('hello.h', (now, now))   # update intermediates
         kitchen.start_cooking('build')
-        ok(os.path.getmtime('hello.h.txt'), '<', now)
-        ok(os.path.getmtime('hello'),    '>', ts_hello)
-        ok(os.path.getmtime('hello1.o'), '>', ts_hello1_o)
-        ok(os.path.getmtime('hello2.o'), '>', ts_hello2_o)
+        ok (os.path.getmtime('hello.h.txt')) < now
+        ok (os.path.getmtime('hello')) > ts_hello
+        ok (os.path.getmtime('hello1.o')) > ts_hello1_o
+        ok (os.path.getmtime('hello2.o')) > ts_hello2_o
         expected = r'''
 ### *** hello1.o (recipe=file_o)
 $ gcc -c hello1.c
@@ -660,8 +660,8 @@ $ gcc -c hello2.c
 $ touch hello   # skipped
 ### * build (recipe=build)
 '''[1:]
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
         ## 4th (edit hello.h.txt, hello should not be skipped)
         ts_hello    = os.path.getmtime("hello")
         ts_hello1_o = os.path.getmtime("hello1.o")
@@ -673,9 +673,9 @@ $ touch hello   # skipped
             kitchen.start_cooking('build')
         finally:
             config.debug_level = 0
-        ok(os.path.getmtime('hello'),    '>', ts_hello)
-        ok(os.path.getmtime('hello1.o'), '>', ts_hello1_o)
-        ok(os.path.getmtime('hello2.o'), '>', ts_hello2_o)
+        ok (os.path.getmtime('hello')) > ts_hello
+        ok (os.path.getmtime('hello1.o')) > ts_hello1_o
+        ok (os.path.getmtime('hello2.o')) > ts_hello2_o
 #        expected = r'''
 #### **** hello.h (recipe=file_hello_h)
 #$ cp hello.h.txt hello.h
@@ -729,9 +729,9 @@ $ gcc -o hello hello1.o hello2.o
 ### * build (recipe=build)
 *** debug: + end build (content changed)
 '''[1:]
-        ok(_stdout(), '==', expected)
-        ok(_stderr(), '==', "")
+        ok (_stdout()) == expected
+        ok (_stderr()) == ""
 
 
 if __name__ == '__main__':
-    oktest.invoke_tests('Test$')
+    oktest.run('.*Test$')

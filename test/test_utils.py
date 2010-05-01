@@ -51,14 +51,14 @@ class KookUtilsTest(object):
                 "hello.d/src/include/hello.h",
                 "hello.d/src/include/hello2.h",
             ]
-            ok(glob2("hello.d/**/*.h"), '==', expected)
+            ok (glob2("hello.d/**/*.h")) == expected
             #
             expected = [
                 "hello.h",
                 "hello.d/src/include/hello.h",
                 "hello.d/src/include/hello2.h",
             ]
-            ok(glob2("**/*.h"), '==', expected)
+            ok (glob2("**/*.h")) == expected
             #
             expected = [
                 "hello.d/src",
@@ -68,7 +68,7 @@ class KookUtilsTest(object):
                 "hello.d/src/include/hello2.h",
                 "hello.d/src/lib/hello.c",
             ]
-            ok(glob2("hello.d/**/*"), '==', expected)
+            ok (glob2("hello.d/**/*")) == expected
             #
         finally:
             for f in glob('hello*'):
@@ -83,18 +83,18 @@ class KookUtilsTest(object):
         if "function is passed then returns True":
             def f1(c):
                 pass
-            ok(is_func_or_method(f1), 'is', True)
+            ok (is_func_or_method(f1)).is_(True)
         if "method is passed then returns True":
             class Foo(object):
                 def f2(c):
                     pass
-            ok(is_func_or_method(Foo.f2), 'is', True)
+            ok (is_func_or_method(Foo.f2)).is_(True)
         if "other data is passed then returns False":
-            ok(is_func_or_method(None), 'is', False)
-            ok(is_func_or_method('str'), 'is', False)
+            ok (is_func_or_method(None)).is_(False)
+            ok (is_func_or_method('str')).is_(False)
             class Bar(object):
                 pass
-            ok(is_func_or_method(Bar), 'is', False)
+            ok (is_func_or_method(Bar)).is_(False)
 
 
 class CommandOptionParserTest(object):
@@ -104,28 +104,28 @@ class CommandOptionParserTest(object):
                   '--version: version', '--user[=root]: username', '--pass=password: password phrase')
         parser = CommandOptionParser()
         ret = parser.parse_spices(spices)
-        ok(type(ret), '==', tuple)
-        ok(len(ret), '==', 3)
-        ok(ret[0], '==', {'i': 1, 'h': False, 'p': 'port', 'version': False, 'user': True, 'pass': 'password'})
-        ok(ret[1], '==', None)
-        ok(ret[2], '==', [('-h', 'help'), ('-p port', 'port'), ('-i[N]', 'indent'), ('--version', 'version'), ('--user[=root]', 'username'), ('--pass=password', 'password phrase')])
-        ok(ret[0], 'is', parser.spices)
-        ok(ret[1], 'is', parser.arg_desc)
-        ok(ret[2], 'is', parser.helps)
+        ok (type(ret)) == tuple
+        ok (len(ret)) == 3
+        ok (ret[0]) == {'i': 1, 'h': False, 'p': 'port', 'version': False, 'user': True, 'pass': 'password'}
+        ok (ret[1]) == None
+        ok (ret[2]) == [('-h', 'help'), ('-p port', 'port'), ('-i[N]', 'indent'), ('--version', 'version'), ('--user[=root]', 'username'), ('--pass=password', 'password phrase')]
+        ok (ret[0]).is_(parser.spices)
+        ok (ret[1]).is_(parser.arg_desc)
+        ok (ret[2]).is_(parser.helps)
 
     def test_parse_spices2(self):
         spices = ('-p port: port', 'url')
         parser = CommandOptionParser()
         ret = parser.parse_spices(spices)
-        ok(parser.spices, '==', {'p': 'port'})
-        ok(parser.arg_desc, '==', 'url')
+        ok (parser.spices) == {'p': 'port'}
+        ok (parser.arg_desc) == 'url'
         ##
         spices = ('-p port: port', 'url', '-h: help')
         parser = CommandOptionParser()
         def f():
             parser.parse_spices(spices)
-        ok(f, 'raises', ArgumentError, "'url': invalid command option definition.")
+        ok (f).raises(ArgumentError, "'url': invalid command option definition.")
 
 
 if __name__ == '__main__':
-    oktest.invoke_tests('Test$')
+    oktest.run('.*Test$')
