@@ -79,6 +79,10 @@ releases:
         
         Currently only task recipe is available in Category.
 
+    changes:
+
+      - (internal) Update 'oktest.py' to 0.3.0
+
 
   - release:  0.0.5
     date:     2009-11-02
