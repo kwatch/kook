@@ -457,13 +457,16 @@ $ chdir -   # back to %s
             cd(cwd)
 
 
-    def _test_edit(self):
+    def _test_edit(self, check_hello2=True):
         content = read_file('hello.h')
         ok (content.find('1.2.3')) > 0
         content = read_file('hello.d/src/include/hello.h')
         ok (content.find('1.2.3')) > 0
         content = read_file('hello.d/src/include/hello2.h')
-        ok (content.find('1.2.3')) > 0
+        if check_hello2:
+            ok (content.find('1.2.3')) > 0
+        else:
+            ok (content.find('1.2.3')) == -1
         #
         sout, serr = _getvalues()
         ok (sout) == "$ edit **/*.h\n"
@@ -483,6 +486,13 @@ $ chdir -   # back to %s
         ]
         edit("**/*.h", by=by)
         self._test_edit()
+
+    def test_edit3(self):
+        # 'exclude' option
+        def f(content):
+            return re.sub(r'\$_RELEASE_\$', '1.2.3', content)
+        edit("**/*.h", by=f, exclude='*/hello2.*')
+        self._test_edit(False)
 
 
     def test_noexec(self):

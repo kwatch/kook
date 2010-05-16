@@ -11,7 +11,7 @@ import shutil
 #from glob import glob as _glob
 import kook
 from kook import KookCommandError
-from kook.utils import glob2, flatten, has_metachars, ArgumentError
+from kook.utils import glob2, flatten, has_metachars, meta2rexp, ArgumentError
 import kook.config as config
 from kook.misc import _report_cmd
 
@@ -352,6 +352,9 @@ def _chdir(dirname, func, cmd):
 def edit(*filenames, **kwargs):
     by       = kwargs.get('by', None)
     encoding = kwargs.get('encoding', None)
+    exclude  = kwargs.get('exclude', None)
+    if isinstance(exclude, (str, unicode)):
+        exclude = [exclude]
     if not by:
         raise ArgumentError("edit: keyword arg 'by' is reqiured.")
     if hasattr(by, '__call__'):
@@ -364,12 +367,20 @@ def edit(*filenames, **kwargs):
             return s
     else:
         raise ArgumentError("edit: 'by' should be callable or list of tuples.")
-    _edit(filenames, 'edit', 'edit', by, encoding)
+    _edit(filenames, 'edit', 'edit', by, encoding, exclude)
 
-def _edit(filenames, func, cmd, by, encoding=None):
+def _edit(filenames, func, cmd, by, encoding=None, exclude=None):
     fnames = _prepare(filenames, cmd)
     if config.noexec:
         return
+    if exclude:
+        exclude_patterns = [ re.compile(meta2rexp(s)) for s in exclude ]
+        def ok_p(fname, _patterns=exclude_patterns):
+            for pat in _patterns:
+                if pat.match(fname):
+                    return False
+            return True
+        fnames = [ fname for fname in fnames if ok_p(fname) ]
     for fname in fnames:
         if not os.path.exists(fname):
             raise KookCommandError("%s: %s: not found." % (func, fname))
