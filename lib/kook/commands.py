@@ -352,7 +352,8 @@ def _chdir(dirname, func, cmd):
 def edit(*filenames, **kwargs):
     by       = kwargs.get('by', None)
     encoding = kwargs.get('encoding', None)
-    exclude  = kwargs.get('exclude', None)
+    exclude  = kwargs.get('exclude',  None)
+    preserve = kwargs.get('preserve', None)
     if isinstance(exclude, (str, unicode)):
         exclude = [exclude]
     if not by:
@@ -367,9 +368,9 @@ def edit(*filenames, **kwargs):
             return s
     else:
         raise ArgumentError("edit: 'by' should be callable or list of tuples.")
-    _edit(filenames, 'edit', 'edit', by, encoding, exclude)
+    _edit(filenames, 'edit', 'edit', by, encoding, exclude, preserve)
 
-def _edit(filenames, func, cmd, by, encoding=None, exclude=None):
+def _edit(filenames, func, cmd, by, encoding=None, exclude=None, preserve=False):
     fnames = _prepare(filenames, cmd)
     if config.noexec:
         return
@@ -387,6 +388,8 @@ def _edit(filenames, func, cmd, by, encoding=None, exclude=None):
         if os.path.isdir(fname):
             #raise KookCommandError("%s: %s: can't edit directory." % (func, fname))
             continue
-        content = kook.utils.read_file(fname, encoding)
-        content = by(content)
-        kook.utils.write_file(fname, content, encoding)
+        content_old = kook.utils.read_file(fname, encoding)
+        content_new = by(content_old)
+        if preserve and content_old == content_new:
+            continue
+        kook.utils.write_file(fname, content_new, encoding)
