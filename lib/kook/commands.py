@@ -25,7 +25,7 @@ __all__ = (
     'echo', 'echo_n',
     'store', 'store_p',
     'chdir', 'cd',
-    'edit',
+    'edit', 'edit_p',
 )
 
 
@@ -353,9 +353,7 @@ def edit(*filenames, **kwargs):
     by       = kwargs.get('by', None)
     encoding = kwargs.get('encoding', None)
     exclude  = kwargs.get('exclude',  None)
-    preserve = kwargs.get('preserve', None)
-    if isinstance(exclude, (str, unicode)):
-        exclude = [exclude]
+    preserve = kwargs.get('_preserve', None)
     if not by:
         raise ArgumentError("edit: keyword arg 'by' is reqiured.")
     if hasattr(by, '__call__'):
@@ -370,11 +368,17 @@ def edit(*filenames, **kwargs):
         raise ArgumentError("edit: 'by' should be callable or list of tuples.")
     _edit(filenames, 'edit', 'edit', by, encoding, exclude, preserve)
 
+def edit_p(*filenames, **kwargs):
+    kwargs['_preserve'] = True
+    return edit(*filenames, **kwargs)
+
 def _edit(filenames, func, cmd, by, encoding=None, exclude=None, preserve=False):
     fnames = _prepare(filenames, cmd)
     if config.noexec:
         return
     if exclude:
+        if isinstance(exclude, (str, unicode)):
+            exclude = [exclude]
         exclude_patterns = [ re.compile(meta2rexp(s)) for s in exclude ]
         def ok_p(fname, _patterns=exclude_patterns):
             for pat in _patterns:
@@ -390,6 +394,11 @@ def _edit(filenames, func, cmd, by, encoding=None, exclude=None, preserve=False)
             continue
         content_old = kook.utils.read_file(fname, encoding)
         content_new = by(content_old)
-        if preserve and content_old == content_new:
-            continue
-        kook.utils.write_file(fname, content_new, encoding)
+        if not preserve:
+            kook.utils.write_file(fname, content_new, encoding)
+        else:
+            if content_old == content_new:
+                continue
+            mtime = os.path.getmtime(fname)
+            kook.utils.write_file(fname, content_new, encoding)
+            os.utime(fpath, (mtime, mtime))

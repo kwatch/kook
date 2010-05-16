@@ -18,7 +18,7 @@ except ImportError:
 from kook import KookCommandError
 from kook.commands import *
 import kook.commands
-from kook.utils import read_file, write_file
+from kook.utils import read_file, write_file, glob2
 import kook.config as config
 
 def _getvalues(set=False):
@@ -493,6 +493,21 @@ $ chdir -   # back to %s
             return re.sub(r'\$_RELEASE_\$', '1.2.3', content)
         edit("**/*.h", by=f, exclude='*/hello2.*')
         self._test_edit(False)
+
+    def test_edit4(self):
+        # 'preserve' option
+        def f(content):
+            return re.sub(r'\$_RELEASE_\$', r'$_RELEASE_$', content)
+        d = dict([ (x, os.path.getmtime(x)) for x in glob2('**/*.h') ])
+        time.sleep(1)
+        ## preserve
+        edit_p("**/*.h", by=f)
+        for x in glob('**/*.h'):
+            ok (os.path.getmtime(x)) == d[x]      # not changed
+        ## not preserve
+        edit("**/*.h", by=f)
+        for x in glob('**/*.h'):
+            ok (os.path.getmtime(x)) > d[x]      # changed
 
 
     def test_noexec(self):
