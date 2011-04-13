@@ -245,7 +245,7 @@ class CommandOptionParser(object):
                 i += 1
                 break
             ## long opts
-            m = re.match(r'^--([a-zA-Z][-\w]+)(?:=(.*))?$', cmd_arg)
+            m = re.match(r'^--([a-zA-Z][-\w]*)(?:=(.*))?$', cmd_arg)
             if m:
                 name, arg = m.group(1), m.group(2)
                 if not check_longopts:
