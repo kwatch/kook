@@ -66,6 +66,45 @@ class Cookbook(object):
         content = kook.utils.read_file(filename)
         self.load(content, filename, properties)
 
+    def load(self, content, bookname='(kook)', properties={}):
+        context = self._new_context(properties)
+        self.context = context
+        self.bookname = bookname
+        self._eval_content(content, bookname, context)
+        self.materials = self._get_kook_materials(context)
+        tuples = self._collect_recipe_functions(context, None)
+        recipes = self._generate_recipe_objects(tuples)
+        self.specific_task_recipes = recipes[0]
+        self.specific_file_recipes = recipes[1]
+        self.generic_task_recipes  = recipes[2]  ## TODO: support priority
+        self.generic_file_recipes  = recipes[3]  ## TODO: support priority
+        _trace("specific task recipes: %s" % repr(self.specific_task_recipes))
+        _trace("generic  task recipes: %s" % repr(self.generic_task_recipes))
+        _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
+        _trace("generic  file recipes: %s" % repr(self.generic_file_recipes))
+
+    def _new_context(self, properties):
+        context = create_context()
+        if properties:
+            context.update(properties)
+        context['prop'] = self.prop
+        return context
+
+    def _eval_content(self, content, bookname, context):
+        code_obj = compile(content, bookname, 'exec')
+        #exec code_obj in context, context
+        exec(code_obj, context, context)
+
+    def _get_kook_materials(self, context):
+        name = 'kook_materials'
+        if name in context:
+            arr = context.get(name)
+            if not isinstance(arr, (tuple, list)):
+                raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(arr))
+            return arr
+        else:
+            return ()
+
     def _collect_recipe_functions(self, dct, category_class, _tuples=None):
         if _tuples is None: _tuples = []
         for name in dct:       # dict.iteritems() is not available in Python 3.0
@@ -79,25 +118,7 @@ class Cookbook(object):
                 klass._outer = category_class
         return _tuples
 
-    def load(self, content, bookname='(kook)', properties={}):  ## TODO: refactoring
-        ## eval content
-        self.bookname = bookname
-        code_obj = compile(content, bookname, 'exec')
-        context = create_context()
-        if properties: context.update(properties)
-        context['prop'] = self.prop
-        self.context = context
-        #exec code_obj in context, context
-        exec(code_obj, context, context)
-        ## kook_materials
-        name = 'kook_materials'
-        if name in context:
-            obj = context.get(name)
-            if not isinstance(obj, (tuple, list)):
-                raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(obj))
-            self.materials = obj
-        ## collect recipe functions recursively
-        tuples = self._collect_recipe_functions(context, None)
+    def _generate_recipe_objects(self, tuples):
         ## masks
         TASK     = 0x0
         FILE     = 0x1
@@ -110,17 +131,18 @@ class Cookbook(object):
             [],    # GENERIC  | TASK
             [],    # GNERIC   | FILE
         )
+        def is_task(name, func):
+            if name.startswith('task_'):  return True
+            if name.startswith('file_'):  return False
+            #flag = getattr(func, '_kook_product', None) and FILE or TASK
+            if getattr(func, '_kook_product', None):
+                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
+            return True   # regard as task recipe when prefix is not specified
         for name, func, category_class in tuples:
-            ## detect recipe type
-            if   name.startswith('file_'):  flag = FILE
-            elif name.startswith('task_'):  flag = TASK
+            if is_task(name, func):
+                flag = TASK;  klass = TaskRecipe
             else:
-                #flag = getattr(func, '_kook_product', None) and FILE or TASK
-                if getattr(func, '_kook_product', None):
-                    raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
-                flag = TASK   # regard as task recipe when prefix is not specified
-            ## create recipe object
-            klass = flag == FILE and FileRecipe or TaskRecipe
+                flag = FILE;  klass = FileRecipe
             recipe = klass.new(name, func)
             if category_class:
                 recipe.set_category(category_class)
@@ -132,14 +154,7 @@ class Cookbook(object):
             return get_funclineno(recipe.func)
         for lst in recipes:
             lst.sort(key=lambda1)
-        self.specific_task_recipes = recipes[SPECIFIC | TASK]   ## TODO: use dict
-        self.specific_file_recipes = recipes[SPECIFIC | FILE]   ## TODO: use dict
-        self.generic_task_recipes  = recipes[GENERIC  | TASK]   ## TODO: support priority
-        self.generic_file_recipes  = recipes[GENERIC  | FILE]   ## TODO: support priority
-        _trace("specific task recipes: %s" % repr(self.specific_task_recipes))
-        _trace("generic  task recipes: %s" % repr(self.generic_task_recipes))
-        _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
-        _trace("generic  file recipes: %s" % repr(self.generic_file_recipes))
+        return recipes
 
     def material_p(self, target):
         return target in self.materials    ## TODO: use dict
