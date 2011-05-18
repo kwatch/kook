@@ -81,7 +81,7 @@ releases:
 
     changes:
 
-      - (internal) Update 'oktest.py' to 0.3.0
+      - (internal) Update 'oktest.py' to 0.8.0
 
 
   - release:  0.0.5
@@ -98,7 +98,7 @@ releases:
 	       system 'python test_all.py'
 	    chdir('test', f)
             ## above is same as:
-	    #with chdir('test', f):
+	    #with chdir('test'):
 	    #    system 'python test_all.py'
 
     changes:
