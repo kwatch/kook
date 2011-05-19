@@ -223,9 +223,11 @@ class Session(object):
             if error:  sys.stderr.write(error)
         return (output, error, status)
 
-    def ssh_sudo_v(self, show_output):
+    def ssh_sudo_v(self, password=None):
         self._echoback("sudo -v")
-        self._check_sudo_password()
+        if password: self._sudo_password = password
+        self._check_sudo_password()    # set self._sudo_password
+        return self._sudo_password
 
     sudo   = ssh_sudo
     sudo_f = ssh_sudo_f
