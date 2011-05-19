@@ -128,48 +128,22 @@ class Session(object):
         self._close()
 
     def _open(self):
-        self._transport = paramiko.Transport((self.host, self.port))
-        if self.password:
-            self._transport.connect(username=self.user, password=self.password)
-        else:
-            pkey = self.privatekey
-            if not pkey:
-                pkey = self.privatekey = self._get_privatekey()
-            self._transport.connect(username=self.user, pkey=pkey)
-        self._sftp = paramiko.SFTPClient.from_transport(self._transport)
+        ssh = paramiko.SSHClient()
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=self.host, port=self.port,
+                    username=self.user, password=self.password,
+                    pkey=self.privatekey)
+        self._ssh = ssh
+        self._sftp = ssh.open_sftp()
         return self
 
     def _close(self):
-        conn1 = self._sftp
-        conn2 = self._transport
-        self._sftp      = None
-        self._transport = None
+        ssh, sftp = self._ssh, self._sftp
+        self._ssh = self._sftp = None
         try:
-            if conn1: conn1.close()
+            if sftp: sftp.close()
         finally:
-            if conn2: conn2.close()
-
-    def _get_privatekey(self):
-        home = os.environ.get('HOME')
-        for base in ('id_rsa', 'id_dsa'):
-            fname = "~/.ssh/" + base
-            fpath = os.path.expanduser(fname)
-            if os.path.exists(fpath):
-                break
-        else:
-            raise ValueError("private key file ('~/.ssh/id_rsa' or '~/.ssh/id_dsa') not found.")
-        try:
-            pkey = paramiko.RSAKey.from_private_key_file(fpath, self.passphrase)
-        except paramiko.PasswordRequiredException:
-            if self.passphrase:
-                raise
-            global getpass
-            if not getpass: import getpass
-            self.passphrase = getpass.getpass("Passphrase for %s: " % fname)
-            if self._remote and not self._remote.passphrase:
-                self._remote.passphrase = self.passphrase
-            pkey = paramiko.RSAKey.from_private_key_file(fpath, self.passphrase)
-        return pkey
+            if ssh: ssh.close()
 
     def _echoback(self, command):
         sys.stdout.write("[%s@%s]$ %s\n" % (self.user, self.host, command))
@@ -209,14 +183,14 @@ class Session(object):
     mput = sftp_mput
 
     def ssh_run(self, command, show_output=True):
-        out, err, status = self._ssh_run(command, show_output)
+        output, error, status = self._ssh_run(command, show_output)
         if status != 0:
             raise KookCommandError("remote command failed (status=%s)." % status)
-        return (out, err, status)
+        return (output, error, status)
 
     def ssh_run_f(self, command, show_output=True):
-        out, err, status = self._ssh_run(command, show_output)
-        return (out, err, status)
+        output, error, status = self._ssh_run(command, show_output)
+        return (output, error, status)
 
     run   = ssh_run
     run_f = ssh_run_f
@@ -225,17 +199,14 @@ class Session(object):
         self._echoback(command)
         if self._moved:
             command = "cd %s; %s" % (self.getcwd(), command)
-        channel = self._transport.open_session()
-        ret = channel.exec_command(command)
-        status = channel.recv_exit_status()
-        out_lines = channel.makefile('rb', -1).readlines()
-        err_lines = channel.makefile_stderr('rb', -1).readlines()
-        out = "".join(out_lines)
-        err = "".join(err_lines)
+        sin, sout, serr = self._ssh.exec_command(command)
+        status = sout.channel.recv_exit_status()
+        output = sout.read()
+        error  = serr.read()
         if show_output:
-            if out: sys.stdout.write("".join(out))
-            if err: sys.stderr.write("".join(err))
-        return (out, err, status)
+            if output: sys.stdout.write(output)
+            if error:  sys.stderr.write(error)
+        return (output, error, status)
 
     def pushd(self, path):
         self._moved = True
