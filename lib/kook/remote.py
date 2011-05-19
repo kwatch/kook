@@ -183,19 +183,12 @@ class Session(object):
     mput = sftp_mput
 
     def ssh_run(self, command, show_output=True):
-        output, error, status = self._ssh_run(command, show_output)
+        output, error, status = self.ssh_run_f(command, show_output)
         if status != 0:
             raise KookCommandError("remote command failed (status=%s)." % status)
         return (output, error, status)
 
     def ssh_run_f(self, command, show_output=True):
-        output, error, status = self._ssh_run(command, show_output)
-        return (output, error, status)
-
-    run   = ssh_run
-    run_f = ssh_run_f
-
-    def _ssh_run(self, command, show_output):
         self._echoback(command)
         if self._moved:
             command = "cd %s; %s" % (self.getcwd(), command)
@@ -207,6 +200,9 @@ class Session(object):
             if output: sys.stdout.write(output)
             if error:  sys.stderr.write(error)
         return (output, error, status)
+
+    run   = ssh_run
+    run_f = ssh_run_f
 
     def pushd(self, path):
         self._moved = True
