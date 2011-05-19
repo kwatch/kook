@@ -61,10 +61,12 @@ class Remote(object):
             d.update(dict)
         else:
             d['host'] = host
-        m = re.match(r'^(.+?)@(.+)$', d['host'] or '')
+        m = re.match(r'^(.+?@)?(.+?)(:\d+)?$', d['host'] or '')
         if m:
-            d['user'] = m.group(1)
-            d['host'] = m.group(2)
+            m1, m2, m3 = m.groups()
+            if m1: d['user'] = m1[:-1]
+            if m2: d['host'] = m2
+            if m3: d['port'] = int(m3[1:])
         return setattrs(self.SESSION(**d), _remote=self)
         #session = self.SESSION(**d)
         #session._remote = self
