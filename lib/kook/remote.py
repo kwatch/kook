@@ -146,6 +146,33 @@ class Session(object):
     def _echoback(self, command):
         sys.stdout.write("[%s@%s]$ %s\n" % (self.user, self.host, command))
 
+
+    ##
+    ## pushd, getcwd, pwd, ...
+    ##
+
+    def pushd(self, path):
+        self._moved = True
+        return PushDir(path, self)
+
+    def _chdir(self, path):
+        self._sftp.chdir(path)
+
+    def getcwd(self):
+        return self._sftp.getcwd() or self._sftp.normalize('.')
+
+    def pwd(self, forcedly=False):
+        self._echoback("pwd")
+        sys.stdout.write(self.getcwd() + "\n")
+
+    def listdir(self, path='.'):
+        return self._sftp.listdir(path)
+
+
+    ##
+    ## sftp
+    ##
+
     def sftp_get(self, remote_path, local_path=None):
         self._echoback("sftp get %s %s" % (remote_path, local_path or ""))
         self._sftp.get(remote_path, local_path or os.path.basename(remote_path))
@@ -180,6 +207,11 @@ class Session(object):
     mget = sftp_mget
     mput = sftp_mput
 
+
+    ##
+    ## ssh
+    ##
+
     def ssh_run(self, command, show_output=True):
         output, error, status = self.ssh_run_f(command, show_output)
         if status != 0:
@@ -201,6 +233,11 @@ class Session(object):
 
     run   = ssh_run
     run_f = ssh_run_f
+
+
+    ##
+    ## sudo
+    ##
 
     def ssh_sudo(self, command, show_output=True):
         output, error, status = self.ssh_sudo_f(command, show_output)
@@ -279,23 +316,6 @@ class Session(object):
         elif errmsg.find("sorry, you must have a tty to run sudo") >= 0:
             errmsg += "\n (Hint: add 'Defaults !requiretty' into '/etc/sudoers' with 'visudo' command)"
         return errmsg
-
-    def pushd(self, path):
-        self._moved = True
-        return PushDir(path, self)
-
-    def _chdir(self, path):
-        self._sftp.chdir(path)
-
-    def getcwd(self):
-        return self._sftp.getcwd() or self._sftp.normalize('.')
-
-    def pwd(self, forcedly=False):
-        self._echoback("pwd")
-        sys.stdout.write(self.getcwd() + "\n")
-
-    def listdir(self, path='.'):
-        return self._sftp.listdir(path)
 
 
 Remote.SESSION = Session
