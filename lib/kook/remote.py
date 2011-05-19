@@ -251,7 +251,8 @@ class Session(object):
         ## status code should be zero
         status = channel.recv_exit_status()
         if status != 0:
-            raise KookCommandError("failed to invoke 'sudo' command with specified password.")
+            errmsg = serr.read().strip()
+            raise KookCommandError(self._add_hint_about_sudo_settings(errmsg))
 
     def _get_sudo_password(self):
         if self._sudo_password is None:
@@ -269,6 +270,13 @@ class Session(object):
             if i > max:
                 break
             time.sleep(0.1)
+
+    def _add_hint_about_sudo_settings(self, errmsg):
+        if errmsg.find("no tty present and no askpass program specified") >= 0:
+            errmsg += "\n (Hint: add 'Defaults visiblepw' into '/etc/sudoers' with 'visudo' command)"
+        elif errmsg.find("sorry, you must have a tty to run sudo") >= 0:
+            errmsg += "\n (Hint: add 'Defaults !requiretty' into '/etc/sudoers' with 'visudo' command)"
+        return errmsg
 
     def pushd(self, path):
         self._moved = True
