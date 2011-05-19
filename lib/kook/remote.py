@@ -6,7 +6,7 @@
 ### $License$
 ###
 
-import sys, os, re
+import sys, os, re, time
 getpass = None         # on-demand import
 
 from kook import KookCommandError
@@ -30,9 +30,6 @@ def setattrs(obj, **kwargs):
     for k in kwargs:
         setattr(obj, k, kwargs[k])
     return obj
-
-
-## ref. http://media.commandline.org.uk/code/ssh.txt
 
 
 class Remote(object):
@@ -119,6 +116,7 @@ class Session(object):
         self._paths = []
         self._moved = False
         self._pwd = None
+        self._sudo_password = None
 
     def __enter__(self):
         self._open()
@@ -203,6 +201,74 @@ class Session(object):
 
     run   = ssh_run
     run_f = ssh_run_f
+
+    def ssh_sudo(self, command, show_output=True):
+        output, error, status = self.ssh_sudo_f(command, show_output)
+        if status != 0:
+            raise KookCommandError("remote command failed (status=%s)." % status)
+        return (output, error, status)
+
+    def ssh_sudo_f(self, command, show_output=True):
+        command = "sudo " + command
+        self._echoback(command)
+        self._check_sudo_password()
+        if self._moved:
+            command = "cd %s; %s" % (self.getcwd(), command)
+        sin, sout, serr = self._ssh.exec_command(command)
+        output = sout.read()
+        error  = serr.read()
+        status = sout.channel.recv_exit_status()
+        if show_output:
+            if output: sys.stdout.write(output)
+            if error:  sys.stderr.write(error)
+        return (output, error, status)
+
+    def ssh_sudo_v(self, show_output):
+        self._echoback("sudo -v")
+        self._check_sudo_password()
+
+    sudo   = ssh_sudo
+    sudo_f = ssh_sudo_f
+    sudo_v = ssh_sudo_v
+
+    def _check_sudo_password(self):
+        ## run dummy command in non-interactive mode
+        sin, sout, serr = self._ssh.exec_command("sudo -n echo OK")  # non-interactive
+        status = sout.channel.recv_exit_status()
+        if status == 0:
+            return
+        ## enter passowrd for sudo command
+        password = self.password or self._get_sudo_password()
+        sin, sout, serr = self._ssh.exec_command("sudo -v")   # validate
+        sin.write(password + "\n")
+        sin.flush()  #sin.close()
+        ## command will be timeout when password is wrong
+        channel = sout.channel
+        self._wait_for_status_ready(channel)
+        if not channel.exit_status_ready():
+            channel.close()
+            raise KookCommandError("wrong password for sudo command.")
+        ## status code should be zero
+        status = channel.recv_exit_status()
+        if status != 0:
+            raise KookCommandError("failed to invoke 'sudo' command with specified password.")
+
+    def _get_sudo_password(self):
+        if self._sudo_password is None:
+            global getpass
+            if not getpass: import getpass
+            prompt = "[sudo] password for %s@%s: " % (self.user, self.host)
+            self._sudo_password = getpass.getpass(prompt)
+        return self._sudo_password
+
+    def _wait_for_status_ready(self, channel, sec=1.0):
+        max = int(sec * 10)   # 10 == 1/0.1
+        i = 0
+        while not channel.exit_status_ready():
+            i += 1
+            if i > max:
+                break
+            time.sleep(0.1)
 
     def pushd(self, path):
         self._moved = True
