@@ -1,6 +1,63 @@
 
 releases:
 
+  - release:  0.7.0
+    date:     ????
+    enhances:
+
+      - Remote command execution (ssh and sftp) is available.
+        This is very useful to deploy your application into servers.
+
+        Ex (Kookbook.py)::
+
+	    from kook.remote import Remote
+	    remote = Remote()
+	    remote.hosts    = ['www1', 'www2', 'user3@www3:10022']
+	    remote.port     = 22
+	    remote.user     = 'user1'
+	    remote.password = None      # for sudo command
+
+	    @recipe
+	    @remote
+	    def hostinfo(c):
+	        """show hostname"""
+	        rs = c.remote_session
+	        rs.run('hostname')      # run command with ssh
+	        rs.sudo('whoami')       # run command with sudo
+
+	    @recipe
+	    @remote
+	    def exchange(c):
+	        """upload and download files"""
+	        rs = c.remote_session
+	        with rs.pushd('work/apps'):
+	            rs.get('file.remote')    # download a file
+	            rs.put('file.local')     # upload a file
+	            rs.mget('remote.*')      # download files
+	            rs.mput('local.*')       # upload files
+
+        Notice that you must configure ssh at first and confirm that
+        you can log into servers without typing password::
+
+	    bash> ssh user1@www1
+	    bash> ssh user1@www2
+	    bash> ssh -p 10022 user3@www2
+	    bash> kk hostinfo
+	    ### * showinfo (recipe=showinfo)
+	    [user1@www1]$ hostame
+	    www1
+	    [user1@www1]$ sudo whoami
+	    root
+	    [user1@www2]$ hostame
+	    www2
+	    [user1@www2]$ sudo whoami
+	    root
+	    [user3@www3]$ hostame
+	    www3
+	    [user3@www3]$ sudo whoami
+	    root
+
+
   - release:  0.6.0
     date:     2011-10-27
     enhances:
