@@ -202,15 +202,67 @@ class Recipe(object):
         self.func    = func
         self.desc    = desc
         self.spices  = spices
-        self.name    = func and kook.utils.get_funcname(self.func) or None
+
+    def __get_kind(self):
+        return self.__kind
+    def __set_kind(self, kind):
+        if kind != 'task' and kind != 'file':
+            raise ValueError("%s: kind should be 'task' or 'file'." % (kind, ))
+        self.__kind = kind
+    kind = property(__get_kind, __set_kind)
+
+    def __get_product(self):
+        return self.__product
+    def __set_product(self, product):
+        self.__product = product
         if not product:
-            self.pattern = None
+            self.__pattern = None
         elif type(product) is _re_pattern_type:
-            self.pattern = product
+            self.__pattern = product
         elif kook.utils.has_metachars(product):
-            self.pattern = kook.utils.meta2rexp(product)
+            self.__pattern = kook.utils.meta2rexp(product)
         else:
-            self.pattern = None
+            self.__pattern = None
+    product = property(__get_product, __set_product)
+
+    def __get_ingreds(self):
+        return self.__ingreds
+    def __set_ingreds(self, ingreds):
+        self.__ingreds = ingreds
+    ingreds = property(__get_ingreds, __set_ingreds)
+
+    def __get_byprods(self):
+        return self.__byprods
+    def __set_byprods(self, byprods):
+        self.__byprods = byprods
+    byprods = property(__get_byprods, __set_byprods)
+
+    def __get_func(self):
+        return self.__func
+    def __set_func(self, func):
+        self.__func = func
+        self.__name = func and kook.utils.get_funcname(func) or None
+    func = property(__get_func, __set_func)
+
+    def __get_desc(self):
+        return self.__desc
+    def __set_desc(self, desc):
+        self.__desc = desc
+    desc = property(__get_desc, __set_desc)
+
+    def __get_spices(self):
+        return self.__spices
+    def __set_spices(self, spices):
+        self.__spices = spices
+    spices = property(__get_spices, __set_spices)
+
+    def __get_pattern(self):
+        return self.__pattern
+    pattern = property(__get_pattern)
+
+    def __get_name(self):
+        return self.__name
+    name = property(__get_name)
 
     @classmethod
     def new(cls, func_name, func, _cls=None, kind=None):
@@ -267,6 +319,7 @@ class Recipe(object):
         for key in keys:
             buf.append(space)
             val = self.__dict__[key]
+            key = key.replace('_Recipe__', '')
             if isinstance(val, types.FunctionType):
                 buf.append("%s=<function %s>" % (key, kook.utils.get_funcname(val)))
             else:
