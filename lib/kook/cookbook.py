@@ -131,19 +131,15 @@ class Cookbook(object):
             [],    # GENERIC  | TASK
             [],    # GNERIC   | FILE
         )
-        def is_task(name, func):
-            if name.startswith('task_'):  return True
-            if name.startswith('file_'):  return False
-            #flag = getattr(func, '_kook_product', None) and FILE or TASK
-            if getattr(func, '_kook_product', None):
-                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
-            return True   # regard as task recipe when prefix is not specified
         for name, func, category_class in tuples:
-            if is_task(name, func):
-                flag = TASK; kind = 'task'
+            if getattr(func, '_kook_product', None) and \
+               not name.startswith('task_') and not name.startswith('file_'):
+                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
+            recipe = Recipe.new(name, func)
+            if   recipe.kind == 'task':  flag = TASK
+            elif recipe.kind == 'file':  flag = FILE
             else:
-                flag = FILE; kind = 'file'
-            recipe = Recipe.new(name, func, kind=kind)
+                assert False, "recipe.kind=%r" % (recipe.kind, )
             if category_class:
                 recipe.set_category(category_class)
             flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
@@ -219,7 +215,10 @@ class Recipe(object):
     @classmethod
     def new(cls, func_name, func, _cls=None, kind=None):
         if _cls: cls = _cls
-        assert kind
+        if kind: pass
+        elif func_name.startswith('task_'):  kind = 'task'
+        elif func_name.startswith('file_'):  kind = 'file'
+        else:                                kind = 'task'
         prefix  = kind + '_'
         product = getattr(func, '_kook_product', None) or \
                   (func_name.startswith(prefix) and func_name[len(prefix):] or func_name)
