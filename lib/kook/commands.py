@@ -11,7 +11,7 @@ import shutil
 #from glob import glob as _glob
 import kook
 from kook import KookCommandError
-from kook.utils import glob2, flatten, has_metachars, meta2rexp, ArgumentError
+from kook.utils import glob2, flatten, has_metachars, meta2rexp, ArgumentError, _is_str
 import kook.config as config
 from kook.misc import _report_cmd
 
@@ -323,10 +323,9 @@ def chdir(dirname, block=None):
             block.__call__()
         except Exception:
             ex_type, ex_obj, traceback = sys.exc_info();
+            raise
         finally:
             obj.__exit__(ex_type, ex_obj, traceback)
-            if ex_obj:
-                raise
     return obj
 
 def cd(dirname):
@@ -377,7 +376,7 @@ def _edit(filenames, func, cmd, by, encoding=None, exclude=None, preserve=False)
     if config.noexec:
         return
     if exclude:
-        if isinstance(exclude, (str, unicode)):
+        if _is_str(exclude):
             exclude = [exclude]
         exclude_patterns = [ re.compile(meta2rexp(s)) for s in exclude ]
         def ok_p(fname, _patterns=exclude_patterns):
