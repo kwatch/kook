@@ -190,7 +190,7 @@ YES
             config.debug_level = 0
         ## with -D
         expected = r"""
-*** debug: specific task recipes: [<TaskRecipe:'all':all>, <TaskRecipe:'echo':task_echo>]
+*** debug: specific task recipes: [<Recipe:'all':all>, <Recipe:'echo':task_echo>]
 *** debug: generic  task recipes: []
 *** debug: specific file recipes: []
 *** debug: generic  file recipes: []
