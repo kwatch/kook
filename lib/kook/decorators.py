@@ -36,9 +36,13 @@ def recipe(product=None, ingreds=None):
     ##   def clean(c): ...
     if isinstance(product, FunctionType):
         func = product
+        func_name = get_funcname(func)
+        if getattr(func, '_kook_product', None):
+            if not func_name.startswith('task_') and not func_name.startswith('file_'):
+                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when product is specified." % func_name)
         global Recipe
         if not Recipe: from kook.cookbook import Recipe
-        func._kook_recipe = Recipe.new(get_funcname(func), func)
+        func._kook_recipe = Recipe.new(func_name, func)
         return func
     ## ex:
     ##   @recipe('*.o', ['$(1).c', '$(1).h'])

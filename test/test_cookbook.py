@@ -193,7 +193,7 @@ def ext_html(c):
         book = Cookbook.new(None)
         def f():
             book.load(input)
-        ok (f).raises(KookRecipeError, "ext_html(): prefix ('file_' or 'task_') required when @product() specified.")
+        ok (f).raises(KookRecipeError, "ext_html(): prefix ('file_' or 'task_') required when product is specified.")
 
     def test_load__re_pattern(self):
         input = r"""
