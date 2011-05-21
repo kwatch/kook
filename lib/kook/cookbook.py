@@ -204,6 +204,8 @@ class Recipe(object):
     def __set_func(self, func):
         self.__func = func
         self.__name = func and kook.utils.get_funcname(func) or None
+        if func.__doc__:
+            self.desc = func.__doc__
     func = property(__get_func, __set_func)
 
     def __get_desc(self):
