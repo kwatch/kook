@@ -369,7 +369,7 @@ class Recipe(object):
                     if filename: arr.append(filename)
                 else:
                     arr.append(re.sub(_pat, _repl, item))
-            return tuple(arr)
+            return arr
         ingreds, byprods = self.ingreds, self.byprods
         if ingreds:  ingreds = convert(ingreds)
         if byprods:  byprods = convert(byprods)
