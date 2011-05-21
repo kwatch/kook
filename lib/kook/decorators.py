@@ -7,9 +7,11 @@
 ###
 
 from types import FunctionType
-#from kook import KookRecipeError
+from kook import KookRecipeError
 #from kook.kitchen import IfExists
-from kook.utils import flatten, _is_str, ArgumentError
+from kook.utils import flatten, _is_str, ArgumentError, get_funcname
+#from kook.cookbook import Recipe
+Recipe = None         # lazy import to avoid mutual import
 
 __all__ = ('recipe', 'product', 'ingreds', 'byprods', 'coprods', 'priority', 'spices', 'cmdopts', )
 
@@ -34,7 +36,9 @@ def recipe(product=None, ingreds=None):
     ##   def clean(c): ...
     if isinstance(product, FunctionType):
         func = product
-        func._kook_recipe = True
+        global Recipe
+        if not Recipe: from kook.cookbook import Recipe
+        func._kook_recipe = Recipe.new(get_funcname(func), func)
         return func
     ## ex:
     ##   @recipe('*.o', ['$(1).c', '$(1).h'])
@@ -56,17 +60,14 @@ def recipe(product=None, ingreds=None):
     #    raise TypeError("%s: recipe kind should be 'file' or 'task'." % repr(ingreds))
     #
     def deco(f):
-        f._kook_recipe = True
         if product:  f._kook_product = product
         if ingreds:  f._kook_ingreds = ingreds
-        #if kind:     f._kook_kind    = kind
-        return f
+        return recipe(f)
     return deco
 
 
 def product(name):
     def deco(f):
-        #f._kook_recipe  = True
         f._kook_product = name
         return f
     return deco

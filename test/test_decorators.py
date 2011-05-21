@@ -9,6 +9,7 @@ from oktest import *
 import sys, os, re, time
 
 from kook.decorators import *
+from kook.cookbook import Recipe
 from kook.utils import ArgumentError
 
 
@@ -20,27 +21,27 @@ class KookDecoratorsTest(object):
             def f(c):
                 pass
             ok (hasattr(f, '_kook_recipe')) == True
-            ok (f._kook_recipe) == True
+            ok (f._kook_recipe).is_a(Recipe)
             #ok (hasattr(f, '_kook_kind')) == False
         ##
         if "@recipe decorator passed product and ingredients":
             @recipe('*.o', ['$(1).c', '$(1).h'])
             def f(c): pass
-            ok (f._kook_recipe) == True
+            ok (f._kook_recipe).is_a(Recipe)
             ok (f._kook_product) == '*.o'
             ok (f._kook_ingreds) == ('$(1).c', '$(1).h', )
         ##
         if "ingredient is a tuple then it is used as is":
             @recipe('*.html', ('$(1).txt', ))
             def f(c): pass
-            ok (f._kook_recipe) == True
+            ok (f._kook_recipe).is_a(Recipe)
             ok (f._kook_product) == '*.html'
             ok (f._kook_ingreds) == ('$(1).txt', )
         ##
         if "ingredient is a string then it will be converted into tuple":
             @recipe('*.class', '$(1).java')
             def f(c): pass
-            ok (f._kook_recipe) == True
+            ok (f._kook_recipe).is_a(Recipe)
             ok (f._kook_product) == '*.class'
             ok (f._kook_ingreds) == ('$(1).java', )
         ##
@@ -60,7 +61,7 @@ class KookDecoratorsTest(object):
         #def f(c):
         #    pass
         #ok (hasattr(f, '_kook_recipe')) == True
-        #ok (f._kook_recipe) == True
+        #ok (f._kook_recipe).is_a(Recipe)
         #ok (hasattr(f, '_kook_kind')) == True
         #ok (f._kook_kind) == 'task'
         ##
@@ -68,7 +69,7 @@ class KookDecoratorsTest(object):
         #def f(c):
         #    pass
         #ok (hasattr(f, '_kook_recipe')) == True
-        #ok (f._kook_recipe) == True
+        #ok (f._kook_recipe).is_a(Recipe)
         #ok (hasattr(f, '_kook_kind')) == True
         #ok (f._kook_kind) == 'file'
         ##
@@ -76,7 +77,7 @@ class KookDecoratorsTest(object):
         #def f(c):
         #    pass
         #ok (hasattr(f, '_kook_recipe')) == True
-        #ok (f._kook_recipe) == True
+        #ok (f._kook_recipe).is_a(Recipe)
         #ok (hasattr(f, '_kook_kind')) == False
 
 
@@ -87,7 +88,7 @@ class KookDecoratorsTest(object):
         ok (hasattr(f, '_kook_product')) == True
         ok (f._kook_product) == 'hello'
         #ok (hasattr(f, '_kook_recipe')) == True
-        #ok (f._kook_recipe) == True
+        #ok (f._kook_recipe).is_a(Recipe)
 
     def test_ingreds(self):
         @ingreds('foo', 'bar', 'baz')

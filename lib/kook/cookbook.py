@@ -135,7 +135,7 @@ class Cookbook(object):
             if getattr(func, '_kook_product', None) and \
                not name.startswith('task_') and not name.startswith('file_'):
                 raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
-            recipe = Recipe.new(name, func)
+            recipe = func._kook_recipe
             if   recipe.kind == 'task':  flag = TASK
             elif recipe.kind == 'file':  flag = FILE
             else:
