@@ -14,8 +14,7 @@ from kook.utils import _is_str, ArgumentError, has_metachars
 import kook.config as config
 from kook.misc import ConditionalFile
 
-#__all__ = ('Cookbook', 'Recipe', )
-__all__ = ('Cookbook', )
+__all__ = ('Cookbook', 'Recipe', )
 
 
 class Cookbook(object):
