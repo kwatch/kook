@@ -89,10 +89,9 @@ class Cookbook(object):
         if properties:
             context.update(properties)
         context['prop'] = self.prop
-        context['kookbook'] = KookbookProxy(self)
-        d = RecipeDecorator(context['kookbook']).to_dict()
-        context.update(d)
-        context['kookbook']._decorators = d
+        kookbook = KookbookProxy(self)
+        context.update(kookbook._decorators)
+        context['kookbook'] = kookbook
         return context
 
     def _eval_content(self, content, bookname, context):
@@ -161,6 +160,7 @@ class KookbookProxy(object):
 
     def __init__(self, cookbook):
         self._book = cookbook
+        self._decorators = RecipeDecorator(self).to_dict()
 
     def register(self, recipe):
         self._book.register(recipe)
