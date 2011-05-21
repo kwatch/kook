@@ -89,6 +89,7 @@ class Cookbook(object):
         if properties:
             context.update(properties)
         context['prop'] = self.prop
+        context['kookbook'] = self
         return context
 
     def _eval_content(self, content, bookname, context):
