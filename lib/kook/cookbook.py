@@ -12,6 +12,7 @@ from kook.misc import Category, _debug, _trace
 import kook.utils
 from kook.utils import _is_str, ArgumentError
 import kook.config as config
+from kook.misc import ConditionalFile
 
 #__all__ = ('Cookbook', 'Recipe', )
 __all__ = ('Cookbook', )
@@ -283,6 +284,37 @@ class Recipe(object):
             return re.match(self.pattern, target)
         else:
             return self.product == target
+
+    def _to_specific(self, product):
+        if not self.is_generic():
+            return self
+        if kook.utils.has_metachars(product):
+            raise ValueError("_to_specific_recipe(%r): product contains metacharacter." % (produt, ))
+        matched = re.match(self.pattern, product)
+        if not matched:
+            return None
+        pat = r'\$\((\d+)\)'   # replace '$(1)', '$(2)', ...
+        repl = lambda m1: matched.group(int(m1.group(1)))
+        def convert(items, _pat=pat, _repl=repl):
+            arr = []
+            for item in items:
+                if isinstance(item, ConditionalFile):
+                    filename = re.sub(_pat, _repl, item.filename)
+                    filename = item.__call__(filename)
+                    if filename: arr.append(filename)
+                else:
+                    arr.append(re.sub(_pat, _repl, item))
+            return tuple(arr)
+        ingreds, byprods = self.ingreds, self.byprods
+        if ingreds:  ingreds = convert(ingreds)
+        if byprods:  byprods = convert(byprods)
+        cls = self.__class__
+        recipe = cls(product=product, ingreds=ingreds, byprods=byprods,
+                     kind=self.kind, func=self.func, desc=self.desc, spices=self.spices)
+        recipe._original = self
+        recipe._matched = matched
+        recipe._m = (matched.group(), ) + matched.groups()   # tuple
+        return recipe
 
     def __repr__(self):
         #return "<%s product=%s func=%s>" % (self.__class__.__name__, repr(self.product), self.name)
