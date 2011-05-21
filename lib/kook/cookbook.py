@@ -142,7 +142,7 @@ class Cookbook(object):
                 assert False, "recipe.kind=%r" % (recipe.kind, )
             if category_class:
                 recipe.set_category(category_class)
-            flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
+            flag = flag | (recipe.is_generic() and GENERIC or SPECIFIC)
             recipes[flag].append(recipe)
         #lambda1 = lambda recipe: kook.utils.get_funclineno(recipe.func)
           #=> SyntaxError: unqualified exec is not allowed in function 'load' it contains a nested function with free variables
@@ -298,10 +298,10 @@ class Recipe(object):
         return kook.utils.is_func_or_method(obj) and hasattr(obj, '_kook_recipe')
 
     def is_generic(self):
-        return self.pattern is not None
+        return self.__pattern is not None
 
     def match(self, target):
-        if self.pattern:
+        if self.is_generic():
             return re.match(self.pattern, target)
         else:
             return self.product == target
