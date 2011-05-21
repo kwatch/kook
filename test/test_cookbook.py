@@ -100,41 +100,41 @@ def task_build_files(c):
         ok (len(recipes)) == 3
         expected = r"""
 #<Recipe
-  byprods=(),
+  byprods=[],
   desc=None,
-  ingreds=(),
+  ingreds=[],
   kind='task',
   method=<function build>,
   name='build',
   pattern=None,
   product='build',
-  spices=None>
+  spices=[]>
 """[1:-1]
         ok (recipes[0]._inspect()) == expected
         expected = r"""
 #<Recipe
-  byprods=(),
+  byprods=[],
   desc=None,
-  ingreds=(),
+  ingreds=[],
   kind='task',
   method=<function task_build>,
   name='task_build',
   pattern=None,
   product='build',
-  spices=None>
+  spices=[]>
 """[1:-1]
         ok (recipes[1]._inspect()) == expected
         expected = r"""
 #<Recipe
-  byprods=(),
+  byprods=[],
   desc=None,
-  ingreds=(),
+  ingreds=[],
   kind='task',
   method=<function task_build_files>,
   name='task_build_files',
   pattern=None,
   product='build',
-  spices=None>
+  spices=[]>
 """[1:-1]
         ok (recipes[2]._inspect()) == expected
 
@@ -156,15 +156,15 @@ def file_html(c):
         ok (len(book.generic_file_recipes)) == 1
         expected = r"""
 #<Recipe
-  byprods=(),
+  byprods=[],
   desc=None,
-  ingreds=(),
+  ingreds=[],
   kind='file',
   method=<function file_ext_html>,
   name='file_ext_html',
   pattern='^(.*?)\\.html$',
   product='*.html',
-  spices=None>
+  spices=[]>
 """[1:-1]
         ok (book.generic_file_recipes[0]._inspect()) == expected
         # specific recipe
@@ -172,15 +172,15 @@ def file_html(c):
         ok (len(book.specific_file_recipes)) == 1
         expected = r"""
 #<Recipe
-  byprods=(),
+  byprods=[],
   desc=None,
-  ingreds=(),
+  ingreds=[],
   kind='file',
   method=<function file_html>,
   name='file_html',
   pattern=None,
   product='html',
-  spices=None>
+  spices=[]>
 """[1:-1]
         ok (book.specific_file_recipes[0]._inspect()) == expected
 
@@ -487,7 +487,7 @@ kookbook.load_book('""" + bookname + """')
                 ok (r.desc) == "print hello"
                 r = book.find_recipe('hello.html')
                 ok (r).is_a(Recipe)
-                ok (r.ingreds) == ("$(1).txt",)
+                ok (r.ingreds) == ["$(1).txt"]
             dummy_file(bookname, input).run(func)
 
         if "kook_default_product and kook_materials are found then copy it into current context.":

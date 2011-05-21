@@ -693,7 +693,7 @@ $ touch hello   # skipped
 *** debug: Cookbook#find_recipe(): target='hello1.o', func=file_o, product='*.o'
 *** debug: Cookbook#find_recipe(): target='hello.h', func=file_hello_h, product='hello.h'
 *** debug: Cookbook#find_recipe(): target='hello2.o', func=file_o, product='*.o'
-*** debug: start_cooking(): root.product='build', root.ingreds=('hello',)
+*** debug: start_cooking(): root.product='build', root.ingreds=['hello']
 *** debug: + begin build
 *** debug: ++ begin hello
 *** debug: +++ begin hello1.o

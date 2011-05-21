@@ -107,7 +107,7 @@ class Cookbook(object):
                 raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(arr))
             return arr
         else:
-            return ()
+            return []
 
     def material_p(self, target):
         return target in self.materials    ## TODO: use dict
@@ -223,7 +223,7 @@ class Recipe(object):
 
     __category = None
 
-    def __init__(self, kind=None, product=None, ingreds=(), byprods=(), method=None, desc=None, spices=None):
+    def __init__(self, kind=None, product=None, ingreds=None, byprods=None, method=None, desc=None, spices=None):
         self.kind    = kind
         self.product = product
         self.ingreds = ingreds
@@ -328,15 +328,15 @@ class Recipe(object):
                 raise ArgumentError("%r: recipe product should be a string." % (product,))
         else:
             product = (func_name.startswith(prefix) and func_name[len(prefix):] or func_name)
-        ingreds = getattr(method, '_kook_ingreds', ())
+        ingreds = getattr(method, '_kook_ingreds', [])
         if ingreds is not None:
-            if   isinstance(ingreds, tuple): pass
-            elif isinstance(ingreds, list):  ingreds = tuple(ingreds)
-            elif _is_str(ingreds):           ingreds = (ingreds, )
+            if   isinstance(ingreds, tuple): ingreds = list(ingreds)
+            elif isinstance(ingreds, list):  pass
+            elif _is_str(ingreds):           ingreds = [ingreds]
             else:
                 raise ArgumentError("%r: recipe ingredients should be a list or tuple." % (ingreds,))
-        byprods = getattr(method, '_kook_byprods', ())
-        spices  = getattr(method, '_kook_spices', None)
+        byprods = getattr(method, '_kook_byprods', [])
+        spices  = getattr(method, '_kook_spices', [])
         desc    = method.__doc__  ## can be empty string
         if desc is None: desc = _default_descs.get(product)
         return cls(kind=kind, product=product, ingreds=ingreds, byprods=byprods, method=method, desc=desc, spices=spices)
