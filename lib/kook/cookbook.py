@@ -192,7 +192,7 @@ class Recipe(object):
     kind = None
     prefix = ''
     name = None
-    category = None
+    __category = None
 
     def __init__(self, kind=None, product=None, ingreds=(), byprods=(), func=None, desc=None, spices=None):
         self.kind    = kind
@@ -264,6 +264,22 @@ class Recipe(object):
         return self.__name
     name = property(__get_name)
 
+    def __get_category(self):
+        return self.__category
+    category = property(__get_category)
+
+    def set_category(self, category_class):
+        self.__category = category_class
+        if self.kind == 'task':
+            names = []
+            while category_class:
+                names.append(category_class.__name__)
+                category_class = category_class._outer
+            names.reverse()
+            if self.product != '__index__':
+                names.append(self.product)
+            self.product = ':'.join(names)
+
     @classmethod
     def new(cls, func_name, func, _cls=None, kind=None):
         if _cls: cls = _cls
@@ -287,18 +303,6 @@ class Recipe(object):
 
     def is_generic(self):
         return self.pattern is not None
-
-    def set_category(self, category_class):
-        self.category = category_class
-        if self.kind == 'task':
-            names = []
-            while category_class:
-                names.append(category_class.__name__)
-                category_class = category_class._outer
-            names.reverse()
-            if self.product != '__index__':
-                names.append(self.product)
-            self.product = ':'.join(names)
 
     def match(self, target):
         if self.pattern:
