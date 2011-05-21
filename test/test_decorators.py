@@ -13,6 +13,7 @@ from kook.decorators import *
 from kook.cookbook import Recipe
 from kook.utils import ArgumentError
 
+kookbook = None  # dummy
 
 class KookDecoratorsTest(object):
 
@@ -83,6 +84,7 @@ class KookDecoratorsTest(object):
         #
         if "kookbook exists in context then register recipe into it.":
             tr = Tracer()
+            global kookbook
             kookbook = tr.fake_obj(register=True)
             @recipe
             def hello(c):
