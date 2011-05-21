@@ -166,17 +166,19 @@ class Material(Cookable):
 class Cooking(Cookable):
     """represens recipe invocation. in other words, Recipe is 'definition', Cooking is 'execution'."""
 
-    def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None):
+    def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None, matched=None, m=None):
         if product is None: product = recipe.product
-        if ingreds is None: ingreds = recipe.ingreds
-        if byprods is None: byprods = recipe.byprods
-        if spices  is None: spices  = recipe.spices
+        if ingreds is None: ingreds = recipe.ingreds or ()
+        if byprods is None: byprods = recipe.byprods or ()
+        if spices  is None: spices  = recipe.spices  or ()
         self.recipe  = recipe
         self.product = product
         self.ingreds = ingreds
         self.byprods = byprods
         self.ingred  = ingreds and ingreds[0] or None
         self.byprod  = byprods and byprods[0] or None
+        self.matched = matched
+        self.m       = m
         self.children = []       # child cookables
         self.spices  = spices
         self.cooked  = None
@@ -186,21 +188,15 @@ class Cooking(Cookable):
     @classmethod
     def new(cls, target, recipe):
         product = target
+        matched = m = None
+        if recipe.is_generic():
+            recipe  = recipe._to_specific(product)
+            matched = recipe._matched
+            m = recipe._m
         ingreds = recipe.ingreds or ()
         byprods = recipe.byprods or ()
         spices  = recipe.spices  or ()
-        if recipe.is_generic():
-            recipe  = recipe._to_specific(target)
-            ingreds = recipe.ingreds
-            byprods = recipe.byprods
-            matched = recipe._matched
-            m = recipe._m
-        else:
-            matched = None
-            m = None
-        self = cls(recipe, product=product, ingreds=ingreds, byprods=byprods, spices=spices)
-        self.matched = matched
-        self.m = m
+        self = cls(recipe, product=product, matched=matched, m=m)
         return self
 
     def has_product_file(self):
