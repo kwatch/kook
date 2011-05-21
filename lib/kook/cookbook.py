@@ -10,7 +10,7 @@ import os, re, types
 from kook import KookRecipeError
 from kook.misc import Category, _debug, _trace
 import kook.utils
-from kook.utils import _is_str, ArgumentError
+from kook.utils import _is_str, ArgumentError, has_metachars
 import kook.config as config
 from kook.misc import ConditionalFile
 
@@ -147,6 +147,23 @@ class Cookbook(object):
         #                   (repr(target), recipe.name, repr(recipe.product), ))
         #        return recipe
         #return None
+
+    def get_recipe(self, product, register=True):
+        def _find(product, recipes):
+            for r in recieps:
+                if r.product == product:
+                    return r
+            return None
+        recipe = self.find_recipe(product) or \
+                 _find(product, self.generic_task_recipes) or \
+                 _find(product, self.generic_file_recipes)
+        if not recipe:
+            return None
+        if recipe.is_generic() and _is_str(product) and not has_metachars(product):
+            recipe = recipe._to_specific(product)
+            if register:
+                self.register(recipe)
+        return recipe
 
 
 _re_pattern_type = type(re.compile('dummy'))

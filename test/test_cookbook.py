@@ -394,6 +394,30 @@ class db(Category):
         ok (recipe.kind) == 'task'
         ok (recipe.product) == 'db:schema'
 
+    def test_get_recipe(self):
+
+        input = r"""
+@recipe
+def hello(c):
+  print("HELLO")
+
+@recipe("*.html", ["$(1).txt"])
+def file_html(c):
+  cp(c.ingred, c.product)
+
+r = kookbook.get_recipe("foo.html")
+r.ingreds = ["foo.txt", "sidebar.html"]
+def file_foo_html(c):
+    "create foo.html"
+    kookbook.get_recipe('*.html').func(c)
+r.func = file_foo_html
+"""[1:]
+        book = Cookbook.new(None)
+        book.load(input)
+        r = book.find_recipe("foo.html")
+        ok (r.ingreds) == ["foo.txt", "sidebar.html"]
+        ok (r.desc) == "create foo.html"
+
 
 if __name__ == '__main__':
     oktest.run('.*Test$')
