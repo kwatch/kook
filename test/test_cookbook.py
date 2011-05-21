@@ -395,5 +395,105 @@ class db(Category):
         ok (recipe.product) == 'db:schema'
 
 
+class KookbookProxyTest(object):
+
+    def test_find_recipe(self):
+
+        input = r"""
+@recipe("*.html", ["$(1).txt"])
+def file_html(c):
+  cp(c.ingred, c.product)
+
+r = kookbook.find_recipe("foo.html")
+r.ingreds = ["foo.txt", "sidebar.html"]
+def file_foo_html(c):
+    "create foo.html"
+    kookbook.get_recipe('*.html').func(c)
+r.func = file_foo_html
+"""[1:]
+        book = Cookbook.new(None)
+        book.load(input)
+        r = book.find_recipe("foo.html")
+        ok (r.ingreds) == ["foo.txt", "sidebar.html"]
+        ok (r.desc) == "create foo.html"
+
+        if "product is not a string then raises TypeError.":
+            input = r"""
+@recipe("*.html", ["$(1).txt"])
+def file_html(c):
+  cp(c.ingred, c.product)
+import re
+r = kookbook.find_recipe(re.compile('foo.html'))
+"""[1:]
+            book = Cookbook.new(None)
+            def fn(): book.load(input)
+            ok (fn).raises(TypeError)
+            ok (str(fn.exception)).matches(r"find_recipe\(.*\): string expected.")
+
+        if "product contains meta character then raises ValueError.":
+            input = r"""
+@recipe("*.html", ["$(1).txt"])
+def file_html(c):
+  cp(c.ingred, c.product)
+r = kookbook.find_recipe("*.html")
+"""[1:]
+            book = Cookbook.new(None)
+            def fn(): book.load(input)
+            ok (fn).raises(ValueError, "find_recipe('*.html'): not allowed meta characters.")
+
+    def test_get_recipe(self):
+
+        if "called then returns recipe, without pattern matching.":
+            input = r"""
+@recipe("*.html", ["$(1).txt"])
+def file_html(c):
+  cp(c.ingred, c.product)
+
+#r = kookbook.find_recipe("*.html")   # ValueError
+r = kookbook.get_recipe("*.html")
+assert r is not None
+assert r is file_html._kook_recipe
+"""[1:]
+            book = Cookbook.new(None)
+            def fn(): book.load(input)
+            ok (fn).not_raise()
+
+    def test_default(self):
+
+        if "accessed then gets or sets 'kook_default_product'.":
+            input = r"""
+kookbook.default = 'foo.html'
+"""[1:]
+            book = Cookbook.new(None)
+            book.load(input)
+            ok (book.context).contains('kook_default_product')
+            ok (book.default_product()) == 'foo.html'
+            input = r"""
+kook_default_product = 'bar.html'
+assert kookbook.default == 'bar.html'
+"""[1:]
+            book = Cookbook.new(None)
+            def fn(): book.load(input)
+            ok (fn).not_raise()
+
+    def test_materials(self):
+
+        if "accessed then gets or sets 'kook_materials'.":
+            input = r"""
+kookbook.materials = ['foo.html']
+"""[1:]
+            book = Cookbook.new(None)
+            book.load(input)
+            ok (book.context).contains('kook_materials')
+            ok (book._get_kook_materials(book.context)) == ['foo.html']
+            input = r"""
+kook_materials = ['bar.html']
+assert kookbook.materials == ['bar.html']
+"""[1:]
+            book = Cookbook.new(None)
+            def fn(): book.load(input)
+            ok (fn).not_raise()
+
+
 if __name__ == '__main__':
     oktest.run('.*Test$')

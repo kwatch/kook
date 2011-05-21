@@ -10,8 +10,9 @@ import os, re, types
 from kook import KookRecipeError
 from kook.misc import Category, _debug, _trace
 import kook.utils
-from kook.utils import _is_str, ArgumentError
+from kook.utils import _is_str, ArgumentError, has_metachars
 import kook.config as config
+from kook.misc import ConditionalFile
 
 #__all__ = ('Cookbook', 'Recipe', )
 __all__ = ('Cookbook', )
@@ -87,7 +88,7 @@ class Cookbook(object):
         if properties:
             context.update(properties)
         context['prop'] = self.prop
-        context['kookbook'] = self
+        context['kookbook'] = KookbookProxy(self)
         return context
 
     def _eval_content(self, content, bookname, context):
@@ -148,7 +149,60 @@ class Cookbook(object):
         #return None
 
 
+
 _re_pattern_type = type(re.compile('dummy'))
+
+
+class KookbookProxy(object):
+
+    def __init__(self, cookbook):
+        self._book = cookbook
+
+    def register(self, recipe):
+        self._book.register(recipe)
+
+    def find_recipe(self, product, register=True):
+        if not _is_str(product):
+            raise TypeError("find_recipe(%r): string expected." % (product,))
+        if has_metachars(product):
+            raise ValueError("find_recipe(%r): not allowed meta characters." % (product,))
+        book = self._book
+        recipe = book.find_recipe(product)
+        if recipe and recipe.is_generic():
+            recipe = recipe._to_specific(product)
+            if register:
+                book.register(recipe)
+        return recipe
+
+    def get_recipe(self, product):
+        book = self._book
+        def _find(recipes, prod=product):
+            for r in recipes:
+                if r.product == prod:
+                    return r
+            return None
+        return _find(book.specific_task_recipes) or \
+               _find(book.specific_file_recipes) or \
+               _find(book.generic_task_recipes)  or \
+               _find(book.generic_file_recipes)
+
+    def __get_default(self):
+        return self._book.context['kook_default_product']
+
+    def __set_default(self, product):
+        self._book.context['kook_default_product'] = product
+
+    default = property(__get_default, __set_default)
+
+
+    def __get_materials(self):
+        return self._book.context['kook_materials']
+
+    def __set_materials(self, materials):
+        self._book.context['kook_materials'] = materials
+
+    materials = property(__get_materials, __set_materials)
+
 
 
 class Recipe(object):
@@ -203,6 +257,8 @@ class Recipe(object):
     def __set_func(self, func):
         self.__func = func
         self.__name = func and kook.utils.get_funcname(func) or None
+        if func.__doc__:
+            self.desc = func.__doc__
     func = property(__get_func, __set_func)
 
     def __get_desc(self):
@@ -283,6 +339,37 @@ class Recipe(object):
             return re.match(self.pattern, target)
         else:
             return self.product == target
+
+    def _to_specific(self, product):
+        if not self.is_generic():
+            return self
+        if kook.utils.has_metachars(product):
+            raise ValueError("_to_specific_recipe(%r): product contains metacharacter." % (product, ))
+        matched = re.match(self.pattern, product)
+        if not matched:
+            return None
+        pat = r'\$\((\d+)\)'   # replace '$(1)', '$(2)', ...
+        repl = lambda m1: matched.group(int(m1.group(1)))
+        def convert(items, _pat=pat, _repl=repl):
+            arr = []
+            for item in items:
+                if isinstance(item, ConditionalFile):
+                    filename = re.sub(_pat, _repl, item.filename)
+                    filename = item.__call__(filename)
+                    if filename: arr.append(filename)
+                else:
+                    arr.append(re.sub(_pat, _repl, item))
+            return tuple(arr)
+        ingreds, byprods = self.ingreds, self.byprods
+        if ingreds:  ingreds = convert(ingreds)
+        if byprods:  byprods = convert(byprods)
+        cls = self.__class__
+        recipe = cls(product=product, ingreds=ingreds, byprods=byprods,
+                     kind=self.kind, func=self.func, desc=self.desc, spices=self.spices)
+        recipe._original = self
+        recipe._matched = matched
+        recipe._m = (matched.group(), ) + matched.groups()   # tuple
+        return recipe
 
     def __repr__(self):
         #return "<%s product=%s func=%s>" % (self.__class__.__name__, repr(self.product), self.name)
