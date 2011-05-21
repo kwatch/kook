@@ -6,11 +6,14 @@
 ### $License$
 ###
 
-import os
+import sys, os
+from types import FunctionType
 from kook.utils import flatten
 import kook.config as config
 
 __all__ = ('if_exists', 'Category', )
+
+python3 = sys.version_info[0] == 3
 
 
 class ConditionalFile(object):
@@ -33,10 +36,50 @@ def if_exists(*args):
     return [ IfExists(arg) for arg in flatten(args) ]
 
 
+
+###
+
+Category = None
+
+
+class _CategoryMetaClass(type):
+
+    def __init__(cls, name, bases, dct):
+        type.__init__(cls, name, bases, dct)
+        def modify(prefix, outer_cls, d):
+            for k in d:
+                v = d[k]
+                if isinstance(v, FunctionType):
+                    if hasattr(v, '_kook_recipe'):
+                        r = v._kook_recipe
+                        if r.kind == 'task':
+                            if r.product == '__index__':
+                                r.product = prefix[:-1]
+                            else:
+                                r.product = prefix + r.product
+                elif isinstance(v, type):
+                    if k != '_outer' and Category and issubclass(v, Category):
+                        inner_cls = v
+                        modify(prefix, inner_cls, inner_cls.__dict__)
+                        if not inner_cls._outer:
+                            inner_cls._outer = outer_cls
+        name = dct.get('__name__', name)
+        modify(name.split('.')[-1] + ':', cls, dct)
+
+
 class Category(object):
     """Namespace of recipes"""
-
+    __metaclass__ = _CategoryMetaClass
     _outer = None
+
+
+if python3:
+    exec('''
+Category = None
+class Category(object, metaclass=_CategoryMetaClass):
+    """Namespace of recipes"""
+    _outer = None
+''')
 
 
 ###
