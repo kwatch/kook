@@ -63,16 +63,17 @@ class Cookbook(object):
     def default_product(self):
         return self.context.get('kook_default_product')
 
-    def load_file(self, filename, properties={}):
+    def load_file(self, filename, properties={}, __kwd=None):
         ## read file
         self.bookname = filename
         if not os.path.isfile(filename):
             raise kook.utils.ArgumentError("%s: not found." % filename)
         content = kook.utils.read_file(filename)
-        self.load(content, filename, properties)
+        self.load(content, filename, properties, __kwd)
 
-    def load(self, content, bookname='(kook)', properties={}):
+    def load(self, content, bookname='(kook)', properties={}, __kwd=None):
         context = self._new_context(properties)
+        if __kwd: context.update(__kwd)
         self.context = context
         self.bookname = bookname
         self._eval_content(content, bookname, context)
@@ -186,23 +187,11 @@ class KookbookProxy(object):
                _find(book.generic_file_recipes)
 
     def load_book(self, filepath):
-        book = Cookbook.new(filepath, {})
-        #
-        names = ('generic_task_recipes', 'generic_file_recipes',
-                 'specific_task_recipes', 'specific_file_recipes',)
-        for name in names:
-            lst = list(getattr(self._book, name)) + list(getattr(book, name))
-            setattr(self._book, name, lst)
-        #
-        if 'kook_default_product' in book.context:
-            self.default = book.context['kook_default_product']
-        if 'kook_materials' in book.context:
-            self.materials = book.context['kook_materials']
-        #
+        book = Cookbook.new(None)
+        book.load_file(filepath, {}, dict(kookbook=self, prop=self._book.prop))
         if '__export__' in book.context:
             for k in book.context['__export__']:
                 self._book.context[k] = book.context.get(k)
-        #
         #return book
         return book.context['kookbook']
 

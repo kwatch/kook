@@ -509,13 +509,38 @@ assert kookbook.materials == ['index.html']
                 ok (fn).not_raise()
             dummy_file(bookname, input).run(func)
 
+        if "property is specified then propages values.":
+            input = r"""
+p1 = prop('p1', 10)
+p2 = prop('p2', 20)
+p3 = prop('p3', 30)
+assert p1 == 11      # != 10, because it is set before loading
+assert p2 == 25      # != 25, because it is provided by book.load()
+assert p3 == 30
+"""[1:]
+            bookname = "_load_book_test3.py"
+            input2 = r"""
+p1 = prop('p1', 11)  # set before loading
+assert p1 == 11
+p2 = prop('p2', 21)  # set before loading
+assert p2 == 25      # != 21, because p2 is specified by book.load()
+kookbook.load_book('""" + bookname + """')
+p3 = prop('p3', 31)  # set after loading
+assert p3 == 30      # != 31, because it is set after loading
+"""
+            def func():
+                book = Cookbook.new(None)
+                def fn(): book.load(input2, properties={"p2": 25})   # set property
+                ok (fn).not_raise()
+            dummy_file(bookname, input).run(func)
+
         if "__export__ is provided then copy values into current context.":
             input = r"""
 __export__ = ('foo', 'bar')
 foo = 123
 bar = ["AAA"]
 """[1:]
-            bookname = "_load_book_test3.py"
+            bookname = "_load_book_test4.py"
             input2 = r"""
 ret = kookbook.load_book('""" + bookname + """')
 assert foo == 123
