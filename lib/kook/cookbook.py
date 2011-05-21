@@ -12,7 +12,7 @@ from kook.misc import Category, _debug, _trace
 import kook.utils
 import kook.config as config
 
-#__all__ = ('Cookbook', 'Recipe', 'TaskRecipe', 'FileRecipe', )
+#__all__ = ('Cookbook', 'Recipe', )
 __all__ = ('Cookbook', )
 
 
@@ -131,19 +131,15 @@ class Cookbook(object):
             [],    # GENERIC  | TASK
             [],    # GNERIC   | FILE
         )
-        def is_task(name, func):
-            if name.startswith('task_'):  return True
-            if name.startswith('file_'):  return False
-            #flag = getattr(func, '_kook_product', None) and FILE or TASK
-            if getattr(func, '_kook_product', None):
-                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
-            return True   # regard as task recipe when prefix is not specified
         for name, func, category_class in tuples:
-            if is_task(name, func):
-                flag = TASK;  klass = TaskRecipe
+            if getattr(func, '_kook_product', None) and \
+               not name.startswith('task_') and not name.startswith('file_'):
+                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
+            recipe = Recipe.new(name, func)
+            if   recipe.kind == 'task':  flag = TASK
+            elif recipe.kind == 'file':  flag = FILE
             else:
-                flag = FILE;  klass = FileRecipe
-            recipe = klass.new(name, func)
+                assert False, "recipe.kind=%r" % (recipe.kind, )
             if category_class:
                 recipe.set_category(category_class)
             flag = flag | (recipe.pattern and GENERIC or SPECIFIC)
@@ -193,32 +189,101 @@ _re_pattern_type = type(re.compile('dummy'))
 
 class Recipe(object):
 
-    kind = None
-    prefix = ''
-    name = None
-    category = None
+    __category = None
 
-    def __init__(self, product=None, ingreds=(), byprods=(), func=None, desc=None, spices=None):
+    def __init__(self, kind=None, product=None, ingreds=(), byprods=(), func=None, desc=None, spices=None):
+        self.kind    = kind
         self.product = product
         self.ingreds = ingreds
         self.byprods = byprods
         self.func    = func
         self.desc    = desc
         self.spices  = spices
-        self.name    = func and kook.utils.get_funcname(self.func) or None
+
+    def __get_kind(self):
+        return self.__kind
+    def __set_kind(self, kind):
+        if kind != 'task' and kind != 'file':
+            raise ValueError("%s: kind should be 'task' or 'file'." % (kind, ))
+        self.__kind = kind
+    kind = property(__get_kind, __set_kind)
+
+    def __get_product(self):
+        return self.__product
+    def __set_product(self, product):
+        self.__product = product
         if not product:
-            self.pattern = None
+            self.__pattern = None
         elif type(product) is _re_pattern_type:
-            self.pattern = product
+            self.__pattern = product
         elif kook.utils.has_metachars(product):
-            self.pattern = kook.utils.meta2rexp(product)
+            self.__pattern = kook.utils.meta2rexp(product)
         else:
-            self.pattern = None
+            self.__pattern = None
+    product = property(__get_product, __set_product)
+
+    def __get_ingreds(self):
+        return self.__ingreds
+    def __set_ingreds(self, ingreds):
+        self.__ingreds = ingreds
+    ingreds = property(__get_ingreds, __set_ingreds)
+
+    def __get_byprods(self):
+        return self.__byprods
+    def __set_byprods(self, byprods):
+        self.__byprods = byprods
+    byprods = property(__get_byprods, __set_byprods)
+
+    def __get_func(self):
+        return self.__func
+    def __set_func(self, func):
+        self.__func = func
+        self.__name = func and kook.utils.get_funcname(func) or None
+    func = property(__get_func, __set_func)
+
+    def __get_desc(self):
+        return self.__desc
+    def __set_desc(self, desc):
+        self.__desc = desc
+    desc = property(__get_desc, __set_desc)
+
+    def __get_spices(self):
+        return self.__spices
+    def __set_spices(self, spices):
+        self.__spices = spices
+    spices = property(__get_spices, __set_spices)
+
+    def __get_pattern(self):
+        return self.__pattern
+    pattern = property(__get_pattern)
+
+    def __get_name(self):
+        return self.__name
+    name = property(__get_name)
+
+    def __get_category(self):
+        return self.__category
+    category = property(__get_category)
+
+    def set_category(self, category_class):
+        self.__category = category_class
+        if self.kind == 'task':
+            names = []
+            while category_class:
+                names.append(category_class.__name__)
+                category_class = category_class._outer
+            names.reverse()
+            if self.product != '__index__':
+                names.append(self.product)
+            self.product = ':'.join(names)
 
     @classmethod
-    def new(cls, func_name, func, _cls=None):
-        if _cls: cls = _cls
-        prefix  = cls.prefix
+    def new(cls, func_name, func, kind=None):
+        if kind: pass
+        elif func_name.startswith('task_'):  kind = 'task'
+        elif func_name.startswith('file_'):  kind = 'file'
+        else:                                kind = 'task'
+        prefix  = kind + '_'
         product = getattr(func, '_kook_product', None) or \
                   (func_name.startswith(prefix) and func_name[len(prefix):] or func_name)
         ingreds = getattr(func, '_kook_ingreds', ())
@@ -226,7 +291,7 @@ class Recipe(object):
         spices  = getattr(func, '_kook_spices', None)
         desc    = func.__doc__  ## can be empty string
         if desc is None: desc = _default_descs.get(product)
-        return cls(product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
+        return cls(kind=kind, product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
 
     @staticmethod
     def is_recipe_func(obj):
@@ -234,9 +299,6 @@ class Recipe(object):
 
     def is_generic(self):
         return self.pattern is not None
-
-    def set_category(self, category_class):
-        self.category = category_class
 
     def match(self, target):
         if self.pattern:
@@ -257,6 +319,7 @@ class Recipe(object):
         for key in keys:
             buf.append(space)
             val = self.__dict__[key]
+            key = key.replace('_Recipe__', '')
             if isinstance(val, types.FunctionType):
                 buf.append("%s=<function %s>" % (key, kook.utils.get_funcname(val)))
             else:
@@ -267,31 +330,7 @@ class Recipe(object):
         return "".join(buf)
 
 
-## TODO: define SpecificRecipe and GenericRecipe instead of TaskRecipe and FileRecipe?
-
-
-class TaskRecipe(Recipe):
-
-    kind   = 'task'
-    prefix = 'task_'
-
-    def set_category(self, category_class):
-        Recipe.set_category(self, category_class)
-        ## use category class name as product prefix
-        names = []
-        while category_class:
-            names.append(category_class.__name__)
-            category_class = category_class._outer
-        names.reverse()
-        if self.product != '__index__':
-            names.append(self.product)
-        self.product = ':'.join(names)
-
-
-class FileRecipe(Recipe):
-
-    kind   = 'file'
-    prefix = 'file_'
+## TODO: define SpecificRecipe and GenericRecipe?
 
 
 import kook.commands    ## don't move from here!

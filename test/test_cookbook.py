@@ -9,7 +9,7 @@ from oktest import *
 import sys, os, re
 
 from kook import KookRecipeError
-from kook.cookbook import Cookbook, Recipe, TaskRecipe, FileRecipe
+from kook.cookbook import Cookbook, Recipe
 from kook.utils import write_file
 
 
@@ -44,7 +44,7 @@ def file_html(c):
         recipes = book.specific_file_recipes
         ok (recipes).is_a(list)
         ok (len(recipes)) == 1
-        ok (recipes[0]).is_a(FileRecipe)
+        ok (recipes[0].kind) == 'file'
 
     def test_load_file(self):
         book = Cookbook.new(None)
@@ -61,7 +61,7 @@ def file_html(c):
         ok (book.bookname) == bookname
         recipes = book.specific_file_recipes
         ok (recipes).is_a(list)
-        ok (recipes[0]).is_a(FileRecipe)
+        ok (recipes[0].kind) == 'file'
 
     def test_load__set_self_bookname(self):
         "set self.bookname"
@@ -98,11 +98,12 @@ def task_build_files(c):
         ok (recipes).is_a(list)
         ok (len(recipes)) == 3
         expected = r"""
-#<TaskRecipe
+#<Recipe
   byprods=(),
   desc=None,
   func=<function build>,
   ingreds=(),
+  kind='task',
   name='build',
   pattern=None,
   product='build',
@@ -110,11 +111,12 @@ def task_build_files(c):
 """[1:-1]
         ok (recipes[0]._inspect()) == expected
         expected = r"""
-#<TaskRecipe
+#<Recipe
   byprods=(),
   desc=None,
   func=<function task_build>,
   ingreds=(),
+  kind='task',
   name='task_build',
   pattern=None,
   product='build',
@@ -122,11 +124,12 @@ def task_build_files(c):
 """[1:-1]
         ok (recipes[1]._inspect()) == expected
         expected = r"""
-#<TaskRecipe
+#<Recipe
   byprods=(),
   desc=None,
   func=<function task_build_files>,
   ingreds=(),
+  kind='task',
   name='task_build_files',
   pattern=None,
   product='build',
@@ -151,11 +154,12 @@ def file_html(c):
         ok (book.generic_file_recipes).is_a(list)
         ok (len(book.generic_file_recipes)) == 1
         expected = r"""
-#<FileRecipe
+#<Recipe
   byprods=(),
   desc=None,
   func=<function file_ext_html>,
   ingreds=(),
+  kind='file',
   name='file_ext_html',
   pattern='^(.*?)\\.html$',
   product='*.html',
@@ -166,11 +170,12 @@ def file_html(c):
         ok (book.specific_file_recipes).is_a(list)
         ok (len(book.specific_file_recipes)) == 1
         expected = r"""
-#<FileRecipe
+#<Recipe
   byprods=(),
   desc=None,
   func=<function file_html>,
   ingreds=(),
+  kind='file',
   name='file_html',
   pattern=None,
   product='html',
@@ -296,11 +301,11 @@ def file_index_html(c):
         book.load(input)
         ## generic file recipe
         recipe = book.find_recipe('foo.html')
-        ok (recipe).is_a(FileRecipe)
+        ok (recipe.kind) == 'file'
         ok (recipe.name) == 'file_html'
         ## specific file recipe
         recipe = book.find_recipe('index.html')
-        ok (recipe).is_a(FileRecipe)
+        ok (recipe.kind) == 'file'
         ok (recipe.name) == 'file_index_html'
         ## for task recipe
         input = r"""
@@ -317,11 +322,11 @@ def package_123(c):
         book.load(input)
         ## generic task recipe
         recipe = book.find_recipe('package_100')
-        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.kind) == 'task'
         ok (recipe.name) == 'task_package'
         ## specific task recipe
         recipe = book.find_recipe('package_123')
-        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.kind) == 'task'
         ok (recipe.name) == 'package_123'
         ## return None if not found
         ok (book.find_recipe('package123')).is_(None)
@@ -341,11 +346,11 @@ class stash(Category):
         book = Cookbook.new(None)
         book.load(input)
         recipe = book.find_recipe('stash:save')
-        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.kind) == 'task'
         ok (recipe.product) == 'stash:save'
         ok (recipe.name) == 'save'
         recipe = book.find_recipe('stash:pop')
-        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.kind) == 'task'
         ok (recipe.product) == 'stash:pop'
         ok (recipe.name) == 'pop'
         recipe = book.find_recipe('stash:abort')
@@ -375,18 +380,18 @@ class db(Category):
         book.load(input)
         #
         recipe = book.find_recipe('db:schema:migration:down')
-        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.kind) == 'task'
         ok (recipe.product) == 'db:schema:migration:down'
         #
         recipe = book.find_recipe('db:backup')
-        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.kind) == 'task'
         ok (recipe.product) == 'db:backup'
         #
         recipe = book.find_recipe('db:schema:migration:reset')
         ok (recipe).is_(None)
         #
         recipe = book.find_recipe('db:schema')
-        ok (recipe).is_a(TaskRecipe)
+        ok (recipe.kind) == 'task'
         ok (recipe.product) == 'db:schema'
 
 
