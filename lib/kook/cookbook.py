@@ -189,9 +189,6 @@ _re_pattern_type = type(re.compile('dummy'))
 
 class Recipe(object):
 
-    kind = None
-    prefix = ''
-    name = None
     __category = None
 
     def __init__(self, kind=None, product=None, ingreds=(), byprods=(), func=None, desc=None, spices=None):
