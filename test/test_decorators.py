@@ -9,11 +9,12 @@ import oktest
 from oktest import *
 from oktest.tracer import Tracer
 
-from kook.decorators import *
+from kook.decorators import RecipeDecorator
 from kook.cookbook import Recipe
 from kook.utils import ArgumentError
 
-kookbook = None  # dummy
+globals().update(RecipeDecorator().to_dict())
+
 
 class KookDecoratorsTest(object):
 
@@ -84,14 +85,14 @@ class KookDecoratorsTest(object):
         #
         if "kookbook exists in context then register recipe into it.":
             tr = Tracer()
-            global kookbook
             kookbook = tr.fake_obj(register=True)
-            @recipe
+            _recipe = RecipeDecorator(kookbook).to_dict()["recipe"]
+            @_recipe
             def hello(c):
                 print("Hello")
             ok (len(tr)) == 1
             ok (tr[0].args) == (hello._kook_recipe,)
-            @recipe('hi', ['hello'])
+            @_recipe('hi', ['hello'])
             def task_hi(c):
                 print("Hi")
             ok (len(tr)) == 2

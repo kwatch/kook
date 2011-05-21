@@ -8,6 +8,7 @@
 
 import os, re, types
 from kook import KookRecipeError
+from kook.decorators import RecipeDecorator
 from kook.misc import Category, _debug, _trace
 import kook.utils
 from kook.utils import _is_str, ArgumentError, has_metachars
@@ -89,6 +90,9 @@ class Cookbook(object):
             context.update(properties)
         context['prop'] = self.prop
         context['kookbook'] = KookbookProxy(self)
+        d = RecipeDecorator(context['kookbook']).to_dict()
+        context.update(d)
+        context['kookbook']._decorators = d
         return context
 
     def _eval_content(self, content, bookname, context):
@@ -188,7 +192,9 @@ class KookbookProxy(object):
 
     def load_book(self, filepath):
         book = Cookbook.new(None)
-        book.load_file(filepath, {}, dict(kookbook=self, prop=self._book.prop))
+        __kwd = dict(kookbook=self, prop=self._book.prop)
+        __kwd.update(self._decorators)
+        book.load_file(filepath, {}, __kwd)
         if '__export__' in book.context:
             for k in book.context['__export__']:
                 self._book.context[k] = book.context.get(k)
@@ -403,11 +409,9 @@ class Recipe(object):
 
 
 import kook.commands    ## don't move from here!
-import kook.decorators
 import kook.misc
 
 _default_context = dict( [ (x, getattr(kook.commands,   x)) for x in kook.commands.__all__ ] +
-                         [ (x, getattr(kook.decorators, x)) for x in kook.decorators.__all__ ] +
                          [ (x, getattr(kook.misc,       x)) for x in kook.misc.__all__ ] )
 
 

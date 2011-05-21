@@ -14,97 +14,102 @@ from kook.utils import flatten, _is_str, ArgumentError, get_funcname
 #from kook.cookbook import Recipe
 Recipe = None         # lazy import to avoid mutual import
 
-__all__ = ('recipe', 'product', 'ingreds', 'byprods', 'coprods', 'priority', 'spices', 'cmdopts', )
+__all__ = ('RecipeDecorator', )
 
 
-#def recipe(func):
-#    func._kook_recipe = True
-#    return func
+class RecipeDecorator(object):
 
-def recipe(product=None, ingreds=None):
-    """decorator to mark function as a recipe.
-    ex1.
-       @recipe
-       def clean(c):
-         rm_rf('**/*.py')
-    ex2.
-       @recipe('*.o', ['$(1).c', '($1).h'])
-       def file_o(c):
-         system(c%'gcc -c $(product)')
-    """
-    _kookbook = sys._getframe(1).f_globals.get('kookbook')
-    ## ex:
-    ##   @recipe
-    ##   def clean(c): ...
-    if isinstance(product, FunctionType):
-        func = product
-        func_name = get_funcname(func)
-        global Recipe
-        if not Recipe: from kook.cookbook import Recipe
-        func._kook_recipe = Recipe.new(func_name, func)
-        if _kookbook: _kookbook.register(func._kook_recipe )
-        return func
-    ## ex:
-    ##   @recipe('*.o', ['$(1).c', '$(1).h'])
-    ##   def file_o(c): ...
-    if _is_str(ingreds):            ingreds = (ingreds,)
-    elif isinstance(ingreds, list): ingreds = tuple(ingreds)
-    def deco(f):
-        if product:  f._kook_product = product
-        if ingreds:  f._kook_ingreds = ingreds
-        recipe(f)
-        if _kookbook: _kookbook.register(f._kook_recipe)
-        return f
-    return deco
+    def __init__(self, kookbook=None):
+        self.kookbook = kookbook
 
+    def to_dict(self):
+        return { "recipe":  self.recipe,  "product":  self.product,
+                 "ingreds": self.ingreds, "byprods":  self.byprods,
+                 "coprods": self.coprods, "priority": self.priority,
+                 "spices":  self.spices,  "cmdopts":  self.cmdopts, }
 
-def product(name):
-    def deco(f):
-        f._kook_product = name
-        return f
-    return deco
+    def recipe(self, product=None, ingreds=None):
+        """decorator to mark function as a recipe.
+        ex1.
+           @recipe
+           def clean(c):
+             rm_rf('**/*.py')
+        ex2.
+           @recipe('*.o', ['$(1).c', '($1).h'])
+           def file_o(c):
+             system(c%'gcc -c $(product)')
+        """
+        ## ex:
+        ##   @recipe
+        ##   def clean(c): ...
+        if isinstance(product, FunctionType):
+            func = product
+            func_name = get_funcname(func)
+            global Recipe
+            if not Recipe: from kook.cookbook import Recipe
+            func._kook_recipe = Recipe.new(func_name, func)
+            if self.kookbook: self.kookbook.register(func._kook_recipe )
+            return func
+        ## ex:
+        ##   @recipe('*.o', ['$(1).c', '$(1).h'])
+        ##   def file_o(c): ...
+        if _is_str(ingreds):            ingreds = (ingreds,)
+        elif isinstance(ingreds, list): ingreds = tuple(ingreds)
+        def deco(f):
+            if product:  f._kook_product = product
+            if ingreds:  f._kook_ingreds = ingreds
+            self.recipe(f)
+            return f
+        return deco
 
 
-def ingreds(*names):
-    def deco(f):
-        f._kook_ingreds = tuple(flatten(names))
-        return f
-    return deco
+    def product(self, name):
+        def deco(f):
+            f._kook_product = name
+            return f
+        return deco
 
 
-def byprods(*names):
-    def deco(f):
-        f._kook_byprods = tuple(flatten(names))
-        return f
-    return deco
+    def ingreds(self, *names):
+        def deco(f):
+            f._kook_ingreds = tuple(flatten(names))
+            return f
+        return deco
 
 
-def coprods(*names):
-    def deco(f):
-        f._kook_coprods = tuple(flatten(names))
-        return f
-    return deco
+    def byprods(self, *names):
+        def deco(f):
+            f._kook_byprods = tuple(flatten(names))
+            return f
+        return deco
 
 
-def priority(level):     # not used yet
-    if not isinstance(level, int):
-        import kook
-        raise kook.KookRecipeError("priority requires integer.")  # TODO: change backtrace
-    def deco(f):
-        f._kook_priority = level
-        return f
-    return deco
+    def coprods(self, *names):
+        def deco(f):
+            f._kook_coprods = tuple(flatten(names))
+            return f
+        return deco
 
 
-def spices(*names):
-    def deco(f):
-        f._kook_spices = tuple(flatten(names))
-        return f
-    return deco
+    def priority(self, level):     # not used yet
+        if not isinstance(level, int):
+            import kook
+            raise kook.KookRecipeError("priority requires integer.")  # TODO: change backtrace
+        def deco(f):
+            f._kook_priority = level
+            return f
+        return deco
 
 
-def cmdopts(*names):
-    import sys
-    sys.stderr.write("[pykook] ERROR: '@cmdopts()' is obsolete. Use '@spices()' instead.\n")
-    sys.stderr.write("[pykook]        See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n")
-    sys.exit(1)
+    def spices(self, *names):
+        def deco(f):
+            f._kook_spices = tuple(flatten(names))
+            return f
+        return deco
+
+
+    def cmdopts(self, *names):
+        import sys
+        sys.stderr.write("[pykook] ERROR: '@cmdopts()' is obsolete. Use '@spices()' instead.\n")
+        sys.stderr.write("[pykook]        See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.\n")
+        sys.exit(1)
