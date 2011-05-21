@@ -36,7 +36,7 @@ def file_html(c):
         book = Cookbook.new(None)
         ok (book).is_a(Cookbook)
         ok (book.bookname) == None
-        ok (book.specific_file_recipes) == ()
+        ok (book.specific_file_recipes) == []
         ## if bookname is specified, Kookbook is loaded automatically
         book = Cookbook.new(bookname)
         ok (book).is_a(Cookbook)
@@ -49,7 +49,7 @@ def file_html(c):
     def test_load_file(self):
         book = Cookbook.new(None)
         ok (book.bookname) == None
-        ok (book.specific_file_recipes) == ()
+        ok (book.specific_file_recipes) == []
         input = r"""
 @recipe
 def file_html(c):

@@ -32,7 +32,7 @@ def recipe(product=None, ingreds=None):
        def file_o(c):
          system(c%'gcc -c $(product)')
     """
-    _kookbook = sys._getframe(1).f_locals.get('kookbook')
+    _kookbook = sys._getframe(1).f_globals.get('kookbook')
     ## ex:
     ##   @recipe
     ##   def clean(c): ...

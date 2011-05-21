@@ -35,10 +35,10 @@ class Cookbook(object):
         self._property_names_dict = {}
         #if bookname:
         #    self.load_file(bookname)
-        self._specific_task_recipes = []
-        self._generic_task_recipes  = []
-        self._specific_file_recipes = []
-        self._generic_file_recipes  = []
+        self.specific_task_recipes = []
+        self.generic_task_recipes  = []
+        self.specific_file_recipes = []
+        self.generic_file_recipes  = []
 
     @classmethod
     def new(cls, bookname, properties={}):
@@ -77,12 +77,6 @@ class Cookbook(object):
         self.bookname = bookname
         self._eval_content(content, bookname, context)
         self.materials = self._get_kook_materials(context)
-        tuples = self._collect_recipe_functions(context, None)
-        recipes = self._generate_recipe_objects(tuples)
-        self.specific_task_recipes = recipes[0]
-        self.specific_file_recipes = recipes[1]
-        self.generic_task_recipes  = recipes[2]  ## TODO: support priority
-        self.generic_file_recipes  = recipes[3]  ## TODO: support priority
         _trace("specific task recipes: %s" % repr(self.specific_task_recipes))
         _trace("generic  task recipes: %s" % repr(self.generic_task_recipes))
         _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
@@ -111,64 +105,17 @@ class Cookbook(object):
         else:
             return ()
 
-    def _collect_recipe_functions(self, dct, category_class, _tuples=None):
-        if _tuples is None: _tuples = []
-        for name in dct:       # dict.iteritems() is not available in Python 3.0
-            obj = dct.get(name)
-            if Recipe.is_recipe_func(obj):
-                func = obj
-                _tuples.append((name, func, category_class))
-            elif type(obj) is type and issubclass(obj, Category):
-                klass = obj
-                self._collect_recipe_functions(klass.__dict__, klass, _tuples)
-                klass._outer = category_class
-        return _tuples
-
-    def _generate_recipe_objects(self, tuples):
-        ## masks
-        TASK     = 0x0
-        FILE     = 0x1
-        SPECIFIC = 0x0
-        GENERIC  = 0x2
-        ## create recipes
-        recipes = (
-            [],    # SPECIFIC | TASK
-            [],    # SPECIFIC | FILE
-            [],    # GENERIC  | TASK
-            [],    # GNERIC   | FILE
-        )
-        for name, func, category_class in tuples:
-            if getattr(func, '_kook_product', None) and \
-               not name.startswith('task_') and not name.startswith('file_'):
-                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when @product() specified." % name)
-            recipe = func._kook_recipe
-            if   recipe.kind == 'task':  flag = TASK
-            elif recipe.kind == 'file':  flag = FILE
-            else:
-                assert False, "recipe.kind=%r" % (recipe.kind, )
-            if category_class:
-                recipe.set_category(category_class)
-            flag = flag | (recipe.is_generic() and GENERIC or SPECIFIC)
-            recipes[flag].append(recipe)
-        #lambda1 = lambda recipe: kook.utils.get_funclineno(recipe.func)
-          #=> SyntaxError: unqualified exec is not allowed in function 'load' it contains a nested function with free variables
-        def lambda1(recipe, get_funclineno=kook.utils.get_funclineno):
-            return get_funclineno(recipe.func)
-        for lst in recipes:
-            lst.sort(key=lambda1)
-        return recipes
-
     def material_p(self, target):
         return target in self.materials    ## TODO: use dict
 
     def register(self, recipe):
         generic = recipe.is_generic()
         if recipe.kind == 'task':
-            if generic: self._generic_task_recipes.append(recipe)
-            else:       self._specific_task_recipes.append(recipe)
+            if generic: self.generic_task_recipes.append(recipe)
+            else:       self.specific_task_recipes.append(recipe)
         elif recipe.kind == 'file':
-            if generic: self._generic_file_recipes.append(recipe)
-            else:       self._specific_file_recipes.append(recipe)
+            if generic: self.generic_file_recipes.append(recipe)
+            else:       self.specific_file_recipes.append(recipe)
         else:
             assert False, "recipe.kind=%r" % (recipe.kind,)
 
