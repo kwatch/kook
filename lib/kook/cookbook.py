@@ -278,8 +278,7 @@ class Recipe(object):
             self.product = ':'.join(names)
 
     @classmethod
-    def new(cls, func_name, func, _cls=None, kind=None):
-        if _cls: cls = _cls
+    def new(cls, func_name, func, kind=None):
         if kind: pass
         elif func_name.startswith('task_'):  kind = 'task'
         elif func_name.startswith('file_'):  kind = 'file'
