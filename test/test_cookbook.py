@@ -476,6 +476,24 @@ assert kookbook.default == 'bar.html'
             def fn(): book.load(input)
             ok (fn).not_raise()
 
+    def test_materials(self):
+
+        if "accessed then gets or sets 'kook_materials'.":
+            input = r"""
+kookbook.materials = ['foo.html']
+"""[1:]
+            book = Cookbook.new(None)
+            book.load(input)
+            ok (book.context).contains('kook_materials')
+            ok (book._get_kook_materials(book.context)) == ['foo.html']
+            input = r"""
+kook_materials = ['bar.html']
+assert kookbook.materials == ['bar.html']
+"""[1:]
+            book = Cookbook.new(None)
+            def fn(): book.load(input)
+            ok (fn).not_raise()
+
 
 if __name__ == '__main__':
     oktest.run('.*Test$')

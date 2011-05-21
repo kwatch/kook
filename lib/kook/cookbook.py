@@ -195,6 +195,15 @@ class KookbookProxy(object):
     default = property(__get_default, __set_default)
 
 
+    def __get_materials(self):
+        return self._book.context['kook_materials']
+
+    def __set_materials(self, materials):
+        self._book.context['kook_materials'] = materials
+
+    materials = property(__get_materials, __set_materials)
+
+
 
 class Recipe(object):
 
