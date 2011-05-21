@@ -204,7 +204,7 @@ class KookbookProxy(object):
 
 
     def __get_materials(self):
-        return self._book.context['kook_materials']
+        return self._book.context.setdefault('kook_materials', [])
 
     def __set_materials(self, materials):
         self._book.context['kook_materials'] = materials
