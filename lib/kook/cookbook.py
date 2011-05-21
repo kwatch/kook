@@ -162,9 +162,13 @@ class KookbookProxy(object):
         self._book.register(recipe)
 
     def find_recipe(self, product, register=True):
+        if not _is_str(product):
+            raise TypeError("find_recipe(%r): string expected." % (product,))
+        if has_metachars(product):
+            raise ValueError("find_recipe(%r): not allowed meta characters." % (product,))
         book = self._book
         recipe = book.find_recipe(product)
-        if recipe and recipe.is_generic() and _is_str(product) and not has_metachars(product):
+        if recipe and recipe.is_generic():
             recipe = recipe._to_specific(product)
             if register:
                 book.register(recipe)
