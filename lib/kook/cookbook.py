@@ -174,6 +174,18 @@ class KookbookProxy(object):
                 book.register(recipe)
         return recipe
 
+    def get_recipe(self, product):
+        book = self._book
+        def _find(recipes, prod=product):
+            for r in recipes:
+                if r.product == prod:
+                    return r
+            return None
+        return _find(book.specific_task_recipes) or \
+               _find(book.specific_file_recipes) or \
+               _find(book.generic_task_recipes)  or \
+               _find(book.generic_file_recipes)
+
 
 class Recipe(object):
 

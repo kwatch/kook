@@ -441,6 +441,23 @@ r = kookbook.find_recipe("*.html")
             def fn(): book.load(input)
             ok (fn).raises(ValueError, "find_recipe('*.html'): not allowed meta characters.")
 
+    def test_get_recipe(self):
+
+        if "called then returns recipe, without pattern matching.":
+            input = r"""
+@recipe("*.html", ["$(1).txt"])
+def file_html(c):
+  cp(c.ingred, c.product)
+
+#r = kookbook.find_recipe("*.html")   # ValueError
+r = kookbook.get_recipe("*.html")
+assert r is not None
+assert r is file_html._kook_recipe
+"""[1:]
+        book = Cookbook.new(None)
+        def fn(): book.load(input)
+        ok (fn).not_raise()
+
 
 if __name__ == '__main__':
     oktest.run('.*Test$')
