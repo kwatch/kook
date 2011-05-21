@@ -6,6 +6,7 @@
 
 import oktest
 from oktest import *
+from oktest.dummy import dummy_file
 import sys, os, re
 
 from kook import KookRecipeError
@@ -458,6 +459,122 @@ assert r is file_html._kook_recipe
             def fn(): book.load(input)
             ok (fn).not_raise()
 
+    def test_load_book(self):
+
+        if "called then load recipes in other book.":
+            input = r"""
+@recipe
+def hello(c):
+    '''print hello'''
+    print("Hello!")
+
+@recipe("*.html", ["$(1).txt"])
+def file_html(c):
+    '''create *.html from *.txt'''
+    cp(c.ingred, c.product)
+"""[1:]
+            bookname = "_load_book_test.py"
+            input2 = r"""
+kookbook.load_book('""" + bookname + """')
+"""
+            def func():
+                book = Cookbook.new(None)
+                def fn(): book.load(input2)
+                ok (fn).not_raise()
+                ## recipes are loaded
+                r = book.find_recipe('hello')
+                ok (r).is_a(Recipe)
+                ok (r.desc) == "print hello"
+                r = book.find_recipe('hello.html')
+                ok (r).is_a(Recipe)
+                ok (r.ingreds) == ("$(1).txt",)
+            dummy_file(bookname, input).run(func)
+
+        if "kook_default_product and kook_materials are found then copy it into current context.":
+            input = r"""
+kookbook.default = "foo.html"
+kookbook.materials = ['index.html']
+"""[1:]
+            bookname = "_load_book_test2.py"
+            input2 = r"""
+ret = kookbook.load_book('""" + bookname + """')
+assert kookbook.default == "foo.html"
+assert kookbook.materials == ['index.html']
+"""
+            def func():
+                book = Cookbook.new(None)
+                def fn(): book.load(input2)
+                ok (fn).not_raise()
+            dummy_file(bookname, input).run(func)
+
+        if "property is specified then propages values.":
+            input = r"""
+p1 = prop('p1', 10)
+p2 = prop('p2', 20)
+p3 = prop('p3', 30)
+assert p1 == 11      # != 10, because it is set before loading
+assert p2 == 25      # != 25, because it is provided by book.load()
+assert p3 == 30
+"""[1:]
+            bookname = "_load_book_test3.py"
+            input2 = r"""
+p1 = prop('p1', 11)  # set before loading
+assert p1 == 11
+p2 = prop('p2', 21)  # set before loading
+assert p2 == 25      # != 21, because p2 is specified by book.load()
+kookbook.load_book('""" + bookname + """')
+p3 = prop('p3', 31)  # set after loading
+assert p3 == 30      # != 31, because it is set after loading
+"""
+            def func():
+                book = Cookbook.new(None)
+                def fn(): book.load(input2, properties={"p2": 25})   # set property
+                ok (fn).not_raise()
+            dummy_file(bookname, input).run(func)
+
+        if "__export__ is provided then copy values into current context.":
+            input = r"""
+__export__ = ('foo', 'bar')
+foo = 123
+bar = ["AAA"]
+"""[1:]
+            bookname = "_load_book_test4.py"
+            input2 = r"""
+ret = kookbook.load_book('""" + bookname + """')
+assert foo == 123
+assert bar == ["AAA"]
+"""
+            def func():
+                book = Cookbook.new(None)
+                def fn(): book.load(input2)
+                #ok (fn).not_raise()
+                fn()
+            dummy_file(bookname, input).run(func)
+
+        if "loaded successfully then returns context dict of new book.":
+            input = r"""
+@recipe
+def hello1(c):
+    print("Hello!")
+
+foo = "AAA"
+"""[1:]
+            bookname = "_load_book_test5.py"
+            input2 = r"""
+ret = kookbook.load_book('""" + bookname + """')
+assert isinstance(ret, dict)
+assert 'hello1' in ret
+assert 'foo' in ret
+assert ret['foo'] == "AAA"
+"""
+            def func():
+                book = Cookbook.new(None)
+                def fn(): book.load(input2)
+                #ok (fn).not_raise()
+                fn()
+            dummy_file(bookname, input).run(func)
+
+
     def test_default(self):
 
         if "accessed then gets or sets 'kook_default_product'.":
@@ -493,6 +610,7 @@ assert kookbook.materials == ['bar.html']
             book = Cookbook.new(None)
             def fn(): book.load(input)
             ok (fn).not_raise()
+
 
 
 if __name__ == '__main__':
