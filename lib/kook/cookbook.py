@@ -88,7 +88,7 @@ class Cookbook(object):
         if properties:
             context.update(properties)
         context['prop'] = self.prop
-        context['kookbook'] = self
+        context['kookbook'] = KookbookProxy(self)
         return context
 
     def _eval_content(self, content, bookname, context):
@@ -148,25 +148,27 @@ class Cookbook(object):
         #        return recipe
         #return None
 
-    def get_recipe(self, product, register=True):
-        def _find(product, recipes):
-            for r in recieps:
-                if r.product == product:
-                    return r
-            return None
-        recipe = self.find_recipe(product) or \
-                 _find(product, self.generic_task_recipes) or \
-                 _find(product, self.generic_file_recipes)
-        if not recipe:
-            return None
-        if recipe.is_generic() and _is_str(product) and not has_metachars(product):
-            recipe = recipe._to_specific(product)
-            if register:
-                self.register(recipe)
-        return recipe
 
 
 _re_pattern_type = type(re.compile('dummy'))
+
+
+class KookbookProxy(object):
+
+    def __init__(self, cookbook):
+        self._book = cookbook
+
+    def register(self, recipe):
+        self._book.register(recipe)
+
+    def find_recipe(self, product, register=True):
+        book = self._book
+        recipe = book.find_recipe(product)
+        if recipe and recipe.is_generic() and _is_str(product) and not has_metachars(product):
+            recipe = recipe._to_specific(product)
+            if register:
+                book.register(recipe)
+        return recipe
 
 
 class Recipe(object):
@@ -308,7 +310,7 @@ class Recipe(object):
         if not self.is_generic():
             return self
         if kook.utils.has_metachars(product):
-            raise ValueError("_to_specific_recipe(%r): product contains metacharacter." % (produt, ))
+            raise ValueError("_to_specific_recipe(%r): product contains metacharacter." % (product, ))
         matched = re.match(self.pattern, product)
         if not matched:
             return None

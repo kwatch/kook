@@ -394,23 +394,26 @@ class db(Category):
         ok (recipe.kind) == 'task'
         ok (recipe.product) == 'db:schema'
 
-    def test_get_recipe(self):
+
+class KookbookProxyTest(object):
+
+    def test_find_recipe(self):
 
         input = r"""
-@recipe
-def hello(c):
-  print("HELLO")
-
 @recipe("*.html", ["$(1).txt"])
 def file_html(c):
   cp(c.ingred, c.product)
 
-r = kookbook.get_recipe("foo.html")
+r = kookbook.find_recipe("foo.html")
 r.ingreds = ["foo.txt", "sidebar.html"]
 def file_foo_html(c):
     "create foo.html"
-    kookbook.get_recipe('*.html').func(c)
+    kookbook.find_recipe('*.html').func(c)
 r.func = file_foo_html
+## can find generic recipe
+r = kookbook.find_recipe("*.html")
+assert r is not None
+assert r.is_generic()
 """[1:]
         book = Cookbook.new(None)
         book.load(input)
