@@ -186,6 +186,15 @@ class KookbookProxy(object):
                _find(book.generic_task_recipes)  or \
                _find(book.generic_file_recipes)
 
+    def __get_default(self):
+        return self._book.context['kook_default_product']
+
+    def __set_default(self, product):
+        self._book.context['kook_default_product'] = product
+
+    default = property(__get_default, __set_default)
+
+
 
 class Recipe(object):
 

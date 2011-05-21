@@ -408,7 +408,7 @@ r = kookbook.find_recipe("foo.html")
 r.ingreds = ["foo.txt", "sidebar.html"]
 def file_foo_html(c):
     "create foo.html"
-    kookbook.find_recipe('*.html').func(c)
+    kookbook.get_recipe('*.html').func(c)
 r.func = file_foo_html
 """[1:]
         book = Cookbook.new(None)
@@ -454,9 +454,27 @@ r = kookbook.get_recipe("*.html")
 assert r is not None
 assert r is file_html._kook_recipe
 """[1:]
-        book = Cookbook.new(None)
-        def fn(): book.load(input)
-        ok (fn).not_raise()
+            book = Cookbook.new(None)
+            def fn(): book.load(input)
+            ok (fn).not_raise()
+
+    def test_default(self):
+
+        if "accessed then gets or sets 'kook_default_product'.":
+            input = r"""
+kookbook.default = 'foo.html'
+"""[1:]
+            book = Cookbook.new(None)
+            book.load(input)
+            ok (book.context).contains('kook_default_product')
+            ok (book.default_product()) == 'foo.html'
+            input = r"""
+kook_default_product = 'bar.html'
+assert kookbook.default == 'bar.html'
+"""[1:]
+            book = Cookbook.new(None)
+            def fn(): book.load(input)
+            ok (fn).not_raise()
 
 
 if __name__ == '__main__':
