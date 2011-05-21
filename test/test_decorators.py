@@ -32,21 +32,21 @@ class KookDecoratorsTest(object):
             def file_o(c): pass
             ok (file_o._kook_recipe).is_a(Recipe)
             ok (file_o._kook_product) == '*.o'
-            ok (file_o._kook_ingreds) == ('$(1).c', '$(1).h', )
+            ok (file_o._kook_ingreds) == ['$(1).c', '$(1).h']
         ##
         if "ingredient is a tuple then it is used as is":
             @recipe('*.html', ('$(1).txt', ))
             def file_html(c): pass
             ok (file_html._kook_recipe).is_a(Recipe)
             ok (file_html._kook_product) == '*.html'
-            ok (file_html._kook_ingreds) == ('$(1).txt', )
+            ok (file_html._kook_ingreds) == ['$(1).txt']
         ##
         if "ingredient is a string then it will be converted into tuple":
             @recipe('*.class', '$(1).java')
             def file_class(c): pass
             ok (file_class._kook_recipe).is_a(Recipe)
             ok (file_class._kook_product) == '*.class'
-            ok (file_class._kook_ingreds) == ('$(1).java', )
+            ok (file_class._kook_ingreds) == ['$(1).java']
         ##
         if "product is not a string then TypeError raises":
             def tmp():
@@ -91,12 +91,12 @@ class KookDecoratorsTest(object):
             def hello(c):
                 print("Hello")
             ok (len(tr)) == 1
-            ok (tr[0].args) == (hello._kook_recipe,)
+            ok (tr[0].args) == (hello._kook_recipe, )
             @_recipe('hi', ['hello'])
             def task_hi(c):
                 print("Hi")
             ok (len(tr)) == 2
-            ok (tr[1].args) == (task_hi._kook_recipe,)
+            ok (tr[1].args) == (task_hi._kook_recipe, )
 
     def test_product(self):
         @product('hello')
@@ -112,21 +112,21 @@ class KookDecoratorsTest(object):
         def f(c):
             pass
         ok (hasattr(f, '_kook_ingreds')) == True
-        ok (f._kook_ingreds) == ('foo', 'bar', 'baz')
+        ok (f._kook_ingreds) == ['foo', 'bar', 'baz']
 
     def test_byrpods(self):
         @byprods('foo', 'bar', 'baz')
         def f(c):
             pass
         ok (hasattr(f, '_kook_byprods')) == True
-        ok (f._kook_byprods) == ('foo', 'bar', 'baz')
+        ok (f._kook_byprods) == ['foo', 'bar', 'baz']
 
     def test_coprods(self):
         @coprods('foo', 'bar', 'baz')
         def f(c):
             pass
         ok (hasattr(f, '_kook_coprods')) == True
-        ok (f._kook_coprods) == ('foo', 'bar', 'baz')
+        ok (f._kook_coprods) == ['foo', 'bar', 'baz']
 
     def test_priority(self):
         @priority(123)
@@ -146,7 +146,7 @@ class KookDecoratorsTest(object):
         def f(c):
             pass
         ok (hasattr(f, '_kook_spices')) == True
-        ok (f._kook_spices) == ('-h: help', '-v: verbose')
+        ok (f._kook_spices) == ['-h: help', '-v: verbose']
 
     def test_cmdopts(self):
         pass

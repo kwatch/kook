@@ -53,8 +53,14 @@ class RecipeDecorator(object):
         ## ex:
         ##   @recipe('*.o', ['$(1).c', '$(1).h'])
         ##   def file_o(c): ...
-        if _is_str(ingreds):            ingreds = (ingreds,)
-        elif isinstance(ingreds, list): ingreds = tuple(ingreds)
+        if isinstance(ingreds, (tuple, list)):
+            ingreds = flatten(ingreds)
+        elif not ingreds:
+            ingreds = []
+        elif _is_str(ingreds):
+            ingreds = [ingreds]
+        else:
+            raise ArgumentError("%r: recipe ingredients should be a list or tuple." % (ingreds, ))
         def deco(f):
             if product:  f._kook_product = product
             if ingreds:  f._kook_ingreds = ingreds
@@ -72,21 +78,21 @@ class RecipeDecorator(object):
 
     def ingreds(self, *names):
         def deco(f):
-            f._kook_ingreds = tuple(flatten(names))
+            f._kook_ingreds = flatten(names)
             return f
         return deco
 
 
     def byprods(self, *names):
         def deco(f):
-            f._kook_byprods = tuple(flatten(names))
+            f._kook_byprods = flatten(names)
             return f
         return deco
 
 
     def coprods(self, *names):
         def deco(f):
-            f._kook_coprods = tuple(flatten(names))
+            f._kook_coprods = flatten(names)
             return f
         return deco
 
@@ -103,7 +109,7 @@ class RecipeDecorator(object):
 
     def spices(self, *names):
         def deco(f):
-            f._kook_spices = tuple(flatten(names))
+            f._kook_spices = flatten(names)
             return f
         return deco
 
