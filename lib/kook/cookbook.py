@@ -11,7 +11,7 @@ from kook import KookRecipeError
 from kook.decorators import RecipeDecorator
 from kook.misc import Category, _debug, _trace
 import kook.utils
-from kook.utils import _is_str, ArgumentError, has_metachars
+from kook.utils import _is_str, to_list, ArgumentError, has_metachars
 import kook.config as config
 from kook.misc import ConditionalFile
 
@@ -257,13 +257,13 @@ class Recipe(object):
     def __get_ingreds(self):
         return self.__ingreds
     def __set_ingreds(self, ingreds):
-        self.__ingreds = ingreds
+        self.__ingreds = to_list(ingreds)
     ingreds = property(__get_ingreds, __set_ingreds)
 
     def __get_byprods(self):
         return self.__byprods
     def __set_byprods(self, byprods):
-        self.__byprods = byprods
+        self.__byprods = to_list(byprods)
     byprods = property(__get_byprods, __set_byprods)
 
     def __get_method(self):
@@ -284,7 +284,7 @@ class Recipe(object):
     def __get_spices(self):
         return self.__spices
     def __set_spices(self, spices):
-        self.__spices = spices
+        self.__spices = to_list(spices)
     spices = property(__get_spices, __set_spices)
 
     def __get_pattern(self):
