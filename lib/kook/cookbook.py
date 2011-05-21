@@ -185,6 +185,27 @@ class KookbookProxy(object):
                _find(book.generic_task_recipes)  or \
                _find(book.generic_file_recipes)
 
+    def load_book(self, filepath):
+        book = Cookbook.new(filepath, {})
+        #
+        names = ('generic_task_recipes', 'generic_file_recipes',
+                 'specific_task_recipes', 'specific_file_recipes',)
+        for name in names:
+            lst = list(getattr(self._book, name)) + list(getattr(book, name))
+            setattr(self._book, name, lst)
+        #
+        if 'kook_default_product' in book.context:
+            self.default = book.context['kook_default_product']
+        if 'kook_materials' in book.context:
+            self.materials = book.context['kook_materials']
+        #
+        if '__export__' in book.context:
+            for k in book.context['__export__']:
+                self._book.context[k] = book.context.get(k)
+        #
+        #return book
+        return book.context['kookbook']
+
     def __get_default(self):
         return self._book.context['kook_default_product']
 
