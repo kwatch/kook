@@ -252,7 +252,7 @@ class Cooking(Cookable):
             self.cooked = child_status
             return child_status
         ## invoke recipe function
-        assert self.recipe.func is not None
+        assert self.recipe.method is not None
         try:
             try:
                 ## if product file exists, rename it to temporary filename
@@ -331,9 +331,9 @@ class Cooking(Cookable):
     def _invoke_recipe_with(self, argv):
         if self.spices:
             opts, rests = self.parse_cmdopts(argv)
-            self.recipe.func(self, *rests, **opts)
+            self.recipe.method(self, *rests, **opts)
         else:
-            self.recipe.func(self, *argv)
+            self.recipe.method(self, *argv)
 
     ## utility method for convenience
     def __mod__(self, string):

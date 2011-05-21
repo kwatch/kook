@@ -209,12 +209,12 @@ class Recipe(object):
 
     __category = None
 
-    def __init__(self, kind=None, product=None, ingreds=(), byprods=(), func=None, desc=None, spices=None):
+    def __init__(self, kind=None, product=None, ingreds=(), byprods=(), method=None, desc=None, spices=None):
         self.kind    = kind
         self.product = product
         self.ingreds = ingreds
         self.byprods = byprods
-        self.func    = func
+        self.method  = method
         self.desc    = desc
         self.spices  = spices
 
@@ -252,14 +252,14 @@ class Recipe(object):
         self.__byprods = byprods
     byprods = property(__get_byprods, __set_byprods)
 
-    def __get_func(self):
-        return self.__func
-    def __set_func(self, func):
-        self.__func = func
-        self.__name = func and kook.utils.get_funcname(func) or None
-        if func.__doc__:
-            self.desc = func.__doc__
-    func = property(__get_func, __set_func)
+    def __get_method(self):
+        return self.__method
+    def __set_method(self, method):
+        self.__method = method
+        self.__name = method and kook.utils.get_funcname(method) or None
+        if method.__doc__:
+            self.desc = method.__doc__
+    method = property(__get_method, __set_method)
 
     def __get_desc(self):
         return self.__desc
@@ -298,13 +298,13 @@ class Recipe(object):
             self.product = ':'.join(names)
 
     @classmethod
-    def new(cls, func_name, func, kind=None):
+    def new(cls, func_name, method, kind=None):
         if kind: pass
         elif func_name.startswith('task_'):  kind = 'task'
         elif func_name.startswith('file_'):  kind = 'file'
         else:                                kind = 'task'
         prefix  = kind + '_'
-        product = getattr(func, '_kook_product', None)
+        product = getattr(method, '_kook_product', None)
         if product is not None:
             if not func_name.startswith('task_') and not func_name.startswith('file_'):
                 raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when product is specified." % func_name)
@@ -314,18 +314,18 @@ class Recipe(object):
                 raise ArgumentError("%r: recipe product should be a string." % (product,))
         else:
             product = (func_name.startswith(prefix) and func_name[len(prefix):] or func_name)
-        ingreds = getattr(func, '_kook_ingreds', ())
+        ingreds = getattr(method, '_kook_ingreds', ())
         if ingreds is not None:
             if   isinstance(ingreds, tuple): pass
             elif isinstance(ingreds, list):  ingreds = tuple(ingreds)
             elif _is_str(ingreds):           ingreds = (ingreds, )
             else:
                 raise ArgumentError("%r: recipe ingredients should be a list or tuple." % (ingreds,))
-        byprods = getattr(func, '_kook_byprods', ())
-        spices  = getattr(func, '_kook_spices', None)
-        desc    = func.__doc__  ## can be empty string
+        byprods = getattr(method, '_kook_byprods', ())
+        spices  = getattr(method, '_kook_spices', None)
+        desc    = method.__doc__  ## can be empty string
         if desc is None: desc = _default_descs.get(product)
-        return cls(kind=kind, product=product, ingreds=ingreds, byprods=byprods, func=func, desc=desc, spices=spices)
+        return cls(kind=kind, product=product, ingreds=ingreds, byprods=byprods, method=method, desc=desc, spices=spices)
 
     @staticmethod
     def is_recipe_func(obj):
@@ -365,14 +365,14 @@ class Recipe(object):
         if byprods:  byprods = convert(byprods)
         cls = self.__class__
         recipe = cls(product=product, ingreds=ingreds, byprods=byprods,
-                     kind=self.kind, func=self.func, desc=self.desc, spices=self.spices)
+                     kind=self.kind, method=self.method, desc=self.desc, spices=self.spices)
         recipe._original = self
         recipe._matched = matched
         recipe._m = (matched.group(), ) + matched.groups()   # tuple
         return recipe
 
     def __repr__(self):
-        #return "<%s product=%s func=%s>" % (self.__class__.__name__, repr(self.product), self.name)
+        #return "<%s product=%s method=%s>" % (self.__class__.__name__, repr(self.product), self.name)
         return "<%s:%s:%s>" % (self.__class__.__name__, repr(self.product), self.name)
 
     def _inspect(self, depth=1):

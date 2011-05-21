@@ -101,9 +101,9 @@ def task_build_files(c):
 #<Recipe
   byprods=(),
   desc=None,
-  func=<function build>,
   ingreds=(),
   kind='task',
+  method=<function build>,
   name='build',
   pattern=None,
   product='build',
@@ -114,9 +114,9 @@ def task_build_files(c):
 #<Recipe
   byprods=(),
   desc=None,
-  func=<function task_build>,
   ingreds=(),
   kind='task',
+  method=<function task_build>,
   name='task_build',
   pattern=None,
   product='build',
@@ -127,9 +127,9 @@ def task_build_files(c):
 #<Recipe
   byprods=(),
   desc=None,
-  func=<function task_build_files>,
   ingreds=(),
   kind='task',
+  method=<function task_build_files>,
   name='task_build_files',
   pattern=None,
   product='build',
@@ -157,9 +157,9 @@ def file_html(c):
 #<Recipe
   byprods=(),
   desc=None,
-  func=<function file_ext_html>,
   ingreds=(),
   kind='file',
+  method=<function file_ext_html>,
   name='file_ext_html',
   pattern='^(.*?)\\.html$',
   product='*.html',
@@ -173,9 +173,9 @@ def file_html(c):
 #<Recipe
   byprods=(),
   desc=None,
-  func=<function file_html>,
   ingreds=(),
   kind='file',
+  method=<function file_html>,
   name='file_html',
   pattern=None,
   product='html',
@@ -408,8 +408,8 @@ r = kookbook.find_recipe("foo.html")
 r.ingreds = ["foo.txt", "sidebar.html"]
 def file_foo_html(c):
     "create foo.html"
-    kookbook.get_recipe('*.html').func(c)
-r.func = file_foo_html
+    kookbook.get_recipe('*.html').method(c)
+r.method = file_foo_html
 """[1:]
         book = Cookbook.new(None)
         book.load(input)
