@@ -81,6 +81,14 @@ def flatten(items, _arr=None):
     return _arr
 
 
+def to_list(value):
+    if value is None:             return []
+    if isinstance(value, list):   return value
+    if isinstance(value, tuple):  return list(value)
+    if _is_str(value):            return [value]
+    raise TypeError("%r: list or tuple expected." % (value, ))
+
+
 def has_metachars(string):
     """detect whether string has meta characers ('*', '?', '{') or not."""
     ## TODO: implement correctly
