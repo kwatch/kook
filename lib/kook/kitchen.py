@@ -189,25 +189,12 @@ class Cooking(Cookable):
         ingreds = recipe.ingreds or ()
         byprods = recipe.byprods or ()
         spices  = recipe.spices  or ()
-        if recipe.pattern:
-            ## convert generic recipe into specific values
-            matched = re.match(recipe.pattern, target)
-            assert matched is not None
-            pat = r'\$\((\d+)\)'   # replace '$(1)', '$(2)', ...
-            repl = lambda m: matched.group(int(m.group(1)))
-            def convert(items):
-                arr = []
-                for item in items:
-                    if isinstance(item, ConditionalFile):
-                        filename = re.sub(pat, repl, item.filename)
-                        filename = item.__call__(filename)
-                        if filename: arr.append(filename)
-                    else:
-                        arr.append(re.sub(pat, repl, item))
-                return tuple(arr)
-            if ingreds:  ingreds = convert(ingreds)
-            if byprods:  byprods = convert(byprods)
-            m = (matched.group(), ) + matched.groups()   # tuple
+        if recipe.is_generic():
+            recipe  = recipe._to_specific(target)
+            ingreds = recipe.ingreds
+            byprods = recipe.byprods
+            matched = recipe._matched
+            m = recipe._m
         else:
             matched = None
             m = None
