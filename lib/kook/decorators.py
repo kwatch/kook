@@ -6,6 +6,7 @@
 ### $License$
 ###
 
+import sys
 from types import FunctionType
 from kook import KookRecipeError
 #from kook.kitchen import IfExists
@@ -31,6 +32,7 @@ def recipe(product=None, ingreds=None):
        def file_o(c):
          system(c%'gcc -c $(product)')
     """
+    _kookbook = sys._getframe(1).f_locals.get('kookbook')
     ## ex:
     ##   @recipe
     ##   def clean(c): ...
@@ -40,6 +42,7 @@ def recipe(product=None, ingreds=None):
         global Recipe
         if not Recipe: from kook.cookbook import Recipe
         func._kook_recipe = Recipe.new(func_name, func)
+        if _kookbook: _kookbook.register(func._kook_recipe )
         return func
     ## ex:
     ##   @recipe('*.o', ['$(1).c', '$(1).h'])
@@ -49,7 +52,9 @@ def recipe(product=None, ingreds=None):
     def deco(f):
         if product:  f._kook_product = product
         if ingreds:  f._kook_ingreds = ingreds
-        return recipe(f)
+        recipe(f)
+        if _kookbook: _kookbook.register(f._kook_recipe)
+        return f
     return deco
 
 

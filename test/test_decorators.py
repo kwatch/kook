@@ -4,9 +4,10 @@
 ### $License$
 ###
 
+import sys, os, re, time
 import oktest
 from oktest import *
-import sys, os, re, time
+from oktest.tracer import Tracer
 
 from kook.decorators import *
 from kook.cookbook import Recipe
@@ -79,7 +80,20 @@ class KookDecoratorsTest(object):
         #ok (hasattr(f, '_kook_recipe')) == True
         #ok (f._kook_recipe).is_a(Recipe)
         #ok (hasattr(f, '_kook_kind')) == False
-
+        #
+        if "kookbook exists in context then register recipe into it.":
+            tr = Tracer()
+            kookbook = tr.fake_obj(register=True)
+            @recipe
+            def hello(c):
+                print("Hello")
+            ok (len(tr)) == 1
+            ok (tr[0].args) == (hello._kook_recipe,)
+            @recipe('hi', ['hello'])
+            def task_hi(c):
+                print("Hi")
+            ok (len(tr)) == 2
+            ok (tr[1].args) == (task_hi._kook_recipe,)
 
     def test_product(self):
         @product('hello')
