@@ -475,9 +475,7 @@ def file_html(c):
 """[1:]
             bookname = "_load_book_test.py"
             input2 = r"""
-ret = kookbook.load_book('""" + bookname + """')
-assert ret is not None
-assert ret.__class__.__name__ == 'KookbookProxy'
+kookbook.load_book('""" + bookname + """')
 """
             def func():
                 book = Cookbook.new(None)
@@ -545,6 +543,29 @@ bar = ["AAA"]
 ret = kookbook.load_book('""" + bookname + """')
 assert foo == 123
 assert bar == ["AAA"]
+"""
+            def func():
+                book = Cookbook.new(None)
+                def fn(): book.load(input2)
+                #ok (fn).not_raise()
+                fn()
+            dummy_file(bookname, input).run(func)
+
+        if "loaded successfully then returns context dict of new book.":
+            input = r"""
+@recipe
+def hello1(c):
+    print("Hello!")
+
+foo = "AAA"
+"""[1:]
+            bookname = "_load_book_test5.py"
+            input2 = r"""
+ret = kookbook.load_book('""" + bookname + """')
+assert isinstance(ret, dict)
+assert 'hello1' in ret
+assert 'foo' in ret
+assert ret['foo'] == "AAA"
 """
             def func():
                 book = Cookbook.new(None)

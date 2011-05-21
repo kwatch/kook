@@ -192,8 +192,7 @@ class KookbookProxy(object):
         if '__export__' in book.context:
             for k in book.context['__export__']:
                 self._book.context[k] = book.context.get(k)
-        #return book
-        return book.context['kookbook']
+        return book.context
 
     def __get_default(self):
         return self._book.context['kook_default_product']
