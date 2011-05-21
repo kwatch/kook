@@ -47,9 +47,9 @@ class KookDecoratorsTest(object):
         ##
         if "product is not a string then TypeError raises":
             def tmp():
-                @recipe(False, '$(1).java')
+                @recipe(123, '$(1).java')
                 def file_java(c): pass
-            ok (tmp).raises(ArgumentError, 'False: recipe product should be a string.')
+            ok (tmp).raises(ArgumentError, '123: recipe product should be a string.')
         ##
         if "ingredient is not a list nor tuple then TypeError raises":
             def tmp():

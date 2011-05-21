@@ -10,6 +10,7 @@ import os, re, types
 from kook import KookRecipeError
 from kook.misc import Category, _debug, _trace
 import kook.utils
+from kook.utils import _is_str, ArgumentError
 import kook.config as config
 
 #__all__ = ('Cookbook', 'Recipe', )
@@ -284,9 +285,23 @@ class Recipe(object):
         elif func_name.startswith('file_'):  kind = 'file'
         else:                                kind = 'task'
         prefix  = kind + '_'
-        product = getattr(func, '_kook_product', None) or \
-                  (func_name.startswith(prefix) and func_name[len(prefix):] or func_name)
+        product = getattr(func, '_kook_product', None)
+        if product is not None:
+            if not func_name.startswith('task_') and not func_name.startswith('file_'):
+                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when product is specified." % func_name)
+            if _is_str(product): pass
+            elif isinstance(product, _re_pattern_type): pass
+            else:
+                raise ArgumentError("%r: recipe product should be a string." % (product,))
+        else:
+            product = (func_name.startswith(prefix) and func_name[len(prefix):] or func_name)
         ingreds = getattr(func, '_kook_ingreds', ())
+        if ingreds is not None:
+            if   isinstance(ingreds, tuple): pass
+            elif isinstance(ingreds, list):  ingreds = tuple(ingreds)
+            elif _is_str(ingreds):           ingreds = (ingreds, )
+            else:
+                raise ArgumentError("%r: recipe ingredients should be a list or tuple." % (ingreds,))
         byprods = getattr(func, '_kook_byprods', ())
         spices  = getattr(func, '_kook_spices', None)
         desc    = func.__doc__  ## can be empty string

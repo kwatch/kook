@@ -37,9 +37,6 @@ def recipe(product=None, ingreds=None):
     if isinstance(product, FunctionType):
         func = product
         func_name = get_funcname(func)
-        if getattr(func, '_kook_product', None):
-            if not func_name.startswith('task_') and not func_name.startswith('file_'):
-                raise KookRecipeError("%s(): prefix ('file_' or 'task_') required when product is specified." % func_name)
         global Recipe
         if not Recipe: from kook.cookbook import Recipe
         func._kook_recipe = Recipe.new(func_name, func)
@@ -47,22 +44,8 @@ def recipe(product=None, ingreds=None):
     ## ex:
     ##   @recipe('*.o', ['$(1).c', '$(1).h'])
     ##   def file_o(c): ...
-    if   product is None:   pass
-    elif _is_str(product):  pass
-    else:
-        raise ArgumentError("%s: recipe product should be a string." % repr(product))
-    #
-    if   ingreds is None:            pass
-    elif isinstance(ingreds, tuple): pass
-    elif isinstance(ingreds, list):  ingreds = tuple(ingreds)
-    elif _is_str(ingreds):           ingreds = (ingreds, )
-    else:
-        raise ArgumentError("%s: recipe ingredients should be a list or tuple." % repr(ingreds))
-    #
-    #if kind in (None, 'file', 'task'):  pass
-    #else:
-    #    raise TypeError("%s: recipe kind should be 'file' or 'task'." % repr(ingreds))
-    #
+    if _is_str(ingreds):            ingreds = (ingreds,)
+    elif isinstance(ingreds, list): ingreds = tuple(ingreds)
     def deco(f):
         if product:  f._kook_product = product
         if ingreds:  f._kook_ingreds = ingreds
