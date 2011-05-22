@@ -46,7 +46,7 @@ class MainObject(object):
 
 
 TIPS = [
-    "you can set 'kook_default_product' variable in your kookbook.",
+    "you can set 'kookbook.default=\"XXX\"' in your kookbook.",
     "you can override properties with '--propname=propvalue'.",
     "it is able to separate properties into 'Properties.py' file.",
     "try 'kk' command which is shortcat for 'pykook' command.",
@@ -129,7 +129,7 @@ class MainCommand(MainObject):
                 write = config.stderr.write
                 write("*** %s: target is not given\n" % self.command)
                 write("*** '%s -l' or '%s -L' shows recipes and properties.\n" % (self.command, self.command))
-                write("*** (or set 'kook_default_product' in your kookbook.)\n")
+                write("*** (or set 'kookbook.default=\"XXX\"' in your kookbook.)\n")
                 return 1
             rests = [default_product]
         ## start cooking
@@ -171,7 +171,7 @@ class MainCommand(MainObject):
         ## default product
         default_product = cookbook.default_product()
         if default_product:
-            write("kook_default_product: %s\n" % default_product)
+            write("kookbook.default: %s\n" % default_product)
             write("\n")
         ## tips
         if not opts.get('q'):

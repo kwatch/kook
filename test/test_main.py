@@ -110,7 +110,7 @@ class KookMainCommandTest(object):
         expected = r"""
 *** pykook: target is not given
 *** 'pykook -l' or 'pykook -L' shows recipes and properties.
-*** (or set 'kook_default_product' in your kookbook.)
+*** (or set 'kookbook.default="XXX"' in your kookbook.)
 """[1:]
         soutput, eoutput, status = _main_command("pykook")
         ok (soutput) == ""
@@ -348,7 +348,7 @@ $ cp index.html index.xhtml
     def test_list(self): # -l, -L
         input = r"""
 CC = prop('CC', 'gcc')
-kook_default_product = 'all'
+kookbook.default = 'all'
 
 @recipe
 @ingreds('hello')
@@ -387,7 +387,7 @@ File recipes:
   hello               : build hello command
   *.o                 : 
 
-kook_default_product: all
+kookbook.default: all
 
 (Tips: you can override properties with '--propname=propvalue'.)
 """[1:]
@@ -461,7 +461,7 @@ Task recipes:
 
 File recipes:
 
-(Tips: you can set 'kook_default_product' variable in your kookbook.)
+(Tips: you can set 'kookbook.default="XXX"' variable in your kookbook.)
 """[1:]
         soutput, eoutput, status = _main_command("pykook -L")
         soutput  = re.sub(r'\n\(Tips:.*\n', '\n', soutput)
