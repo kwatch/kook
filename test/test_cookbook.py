@@ -245,6 +245,10 @@ class stash(Category):
         ok (len(recipes)) == 2
         ok (recipes[0].product) == 'stash:save'
         ok (recipes[1].product) == 'stash:pop'
+        ok (recipes[0].category).is_a(type)
+        ok (recipes[0].category.__name__) == 'stash'
+        ok (recipes[1].category).is_a(type)
+        ok (recipes[1].category.__name__) == 'stash'
 
     def test_load__category_recursively(self):
         input = r"""
@@ -270,11 +274,19 @@ class db(Category):
         book.load(input)
         recipes = book.specific_task_recipes[:]
         ok (len(recipes)) == 4
-        recipes.sort(key=lambda r: r.product)
-        ok (recipes[0].product) == 'db:backup'
-        ok (recipes[1].product) == 'db:schema'
+        #recipes.sort(key=lambda r: r.product)
+        ok (recipes[0].product) == 'db:schema'
+        ok (recipes[1].product) == 'db:schema:migration:up'
         ok (recipes[2].product) == 'db:schema:migration:down'
-        ok (recipes[3].product) == 'db:schema:migration:up'
+        ok (recipes[3].product) == 'db:backup'
+        ok (recipes[0].category).is_a(type)
+        ok (recipes[1].category).is_a(type)
+        ok (recipes[2].category).is_a(type)
+        ok (recipes[3].category).is_a(type)
+        ok (recipes[0].category.__name__) == "schema"
+        ok (recipes[1].category.__name__) == "migration"
+        ok (recipes[2].category.__name__) == "migration"
+        ok (recipes[3].category.__name__) == "db"
 
     def test_material_p(self):
         input = r"""

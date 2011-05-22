@@ -46,7 +46,7 @@ class _CategoryMetaClass(type):
 
     def __init__(cls, name, bases, dct):
         type.__init__(cls, name, bases, dct)
-        def modify(prefix, outer_cls, d):
+        def modify(prefix, outer_cls, d, depth):
             for k in d:
                 v = d[k]
                 if isinstance(v, FunctionType):
@@ -57,14 +57,16 @@ class _CategoryMetaClass(type):
                                 r.product = prefix[:-1]
                             else:
                                 r.product = prefix + r.product
+                        if depth == 0:
+                            r.category = outer_cls
                 elif isinstance(v, type):
                     if k != '_outer' and Category and issubclass(v, Category):
                         inner_cls = v
-                        modify(prefix, inner_cls, inner_cls.__dict__)
+                        modify(prefix, inner_cls, inner_cls.__dict__, depth+1)
                         if not inner_cls._outer:
                             inner_cls._outer = outer_cls
         name = dct.get('__name__', name)
-        modify(name.split('.')[-1] + ':', cls, dct)
+        modify(name.split('.')[-1] + ':', cls, dct, 0)
 
 
 class Category(object):
