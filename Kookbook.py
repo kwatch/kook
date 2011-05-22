@@ -158,6 +158,22 @@ def file_users_guide_css(c):
     os.path.isdir('doc') or mkdir('doc')
     cp(c.ingred, c.product)
 
+
+@recipe(None, ['doc/users-guide.txt'])
+def retrieve(c):
+    """retrieve from 'doc/users-guide.txt'"""
+    path = 'doc/data/users_guide'
+    rm_rf(path)
+    mkdir_p(path)
+    system(c%"retrieve -Fd $(path) $(ingred)")
+
+@recipe(None, ['retrieve'])
+def doctest(c):
+    """do test of users guide"""
+    with chdir("doc"):
+        system("python users_guide_test.py")
+
+
 @recipe('test/oktest.py', ['../../oktest/python/lib/oktest.py'])
 #@product('test/oktest.py')
 #@ingreds('../../oktest/python/lib/oktest.py')
