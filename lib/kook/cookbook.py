@@ -297,19 +297,9 @@ class Recipe(object):
 
     def __get_category(self):
         return self.__category
-    category = property(__get_category)
-
-    def set_category(self, category_class):
+    def __set_category(self, category_class):
         self.__category = category_class
-        if self.kind == 'task':
-            names = []
-            while category_class:
-                names.append(category_class.__name__)
-                category_class = category_class._outer
-            names.reverse()
-            if self.product != '__index__':
-                names.append(self.product)
-            self.product = ':'.join(names)
+    category = property(__get_category, __set_category)
 
     @classmethod
     def new(cls, func_name, method, kind=None):
