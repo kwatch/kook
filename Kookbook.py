@@ -119,7 +119,7 @@ def clean(c):
     rm_rf('**/*.pyc', 'dist', 'doc/users-guide.toc.html')
 
 
-kook_default_product = 'test'
+kookbook.default = 'test'
 
 
 #@recipe
@@ -195,6 +195,11 @@ def doctest(c):
 def file_test_oktest_py(c):
     rm_f(c.product)
     system(c%'ln $(ingred) $(product)')
+    #cp(c.ingred, c.product)
+    #def f(s):
+    #    s = re.sub(r'\$Release:.*?\$', '$Release: $', s)
+    #    return s
+    #edit(c.product, by=f)
 
 @recipe(None, ['test/oktest.py'])
 #@ingreds('test/oktest.py')
