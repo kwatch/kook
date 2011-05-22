@@ -6,7 +6,6 @@ from kook.utils import read_file, write_file, glob2
 
 
 package = prop('package', 'Kook')
-#package = prop('package', 'pyKook')
 
 release         = prop('release', None)
 copyright       = prop('copyright', None)
@@ -116,7 +115,7 @@ def test(c, *args, **kwargs):
 
 @recipe
 def clean(c):
-    rm_rf('**/*.pyc', 'dist', 'doc/users-guide.toc.html')
+    rm_rf('**/*.pyc', '**/__pycache__', 'dist', 'doc/users-guide.toc.html')
 
 
 kookbook.default = 'test'
@@ -134,41 +133,26 @@ kookbook.default = 'test'
 
 
 @recipe(None, ['doc/users-guide.html', 'doc/docstyle.css', 'retrieve'])
-#@ingreds('doc/users-guide.html', 'doc/docstyle.css')
 def doc(c):
     """make document"""
     pass
 
 @recipe('doc/users-guide.html', ['doc/users-guide.txt'])
-#@product('doc/users-guide.html')
-#@ingreds('doc/users-guide.txt')
-#@byprods('doc/users-guide.toc.html')
 @byprods('doc/users-guide.toc.html')
 def file_users_guide_html(c):
     u = 'users-guide'
     with chdir("doc"):
-        #system(c%"kwaser -t html-css -T $(ingred) > $(byprod)")
-        #system(c%"kwaser -t html-css    $(ingred) | tidy -q -i -wrap 9999 > $(product)")
-        #system(c%"kwaser -t html-css    $(ingred) > $(product).tmp")
-        #system_f(c%"tidy -q -i -wrap 9999 $(product).tmp > $(product)")
-        #rm(c.product + '.tmp')
         system(c%"kwaser -t html-css -T $(u).txt > $(u).toc.html")
         system(c%"kwaser -t html-css    $(u).txt > $(u).tmp")
         system_f(c%"tidy -q -i -wrap 9999 $(u).tmp > $(u).html")
-        rm(c%'$(u).tmp')
-        #mv(c.byprod, "doc")
-    rm(c.byprod)
+        rm(c%'$(u).tmp', c%'$(u).toc.html')
 
 @recipe('doc/users-guide.txt', ['../common/doc/users-guide.eruby'])
-#@product('doc/users-guide.txt')
-#@ingreds('../common/doc/users-guide.eruby')
 def file_users_guide_txt(c):
     os.path.isdir('doc') or mkdir('doc')
     system(c%"erubis -E PercentLine -p '\\[% %\\]' $(ingred) > $(product)")
 
 @recipe('doc/docstyle.css', ['../common/doc/docstyle.css'])
-#@product('doc/docstyle.css')
-#@ingreds('../common/doc/docstyle.css')
 def file_users_guide_css(c):
     os.path.isdir('doc') or mkdir('doc')
     cp(c.ingred, c.product)
@@ -190,8 +174,6 @@ def doctest(c):
 
 
 @recipe('test/oktest.py', ['../../oktest/python/lib/oktest.py'])
-#@product('test/oktest.py')
-#@ingreds('../../oktest/python/lib/oktest.py')
 def file_test_oktest_py(c):
     rm_f(c.product)
     system(c%'ln $(ingred) $(product)')
@@ -201,8 +183,9 @@ def file_test_oktest_py(c):
     #    return s
     #edit(c.product, by=f)
 
-@recipe(None, ['test/oktest.py'])
-#@ingreds('test/oktest.py')
+
+@recipe
+@ingreds('test/oktest.py')
 def update_oktest(c):
     """update 'test/oktest.py'"""
     pass
