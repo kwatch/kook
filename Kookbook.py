@@ -124,7 +124,7 @@ kook_default_product = 'test'
 #    #    system(c%"ls $(package)-$(release)/")
 
 
-@recipe(None, ['doc/users-guide.html', 'doc/docstyle.css'])
+@recipe(None, ['doc/users-guide.html', 'doc/docstyle.css', 'retrieve'])
 #@ingreds('doc/users-guide.html', 'doc/docstyle.css')
 def doc(c):
     """make document"""
@@ -134,14 +134,20 @@ def doc(c):
 #@product('doc/users-guide.html')
 #@ingreds('doc/users-guide.txt')
 #@byprods('doc/users-guide.toc.html')
-@byprods('users-guide.toc.html')
+@byprods('doc/users-guide.toc.html')
 def file_users_guide_html(c):
-    system(c%"kwaser -t html-css -T $(ingred) > $(byprod)")
-    #system(c%"kwaser -t html-css    $(ingred) | tidy -q -i -wrap 9999 > $(product)")
-    system(c%"kwaser -t html-css    $(ingred) > $(product).tmp")
-    system_f(c%"tidy -q -i -wrap 9999 $(product).tmp > $(product)")
-    rm(c.product + '.tmp')
-    #mv(c.byprod, "doc")
+    u = 'users-guide'
+    with chdir("doc"):
+        #system(c%"kwaser -t html-css -T $(ingred) > $(byprod)")
+        #system(c%"kwaser -t html-css    $(ingred) | tidy -q -i -wrap 9999 > $(product)")
+        #system(c%"kwaser -t html-css    $(ingred) > $(product).tmp")
+        #system_f(c%"tidy -q -i -wrap 9999 $(product).tmp > $(product)")
+        #rm(c.product + '.tmp')
+        system(c%"kwaser -t html-css -T $(u).txt > $(u).toc.html")
+        system(c%"kwaser -t html-css    $(u).txt > $(u).tmp")
+        system_f(c%"tidy -q -i -wrap 9999 $(u).tmp > $(u).html")
+        rm(c%'$(u).tmp')
+        #mv(c.byprod, "doc")
     rm(c.byprod)
 
 @recipe('doc/users-guide.txt', ['../common/doc/users-guide.eruby'])
