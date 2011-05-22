@@ -255,7 +255,7 @@ class stash(Category):
 class db(Category):
   class schema(Category):
     @recipe
-    def __index__(c):
+    def default(c):
       pass
     class migration(Category):
       @recipe
@@ -374,7 +374,7 @@ class stash(Category):
 class db(Category):
   class schema(Category):
     @recipe
-    def __index__(c):
+    def default(c):
       pass
     class migration(Category):
       @recipe

@@ -53,7 +53,7 @@ class _CategoryMetaClass(type):
                     if hasattr(v, '_kook_recipe'):
                         r = v._kook_recipe
                         if r.kind == 'task':
-                            if r.product == '__index__':
+                            if r.product == 'default' or r.product == '__index__':
                                 r.product = prefix[:-1]
                             else:
                                 r.product = prefix + r.product
