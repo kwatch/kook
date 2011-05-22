@@ -26,8 +26,9 @@ command=`basename $0`
 kookbook=`echo Kookbook.*`
 case $kookbook in
 *.py)	pykook "$@"  ;;
+*.rb)	rbkook "$@"  ;;
 *.pl)	plkook "$@"  ;;
 *.php)	phpkook "$@" ;;
-#*.js)	jskook "$@"   ;;
+*.js)	jskook "$@"  ;;
 *.yaml)	kook "$@"    ;;
 esac
