@@ -7,6 +7,36 @@
 .#.?lastupdate:	$Date: $
 
 
+.#+++
+
+.-------------------- hello.h
+#include <stdio.h>
+.--------------------
+
+
+.-------------------- hello.c
+#include "hello.h";
+
+int main(int argc, char *argv[]) {
+    int i;
+    for (i = 0; i < argc; i++) {
+        printf("%d: %s\n", i, argv[i]);
+    }
+    return 0;
+}
+.--------------------
+
+
+.-------------------- optparse.c
+int optparse(int argc, char *argv[]) {
+    return 0;
+}
+.--------------------
+
+
+.#---
+
+
 .$ Preface		| preface*
 
 {{<pyKook|http://www.kuwata-lab.com/kook/>}} is a software build tool such as Make, {{<Rake|http://rake.rubyforge.org/>}}, {{<Ant|http://ant.apache.org/>}}, {{<SCons|http://www.scons.org/>}} or {{<Cook|http://www.canb.auug.org.au/~millerp/cook/cook.html>}}.
@@ -63,7 +93,7 @@ See {{<References|#refs>}} for details about helper functions.
 The following is an example of recipe definitions in cookbook.
 
 .? Kookbook.py: Compile hello.c so that to generate 'hello' command.
-.-------------------- Kookbook1.py
+.-------------------- 01/Kookbook.py
 # product "hello" depends on "hello.o".
 {{*@recipe*}}
 {{*@product("hello")*}}
@@ -104,7 +134,7 @@ It means that recipes which have description are public recipes.
 Command-line option '{{,-L,}}' shows all recipes.
 
 .? command-line example
-.==================== Kookbook1.recipe.result
+.==================== 01/01recipe.result
 sh> pykook -l
 Properties:
 
@@ -114,7 +144,7 @@ File recipes:
   hello               : generates hello command
   hello.o             : compile 'hello.c' and 'hello.h'
 
-(Tips: you can set 'kook_default_product' variable in your kookbook.)
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
 
 sh> pykook hello
 ### ** hello.o (recipe=file_hello_o)
@@ -136,24 +166,25 @@ pyKook checks both timestamp and content of files (= products, ingredients).
 .* If recipe of ingredient is executed but content of ingredient is not changed, then recipe of product will not be executed and product will be 'touched'.
 .* If you specify command-line option '{{,-F,}}', these rules are ignored and all recipes are executed forcedly.
 
-.==================== Kookbook1.product2.result
-sh> pykook hello               # 1st time
+.==================== 01/02product2_dc.result
+sh> rm -f hello hello.o
+sh> pykook hello               ## 1st time
 ### ** hello.o (recipe=file_hello_o)
 $ gcc -g -c hello.c
 ### * hello (recipe=file_hello)
 $ gcc -g -o hello hello.o
 
-sh> pykook hello               # 2nd time
-                               # nothing, because hello is already created.
+sh> pykook hello               ## 2nd time
+                               ## nothing, because hello is already created.
 
-sh> touch hello.c              # touch hello.c
-sh> pykook hello               # 3rd time
+sh> touch hello.c              ## touch hello.c
+sh> pykook hello               ## 3rd time
 ### ** hello.o (recipe=file_hello_o)
-$ gcc -g -c hello.c            # compiled, because hello.c is newer than hello.o.
+$ gcc -g -c hello.c            ## compiled, because hello.c is newer than hello.o.
 ### * hello (recipe=file_hello)
-$ {{*touch hello   # skipped*}}      # skipped, because content of hello.o is not changed.
+$ {{*touch hello   # skipped*}}       ## skipped, because content of hello.o is not changed.
 
-sh> pykook {{*-F*}} hello            # 4th time (forcedly)
+sh> pykook {{*-F*}} hello            ## 4th time (forcedly)
 ### ** hello.o (recipe=file_hello_o)
 $ gcc -g -c hello.c
 ### * hello (recipe=file_hello)
@@ -170,7 +201,7 @@ Product and ingredient names are referable as property of recipe function's argu
 .* Property 'c.ingred' represents the first item of ingredients (= c.ingreds[0]).
 
 .? Kookbook.py: Use {{,c.product,}} and {{,c.ingreds,}}
-.-------------------- Kookbook.py2.py
+.-------------------- 02/Kookbook.py
 # product "hello" depends on "hello.o".
 @recipe
 @product("hello")
@@ -193,7 +224,7 @@ def file_hello_o(c):
 .--------------------
 
 .? command-line example
-.==================== Kookbook2.product.result
+.==================== 02/product.result
 sh> pykook hello
 ### ** hello.o (recipe=file_hello_o)
 $ gcc -g -c hello.c
@@ -243,7 +274,7 @@ For example:
 Matched strings with metacharacter ('*' or '?') are accessable by {{,$(1),}}, {{,$(2),}}, ... in {{,@ingreds(),}} decorator.
 
 .? Kookbook.py: Compile hello.c so that to generate 'hello' command.
-.-------------------- Kookbook3.py
+.-------------------- 03/Kookbook.py
 ## specific recipe
 @recipe
 @product("hello")
@@ -266,7 +297,7 @@ def file_ext_o(c):
 .--------------------
 
 .? command-line example
-.==================== Kookbook.py3.grecipe.result
+.==================== 03/grecipe.result
 sh> pykook -l
 Properties:
 
@@ -276,7 +307,7 @@ File recipes:
   hello               : generates hello command
   {{**.o*}}                 : compile '*.c' and '*.h'
 
-(Tips: you can set 'kook_default_product' variable in your kookbook.)
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
 
 sh> pykook hello
 ### ** hello.o (recipe=file_ext_o)
@@ -326,7 +357,7 @@ For example, when {{,if_exists("hello.h"),}} is specified in {{,@ingreds(),}}, p
 {{,if_exists(),}} is useful especially when used with generic recipes.
 
 .? Kookbook.py: Example of {{,if_exists(),}}
-.-------------------- Kookbook4.py
+.-------------------- 04/Kookbook.py
 ## specific recipe
 @recipe
 @product("hello")
@@ -349,7 +380,7 @@ def file_hello_o(c):
 .--------------------
 
 .? command-line example
-.==================== Kookbook.py4.if_exists.result
+.==================== 04/if_exists.result
 sh> pykook hello
 ### ** hello.o (recipe=file_hello_o)
 $ gcc -g -c hello.c
@@ -433,8 +464,8 @@ pyKook determines recipe kind ('file' or 'task') according the following simple 
 In the following example, task recipe {{,clean,}} is a recipe to delete '*.o' files and is not combined to file 'clean'.
 Also task recipe {{,all,}} is a recipe to call recipe of 'hello' and is not combined to file 'all'.
 
-.? Kookbook.py: Symbolic recipes
-.-------------------- Kookbook5.py
+.? Kookbook.py: Task recipes
+.-------------------- 05/Kookbook.py
 ## file recipe
 @recipe
 @product("hello")
@@ -476,19 +507,19 @@ def {{*task_all*}}(c):
 '{{,pykook -l,}}' will display task recipes and file recipes.
 
 .? command-line example
-.==================== Kookbook.py5.symrecipe.result
+.==================== 05/symrecipe.result
 sh> pykook -l
 Properties:
 
 Task recipes:
-  clean               : remove by-products
-  all                 : cook all products
+  clean               : remove '*.o' files
+  all                 : create all files
 
 File recipes:
   hello               : generates hello command
   *.o                 : compile '*.c' and '*.h'
 
-(Tips: you can set 'kook_default_product' variable in your kookbook.)
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
 
 sh> pykook all
 ### *** hello.o (recipe=file_ext_o)
@@ -501,8 +532,8 @@ sh> pykook clean
 ### * clean (recipe=clean)
 $ rm -f *.o
 
-sh> ls -F
-Kookbook.py    hello*    hello.c    hello.h
+sh> ls -FC
+Kookbook.py	hello*		hello.c		hello.h
 .====================
 
 pyKook have several well-known task name.
@@ -523,14 +554,14 @@ For example, if you have defined 'all' task recipe, it will be displayed by '{{,
 
 .$$ Default Product	| cookbook-default-product
 
-If you set {{,kook_default_product,}} variable, pykook command will use it as default product.
+If you set product name into {{,kookbook.default,}}, pykook command will use it as default product.
 
 .? Kookbook.py.yaml: specify default product name
-.-------------------- Kookbook6.yaml
+.-------------------- 06/Kookbook.py
 ## global variables
 basename = 'hello'
 command  = basename
-{{*kook_default_product = 'all'*}}     # default product name
+{{*kookbook.default = 'all'*}}     # default product name
 
 ## file recipe
 @recipe
@@ -566,10 +597,10 @@ def task_all(c):
     pass
 .--------------------
 
-If you specify {{,kook_default_product,}}, you can omit target product name in commad-line.
+If you specify {{,kookbook.default,}}, you can omit target product name in commad-line.
 
 .? command-line example
-.==================== Kookbook.py6.default.result
+.==================== 06/default.result
 sh> pykook           # you can omit target product name
 ### *** hello.o (recipe=file_ext_o)
 $ gcc -g -c hello.c
@@ -591,10 +622,10 @@ Property is defined by {{,prop(),}} function. It takes property name and default
 
 
 .? Kookbook.py: properties
-.-------------------- Kookbook6.py
+.-------------------- 07/Kookbook.py
 ## global variables (not properties)
 basename = 'hello'
-kook_default_product = 'all'
+kookbook.default = 'all'
 
 ## properties
 CC       = {{*prop('CC', 'gcc')*}}
@@ -638,11 +669,11 @@ def task_all(c):
 Properties are shown when command-line option '-l' is specified.
 
 .? command-line example
-.==================== Kookbook.py6.props2.result
+.==================== 07/props2.result
 sh> pykook {{*-l*}}
 Properties:
   {{*CC                  : 'gcc'*}}
-  {{*CFLAGS              : '-g'*}}
+  {{*CFLAGS              : '-g -O2'*}}
   {{*command             : 'hello'*}}
 
 Task recipes:
@@ -651,24 +682,26 @@ Task recipes:
 
 File recipes:
 
-(Tips: you can set 'kook_default_product' variable in your kookbook.)
+kookbook.default: all
+
+(Tips: you can override properties with '--propname=propvalue'.)
 .====================
 
 If you don't specify any property values in command-line, default values are used.
 
 .? command-line example
-.==================== Kookbook.py6.props3.result
+.==================== 07/props3.result
 sh> pykook all
 ### *** hello.o (recipe=file_ext_o)
-$ gcc {{*-g*}} -c hello.c
+$ gcc {{*-g -O2*}} -c hello.c
 ### ** hello (recipe=file_command)
-$ gcc {{*-g*}} -o {{*hello*}} hello.o
+$ gcc {{*-g -O2*}} -o {{*hello*}} hello.o
 ### * all (recipe=task_all)
 .====================
 
 If you specify property values in command-line, that values are used instead of default values.
 
-.==================== Kookbook.py6.props4.result
+.==================== 07/props4.result
 sh> pykook {{*--command=foo*}} {{*--CFLAGS='-g -O2 -Wall'*}} all
 ### *** hello.o (recipe=file_ext_o)
 $ gcc {{*-g -O2 -Wall*}} -c hello.c
@@ -681,7 +714,7 @@ Property file is another way to specify properties.
 If you have create property file 'Properties.py' in current directory, pykook command reads it and set property values automatically.
 
 .? Properties.py
-.-------------------- Kookbook6.props5.properties
+.-------------------- 07/props5.properties
 CFLAGS = '-g -O2 -Wall'
 command = 'foo'
 .--------------------
@@ -690,7 +723,7 @@ Don't forget to write {{,prop({{/'prop-name'/}}, {{/'default-value'/}}),}} in yo
 
 Result of {{,pykook -l,}} will be changed when property file exists.
 
-.==================== Kookbook.py6.props5.result
+.==================== 07/props5.result
 sh> pykook -l
 Properties:
   CC                  : 'gcc'
@@ -702,6 +735,8 @@ Task recipes:
   all                 : cook all products
 
 File recipes:
+
+kookbook.default: all
 
 (Tips: you can override properties with '--propname=propvalue'.)
 .====================
@@ -772,14 +807,14 @@ There is an exception in any case.
 Assume that you have a file 'optparse.o' which is supplied by other developer and no source.
 pyKook will try to find 'optparse.c' and failed in the result.
 
-Using 'kook_materials' variable, you can tell pyKook that 'optparse.o' is not a product.
+Using 'kookbook.materials', you can tell pyKook that 'optparse.o' is not a product.
 
 .? Kookbook.py: materials
-.-------------------- Kookbook8.py
+.-------------------- 08/Kookbook.py
 ## global variables (not properties)
 basename = 'hello'
-kook_default_product = 'all'
-{{*kook_materials = ['optparse.o', ]*}}   # specify materials
+kookbook.default = 'all'
+{{*kookbook.materials = ['optparse.o', ]*}}   # specify materials
 
 ## properties
 CC       = prop('CC', 'gcc')
@@ -810,9 +845,9 @@ In this example:
 .* 'optparse.o' will not be compiled because it is specified as material.
 
 .? command-line example
-.==================== Kookbook8.materials
+.==================== 08/materials_dc.result
 sh> pykook all
-### *** hello.o (recipe=file_ext_o)            # only hello.o is compiled
+### *** hello.o (recipe=file_ext_o)            ## only hello.o is compiled
 $ gcc -g -O2 -c hello.c
 ### ** hello (recipe=file_command)
 $ gcc -g -O2 -o hello hello.o optparse.o
@@ -826,11 +861,11 @@ $ gcc -g -O2 -o hello hello.o optparse.o
 You can specify command-line options for certain recipes by {{,@spices(),}} decorator.
 
 .? Kookbook.py: command-line options for recipes
-.-------------------- Kookbook9.py
+.-------------------- 09/Kookbook.py
 ## global variables (not properties)
 basename = 'hello'
-kook_default_product = 'all'
-kook_materials = ['optparse.o', ]   # specify materials
+kookbook.default = 'all'
+kookbook.materials = ['optparse.o', ]   # specify materials
 
 ## properties
 CC       = prop('CC', 'gcc')
@@ -869,7 +904,7 @@ def install(c, {{**args*}}, {{***kwargs*}}):
 Command-line options of recipes are displayed by '-l' or '-L' option.
 
 .? command-line example
-.==================== Kookbook9.spices1.result
+.==================== 09/spices1.result
 sh> pykook -l
 Properties:
   CC                  : 'gcc'
@@ -884,17 +919,17 @@ Task recipes:
 
 File recipes:
 
-kook_default_product: all
+kookbook.default: all
 
-(Tips: 'c%"gcc $(ingreds[0])"' is more natural than '"gcc %s" % c.ingreds[0]'.)
+(Tips: 'c%"gcc $(ingred)"' is more natural than '"gcc %s" % c.ingreds[0]'.)
 .====================
 
 You can specify command-line options for the recipe.
 
-.==================== Kookbook9.spices2.result
-sh> pykook install {{*-d /opt/local/bin --command=hellow*}}
+.==================== 09/spices2.xresult
+sh> pykook install {{*-d /tmp/local/bin --command=hellow*}}
 ### * install (recipe=task_install)
-$ sudo cp hello /opt/local/bin/hellow
+$ sudo cp hello /tmp/local/bin/hellow
 Password: *******
 .====================
 
@@ -903,7 +938,7 @@ This feature can replace many small scripts with pyKook.
 The following is an example to show styles of {{,@spices,}} arguments.
 
 .? Kookbook.py: example of @spices()
-.--------------------
+.-------------------- 10/Kookbook.py
 @recipe
 @spices("-h:      help",            # short opts (no argument)
         "-f file: filename",        # short opts (argument required)
@@ -920,7 +955,7 @@ def echo(c, *args, **kwargs):
 .--------------------
 
 .? result
-.====================
+.==================== 10/help.result
 sh> pykook -L
 Properties:
 
@@ -938,14 +973,232 @@ File recipes:
 (Tips: you can override properties with '--propname=propvalue'.)
 
 sh> pykook echo -f hello.c -d99 --help --debug AAA BBB
-### * echo (recipe=task_echo)
-opts: {'debug': True, 'help': True, 'd': 99, 'f': 'hello.c'}
+### * echo (recipe=echo)
+opts: {'debug': True, 'f': 'hello.c', 'help': True, 'd': 99}
 rests: ('AAA', 'BBB')
 .====================
 
 
 
+.$$ Load other cookbooks	| cookbook-load
+
+{{!(Experimental)!}}
+
+It is possible to load other cookbooks.
+In other words, you can separate a large cookbook into several small cookbooks.
+
+
+.? Common.py: common recipes and properties
+.-------------------- 11/Common.py
+## common properties
+CC       = prop('CC', 'gcc')
+CFLAGS   = prop('CFLAGS', '-g -O2')
+
+## common recipes
+@recipe
+@product("*.o")
+@ingreds("$(1).c", if_exists("$(1).h"))
+def file_ext_o(c):
+    """commpile *.c and *.h into *.o"""
+    system(c%"$(CC) $(CFLAGS) -c $(ingred)")
+
+## common data or utilities
+{{*__export__ = ('unpack', )*}}
+
+def unpack(file):
+    if file.endswith('.tar.gz'):    system("tar xzf " + file)
+    elif file.endswith('.tar.bz2'): system("tar xjf " + file)
+    elif file.endswith('.zip'):     system("unzip -q " + file)
+    else: raise ValueError("%r: unknown file type" % (file,))
+.--------------------
+
+
+.? Kookbook.py: load other cookbook
+.-------------------- 11/Kookbook.py
+## global variables (not properties)
+basename = 'hello'
+kookbook.default = 'all'
+kookbook.materials = ['optparse.o', ]   # specify materials
+
+## properties
+command  = prop('command', basename)
+
+{{*## load other cookbook*}}
+{{*kookbook.load_book('Common.py')   # or execfile('Common.py')*}}
+
+## recipes
+@recipe
+@product(command)
+@ingreds("hello.o", "optparse.o")
+def file_command(c):
+    system(c%"$(CC) $(CFLAGS) -o $(product) $(ingreds)")
+
+@recipe
+@ingreds(command)
+def all(c):
+    pass
+
+@recipe
+@ingreds(command)
+@spices("-d dir: directory to install (default '/usr/local/bin')",
+        "--command=command: command name (default '%s')" % command)
+def install(c, *args, **kwargs):
+    opts, rests = kwargs, args
+    dir = opts.get('d', '/usr/local/bin')  # get option value
+    cmd = opts.get('command', command)     # get option value
+    system(c%"sudo cp $(command) $(dir)/$(cmd)")   # or use 'install' command
+.--------------------
+
+
+.? command-line example
+.==================== 11/base.result
+sh> pykook
+### *** hello.o (recipe=file_ext_o)
+$ gcc -g -O2 -c hello.c
+### ** hello (recipe=file_command)
+$ gcc -g -O2 -o hello hello.o optparse.o
+### * all (recipe=all)
+.====================
+
+
+
 .$ Other features			| topic
+
+
+
+.$$ Meta programming	| topic-metaprog
+
+{{!(Experimental)!}}
+
+You can find and modify recipes as well as define recipes.
+
+.-------------------- topic-metaprog/Kookbook.py
+##
+## Normaly, *.o is created from *.c and *.h
+##
+@recipe('*.o', ['$(1).c', '$(1).h'])
+def file_o(c):
+    """compile *.c and *.h into *.o"""
+    system(c%"gcc -o $(ingred)")
+
+##
+## But you can change that rule for some files.
+##
+hello_recipe = {{*kookbook.find_recipe('hello.o')*}}
+hello_recipe.ingreds = ['hello.c', 'hello.h', 'other.h']
+def func_hello_o(c):
+    """generate hello.o from hello.c, hello.h and other.h"""
+    ## invoke method of original recipe
+    {{*kookbook.get_recipe('*.o')*}}.method(c)    # same as file_o(c)
+hello_recipe.method = func_hello_o
+hello_recipe.desc = None     # make this recipe non-public
+.--------------------
+
+Both kookbook.find_recipe() and kookbook.get_recipe() return recipe object.
+
+.* If you want to get specific recipe (= 'hello.o') from generic recipe (= '*.o'), use kookbook.find_recipe('hello.o').
+.* If you want to get generic recipe, use kookbook.get_recipe('*.o').
+
+
+.#+++
+.==================== topic-metaprog/base.result
+sh> pykook -L
+Properties:
+
+Task recipes:
+
+File recipes:
+  hello.o             : 
+  *.o                 : compile *.c and *.h into *.o
+
+(Tips: it is able to separate properties into 'Properties.py' file.)
+.====================
+.#---
+
+
+.$$ Category 			| topic-category
+
+Category is a class provided by Kook.
+It is used as namespace.
+
+.? Kookbook.py
+.-------------------- topic-category/Kookbook.py
+from kook.utils import CommandOptionError
+
+{{*class git(Category):*}}
+
+  @recipe
+  def __index__(c):
+    """show status of working directory"""
+    system("git status")
+
+  @recipe
+  @spices("-m MESSAGE: commit message")
+  def ci(c):
+    """commit current editing"""
+    system("git commit -a")
+
+  {{*class branch(Category):*}}
+
+    @recipe
+    def __index__(c):
+      """show all branches"""
+      system("git branch -a")
+
+    @recipe
+    def switch(c, *args):
+      """switch current branch"""
+      if not args:
+        raise CommandOptionError("branch name is required.")
+      system(c%"git co $(args[0])")
+
+  {{*class stash(Category):*}}
+
+    @recipe
+    def __index__(c):
+      """show all stashes"""
+      system("git stash list")
+
+    @recipe
+    def save(c):
+      """save stash with current date"""
+      system("git stash save `date`")
+
+    @recipe
+    def pop(c):
+      """pop the latest stash"""
+      system("git stash pop")
+.--------------------
+
+Nested category names are joined with ":".
+
+.? Result
+.==================== topic-category/base.result
+sh> kk -l
+Properties:
+
+Task recipes:
+  git                 : show status of working directory
+  git:ci              : commit current editing
+    -m MESSAGE            commit message
+  git{{*:*}}branch          : show all branches
+  git{{*:*}}branch{{*:*}}switch   : switch current branch
+  git{{*:*}}stash           : show all stashes
+  git{{*:*}}stash{{*:*}}save      : save stash with current date
+  git{{*:*}}stash{{*:*}}pop       : pop the latest stash
+
+File recipes:
+
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
+.====================
+
+.+NOTE:
+
+{{!Notice:!}} Only task recipe is available in Category.
+Don't define file recipe in catetory.
+
+.-NOTE:
+
 
 
 .$$ Command-line Scripting Framework	| topic-framework
@@ -960,7 +1213,7 @@ The points are:
 
 
 .? 'appsvr' script
-.-------------------- appsvr
+.-------------------- topic-framework/appsvr
 {{*#!/usr/bin/env pykook -X*}}
 
 from kook.utils import CommandOptionError
@@ -1007,9 +1260,9 @@ def stop(c):
 .#.--------------------
 
 .? result
-.====================
+.==================== topic-framework/base_dc2.result
 ### Don't forget to make script executable!
-sh> chmod a+w appsvr
+sh> chmod a+x appsvr
 
 ### Show help
 sh> ./appsvr {{*-h*}}
@@ -1100,6 +1353,7 @@ sh> ./appsvr {{*stop*}}
 .## On branch master
 .#nothing to commit (working directory clean)
 .#.====================
+
 
 
 .$$ Short command                      | topic-short-command
@@ -1216,14 +1470,14 @@ You can specify not only filenames but also list of filenames as ingredient {{,@
 pyKook flatten arguments of {{,@ingreds(),}} automatically.
 
 .? Kookbook.py: specify list of filenames
-.-------------------- Kookbook13.py
+.-------------------- topic-nestedarray/Kookbook.py
 from glob import glob
 sources = glob("*.c")
 objects = [ s.replace(".c", ".o") for s in sources ]
 
 @recipe
 @product("hello")
-@ingreds({{*objects*}})    # specify list of filenams
+@ingreds({{*objects*}})    ## specify list of filenams
 def file_hello(c):
     system(c%"gcc -o $(product) $({{*ingreds*}})")  # expanded to filenames
 
@@ -1231,8 +1485,26 @@ def file_hello(c):
 @product("*.o")
 @ingreds("$(1).c")
 def file_ext_o(c):
-    sysytem(c%"gcc -c $(ingred)")
+    sytem(c%"gcc -c $(ingred)")
 .--------------------
+
+
+.#+++
+.? result
+.==================== topic-nestedarray/base.result
+sh> pykook -L
+Properties:
+
+Task recipes:
+
+File recipes:
+  hello               : 
+  *.o                 : 
+
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
+.====================
+.#---
+
 
 .#
 .#.$$ Invoke rook command recursively	| topic-recursive
