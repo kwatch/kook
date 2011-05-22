@@ -54,6 +54,7 @@ class UsersGuide_TC(object):
             ## copy necessary files
             shutil.copy('../hello.c', '.')
             shutil.copy('../hello.h', '.')
+            shutil.copy('../optparse.c', '.')
             shutil.copy('../optparse.o', '.')
             if os.path.exists(base + '.properties'):
                 shutil.copy(base + '.properties', 'Properties.py')
@@ -61,7 +62,7 @@ class UsersGuide_TC(object):
                 os.unlink('hello.o')
             ## parse result file
             content = read_file(result_file)
-            rexp = re.compile(r'^sh> ', re.M)
+            rexp = re.compile(r'^bash> ', re.M)
             for item in rexp.split(content):
                 if not item: continue
                 ## get command and expected
