@@ -123,5 +123,56 @@ assert kook_clean_files == expected, "%r != %r" % (kook_clean_files, expected)
             ok (fn).not_raise()
 
 
+    def test_tasks_all(self):
+
+        if "loaded then defines 'all' task.":
+            fname = "__Kookbook1.py"
+            fcont = r"""
+kookbook.load_book('@kook/books/all.py')
+r = kookbook['all']
+assert r
+assert r.__class__.__name__ == 'Recipe'
+assert 'kook_all_products' in globals()
+assert kook_all_products == []
+
+kookbook['all'].add('hello', 'haruhi.sos')
+expected = ['hello', 'haruhi.sos']
+assert kook_all_products == expected, "%r != %r" % (kook_all_products, expected)
+
+@recipe
+def hello(c):
+    from kook import config
+    config.stdout.write("Hello!\n")
+
+@recipe('*.sos')
+def file_html(c):
+    f = open(c.product, 'w')
+    f.write("SOS")
+    f.close()
+"""[1:]
+            try:
+                def fn1():
+                    def fn2():
+                        book = Cookbook.new(fname)
+                        r = book.find_recipe('all')
+                        ok (r).is_a(Recipe)
+                        ok (r.ingreds) == ['hello', 'haruhi.sos']
+                        kitchen = Kitchen(book)
+                        kitchen.start_cooking('all')
+                    dummy_file(fname, fcont).run(fn2)
+                d_io = dummy_sio("").run(fn1)
+                ok (d_io.stdout) == r"""
+### ** hello (recipe=hello)
+Hello!
+### ** haruhi.sos (recipe=file_html)
+### * all (recipe=task_all)
+"""[1:]
+                ok (d_io.stderr) == ""
+            finally:
+                fname = 'haruhi.sos'
+                if os.path.exists(fname): os.unlink(fname)
+
+
+
 if __name__ == '__main__':
     run()
