@@ -40,6 +40,7 @@ class Cookbook(object):
         self.generic_task_recipes  = []
         self.specific_file_recipes = []
         self.generic_file_recipes  = []
+        self._loaded_books = {}
 
     @classmethod
     def new(cls, bookname, properties={}):
@@ -209,12 +210,16 @@ class KookbookProxy(object):
             else:
                 dirname = os.path.dirname(sys._getframe(1).f_code.co_filename) or '.'
                 filepath = dirname + filepath[1:]
-        book = Cookbook.new(None)
-        context = self._book._new_context(kookbook=self)
-        book.load_file(filepath, context=context)
-        if '__export__' in book.context:
-            for k in book.context['__export__']:
-                self._book.context[k] = book.context.get(k)
+        abspath = os.path.abspath(filepath)
+        book = self._book._loaded_books.get(abspath)
+        if not book:
+            book = Cookbook.new(None)
+            context = self._book._new_context(kookbook=self)
+            book.load_file(filepath, context=context)
+            if '__export__' in book.context:
+                for k in book.context['__export__']:
+                    self._book.context[k] = book.context.get(k)
+            self._book._loaded_books[abspath] = book
         return book.context
 
     def __get_default(self):
