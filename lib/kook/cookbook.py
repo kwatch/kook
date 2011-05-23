@@ -6,7 +6,7 @@
 ### $License$
 ###
 
-import os, re, types
+import sys, os, re, types
 from kook import KookRecipeError
 from kook.decorators import RecipeDecorator
 from kook.misc import Category, _debug, _trace
@@ -40,6 +40,19 @@ class Cookbook(object):
         self.generic_task_recipes  = []
         self.specific_file_recipes = []
         self.generic_file_recipes  = []
+        self._recipes_list = [
+            self.specific_task_recipes,   # 0 + 0
+            self.specific_file_recipes,   # 0 + 1
+            self.generic_task_recipes,    # 2 + 0
+            self.generic_file_recipes,    # 2 + 1
+        ]
+        self._loaded_books = {}
+
+    def register(self, recipe):
+        index = 0
+        index += recipe.kind == 'file' and 1 or 0
+        index += recipe.is_generic()   and 2 or 0
+        self._recipes_list[index].append(recipe)
 
     @classmethod
     def new(cls, bookname, properties={}):
@@ -64,17 +77,17 @@ class Cookbook(object):
     def default_product(self):
         return self.context.get('kook_default_product')
 
-    def load_file(self, filename, properties={}, __kwd=None):
+    def load_file(self, filename, properties={}, context=None):
         ## read file
         self.bookname = filename
         if not os.path.isfile(filename):
             raise kook.utils.ArgumentError("%s: not found." % filename)
         content = kook.utils.read_file(filename)
-        self.load(content, filename, properties, __kwd)
+        self.load(content, filename, properties, context)
 
-    def load(self, content, bookname='(kook)', properties={}, __kwd=None):
-        context = self._new_context(properties)
-        if __kwd: context.update(__kwd)
+    def load(self, content, bookname='(kook)', properties={}, context=None):
+        if context is None:
+            context = self._new_context(properties)
         self.context = context
         self.bookname = bookname
         self._eval_content(content, bookname, context)
@@ -84,12 +97,12 @@ class Cookbook(object):
         _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
         _trace("generic  file recipes: %s" % repr(self.generic_file_recipes))
 
-    def _new_context(self, properties):
+    def _new_context(self, properties={}, kookbook=None):
         context = create_context()
         if properties:
             context.update(properties)
         context['prop'] = self.prop
-        kookbook = KookbookProxy(self)
+        if kookbook is None: kookbook = KookbookProxy(self)
         context.update(kookbook._decorators)
         context['kookbook'] = kookbook
         return context
@@ -112,26 +125,12 @@ class Cookbook(object):
     def material_p(self, target):
         return target in self.materials    ## TODO: use dict
 
-    def register(self, recipe):
-        generic = recipe.is_generic()
-        if recipe.kind == 'task':
-            if generic: self.generic_task_recipes.append(recipe)
-            else:       self.specific_task_recipes.append(recipe)
-        elif recipe.kind == 'file':
-            if generic: self.generic_file_recipes.append(recipe)
-            else:       self.specific_file_recipes.append(recipe)
-        else:
-            assert False, "recipe.kind=%r" % (recipe.kind,)
-
     def find_recipe(self, target):
-        recipes_tuple = (self.specific_task_recipes, self.specific_file_recipes,
-                         self.generic_task_recipes,  self.generic_file_recipes, )
-        for recipes in recipes_tuple:      ## TODO: use dict for specific recipes
-            for recipe in recipes:
-                if recipe.match(target):
-                    _trace("Cookbook#find_recipe(): target=%s, func=%s, product=%s" % \
-                               (repr(target), recipe.name, repr(recipe.product), ))
-                    return recipe
+        for recipes in self._recipes_list:      ## TODO: use dict for specific recipes
+            for r in recipes:
+                if r.match(target):
+                    _trace("Cookbook#find_recipe(): target=%r, func=%s, product=%r" % (target, r.name, r.product, ))
+                    return r
         return None
         #if target.startswith(':'):
         #    specific_recipes = self.specific_task_recipes
@@ -179,25 +178,49 @@ class KookbookProxy(object):
         return recipe
 
     def get_recipe(self, product):
-        book = self._book
-        def _find(recipes, prod=product):
+        for recipes in self._book._recipes_list:
             for r in recipes:
-                if r.product == prod:
+                if r.product == product:
                     return r
-            return None
-        return _find(book.specific_task_recipes) or \
-               _find(book.specific_file_recipes) or \
-               _find(book.generic_task_recipes)  or \
-               _find(book.generic_file_recipes)
+        return None
+
+    def __getitem__(self, name):
+        return self.find_recipe(name)
+
+    def _resolve_filepath(self, filepath):
+        if filepath[0] == "~":
+            filepath = os.path.expanduser(filepath)
+        if filepath[0] == "@":
+            m = re.search(r'^@(\w*)', filepath)
+            module_name = m.group(1)
+            if module_name:
+                try:
+                    mod = __import__(module_name)
+                except ImportError:
+                    raise ValueError("load_book(): @%s: failed to import module.")
+                rest = filepath[len('@')+len(module_name):]
+                filepath = os.path.dirname(mod.__file__) + rest
+            else:
+                dirname = os.path.dirname(sys._getframe(2).f_code.co_filename) or '.'
+                filepath = dirname + filepath[1:]
+        return filepath
 
     def load_book(self, filepath):
-        book = Cookbook.new(None)
-        __kwd = dict(kookbook=self, prop=self._book.prop)
-        __kwd.update(self._decorators)
-        book.load_file(filepath, {}, __kwd)
-        if '__export__' in book.context:
-            for k in book.context['__export__']:
-                self._book.context[k] = book.context.get(k)
+        orig_filepath = filepath
+        filepath = self._resolve_filepath(filepath)
+        abspath = os.path.abspath(filepath)
+        book = self._book._loaded_books.get(abspath)
+        if book:
+            _debug("load_book(): filepath=%r: already loaded." % (orig_filepath, ))
+        else:
+            _debug("load_book(): filepath=%r, abspath=%r" % (orig_filepath, abspath))
+            book = Cookbook.new(None)
+            context = self._book._new_context(kookbook=self)
+            book.load_file(filepath, context=context)
+            if '__export__' in book.context:
+                for k in book.context['__export__']:
+                    self._book.context[k] = book.context.get(k)
+            self._book._loaded_books[abspath] = book
         return book.context
 
     def __get_default(self):

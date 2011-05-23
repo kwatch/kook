@@ -582,8 +582,28 @@ assert ret['foo'] == "AAA"
             def func():
                 book = Cookbook.new(None)
                 def fn(): book.load(input2)
-                #ok (fn).not_raise()
+                ok (fn).not_raise()
+            dummy_file(bookname, input).run(func)
+
+        if "file is arealy loaded then skip to load it.":
+            input = r"""
+__export__ = ('randval')
+import random
+randval = random.randint(0, 1000)
+"""[1:]
+            bookname = "_load_book_test6.py"
+            input3 = r"""
+d = kookbook.load_book('""" + bookname + """')
+assert 'randval' in d
+randval = d['randval']
+d = kookbook.load_book('""" + bookname + """')
+assert randval == d['randval'], "randval=%r, d['randval']=%r" % (randval, d['randval'])
+"""
+            def func():
+                book = Cookbook.new(None)
+                def fn(): book.load(input3)
                 fn()
+                ok (fn).not_raise()
             dummy_file(bookname, input).run(func)
 
 
