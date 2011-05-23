@@ -64,17 +64,17 @@ class Cookbook(object):
     def default_product(self):
         return self.context.get('kook_default_product')
 
-    def load_file(self, filename, properties={}, __kwd=None):
+    def load_file(self, filename, properties={}, context=None):
         ## read file
         self.bookname = filename
         if not os.path.isfile(filename):
             raise kook.utils.ArgumentError("%s: not found." % filename)
         content = kook.utils.read_file(filename)
-        self.load(content, filename, properties, __kwd)
+        self.load(content, filename, properties, context)
 
-    def load(self, content, bookname='(kook)', properties={}, __kwd=None):
-        context = self._new_context(properties)
-        if __kwd: context.update(__kwd)
+    def load(self, content, bookname='(kook)', properties={}, context=None):
+        if context is None:
+            context = self._new_context(properties)
         self.context = context
         self.bookname = bookname
         self._eval_content(content, bookname, context)
@@ -210,9 +210,11 @@ class KookbookProxy(object):
                 dirname = os.path.dirname(sys._getframe(1).f_code.co_filename) or '.'
                 filepath = dirname + filepath[1:]
         book = Cookbook.new(None)
-        __kwd = dict(kookbook=self, prop=self._book.prop)
-        __kwd.update(self._decorators)
-        book.load_file(filepath, {}, __kwd)
+        context = book._new_context(properties={})
+        context['kookbook'] = self
+        context['prop'] = self._book.prop
+        context.update(self._decorators)
+        book.load_file(filepath, properties={}, context=context)
         if '__export__' in book.context:
             for k in book.context['__export__']:
                 self._book.context[k] = book.context.get(k)
