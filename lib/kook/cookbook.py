@@ -195,6 +195,7 @@ class KookbookProxy(object):
         return self.find_recipe(name)
 
     def load_book(self, filepath):
+        orig_filepath = filepath
         if filepath[0] == "~":
             filepath = os.path.expanduser(filepath)
         elif filepath[0] == "@":
@@ -212,7 +213,10 @@ class KookbookProxy(object):
                 filepath = dirname + filepath[1:]
         abspath = os.path.abspath(filepath)
         book = self._book._loaded_books.get(abspath)
-        if not book:
+        if book:
+            _debug("load_book(): filepath=%r: already loaded." % (orig_filepath, ))
+        else:
+            _debug("load_book(): filepath=%r, abspath=%r" % (orig_filepath, abspath))
             book = Cookbook.new(None)
             context = self._book._new_context(kookbook=self)
             book.load_file(filepath, context=context)
