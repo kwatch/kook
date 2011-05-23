@@ -190,6 +190,9 @@ class KookbookProxy(object):
                _find(book.generic_task_recipes)  or \
                _find(book.generic_file_recipes)
 
+    def __getitem__(self, name):
+        return self.find_recipe(name)
+
     def load_book(self, filepath):
         if filepath[0] == "~":
             filepath = os.path.expanduser(filepath)
