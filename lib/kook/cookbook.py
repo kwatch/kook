@@ -41,12 +41,18 @@ class Cookbook(object):
         self.specific_file_recipes = []
         self.generic_file_recipes  = []
         self._recipes_list = [
-            self.specific_task_recipes,
-            self.specific_file_recipes,
-            self.generic_task_recipes,
-            self.generic_file_recipes,
+            self.specific_task_recipes,   # 0 + 0
+            self.specific_file_recipes,   # 0 + 1
+            self.generic_task_recipes,    # 2 + 0
+            self.generic_file_recipes,    # 2 + 1
         ]
         self._loaded_books = {}
+
+    def register(self, recipe):
+        index = 0
+        index += recipe.kind == 'file' and 1 or 0
+        index += recipe.is_generic()   and 2 or 0
+        self._recipes_list[index].append(recipe)
 
     @classmethod
     def new(cls, bookname, properties={}):
@@ -118,17 +124,6 @@ class Cookbook(object):
 
     def material_p(self, target):
         return target in self.materials    ## TODO: use dict
-
-    def register(self, recipe):
-        generic = recipe.is_generic()
-        if recipe.kind == 'task':
-            if generic: self.generic_task_recipes.append(recipe)
-            else:       self.specific_task_recipes.append(recipe)
-        elif recipe.kind == 'file':
-            if generic: self.generic_file_recipes.append(recipe)
-            else:       self.specific_file_recipes.append(recipe)
-        else:
-            assert False, "recipe.kind=%r" % (recipe.kind,)
 
     def find_recipe(self, target):
         for recipes in self._recipes_list:      ## TODO: use dict for specific recipes
