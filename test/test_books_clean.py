@@ -53,10 +53,10 @@ class dummy_sio(object):
 
 
 
-class KookCleanTaskTest(object):
+class KookTasksTest(object):
 
 
-    def test_cleantask(self):
+    def test_tasks_clean(self):
 
         if "loaded then defines 'clean' task.":
             fname = "__Kookbook1.py"
