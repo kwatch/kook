@@ -84,12 +84,12 @@ class Cookbook(object):
         _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
         _trace("generic  file recipes: %s" % repr(self.generic_file_recipes))
 
-    def _new_context(self, properties):
+    def _new_context(self, properties={}, kookbook=None):
         context = create_context()
         if properties:
             context.update(properties)
         context['prop'] = self.prop
-        kookbook = KookbookProxy(self)
+        if kookbook is None: kookbook = KookbookProxy(self)
         context.update(kookbook._decorators)
         context['kookbook'] = kookbook
         return context
@@ -210,11 +210,8 @@ class KookbookProxy(object):
                 dirname = os.path.dirname(sys._getframe(1).f_code.co_filename) or '.'
                 filepath = dirname + filepath[1:]
         book = Cookbook.new(None)
-        context = book._new_context(properties={})
-        context['kookbook'] = self
-        context['prop'] = self._book.prop
-        context.update(self._decorators)
-        book.load_file(filepath, properties={}, context=context)
+        context = self._book._new_context(kookbook=self)
+        book.load_file(filepath, context=context)
         if '__export__' in book.context:
             for k in book.context['__export__']:
                 self._book.context[k] = book.context.get(k)
