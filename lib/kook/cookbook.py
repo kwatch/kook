@@ -194,11 +194,10 @@ class KookbookProxy(object):
     def __getitem__(self, name):
         return self.find_recipe(name)
 
-    def load_book(self, filepath):
-        orig_filepath = filepath
+    def _resolve_filepath(self, filepath):
         if filepath[0] == "~":
             filepath = os.path.expanduser(filepath)
-        elif filepath[0] == "@":
+        if filepath[0] == "@":
             m = re.search(r'^@(\w*)', filepath)
             module_name = m.group(1)
             if module_name:
@@ -209,8 +208,13 @@ class KookbookProxy(object):
                 rest = filepath[len('@')+len(module_name):]
                 filepath = os.path.dirname(mod.__file__) + rest
             else:
-                dirname = os.path.dirname(sys._getframe(1).f_code.co_filename) or '.'
+                dirname = os.path.dirname(sys._getframe(2).f_code.co_filename) or '.'
                 filepath = dirname + filepath[1:]
+        return filepath
+
+    def load_book(self, filepath):
+        orig_filepath = filepath
+        filepath = self._resolve_filepath(filepath)
         abspath = os.path.abspath(filepath)
         book = self._book._loaded_books.get(abspath)
         if book:
