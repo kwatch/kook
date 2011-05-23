@@ -127,11 +127,10 @@ class Cookbook(object):
 
     def find_recipe(self, target):
         for recipes in self._recipes_list:      ## TODO: use dict for specific recipes
-            for recipe in recipes:
-                if recipe.match(target):
-                    _trace("Cookbook#find_recipe(): target=%s, func=%s, product=%s" % \
-                               (repr(target), recipe.name, repr(recipe.product), ))
-                    return recipe
+            for r in recipes:
+                if r.match(target):
+                    _trace("Cookbook#find_recipe(): target=%r, func=%s, product=%r" % (target, r.name, r.product, ))
+                    return r
         return None
         #if target.startswith(':'):
         #    specific_recipes = self.specific_task_recipes
