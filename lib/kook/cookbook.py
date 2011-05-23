@@ -191,6 +191,8 @@ class KookbookProxy(object):
                _find(book.generic_file_recipes)
 
     def load_book(self, filepath):
+        if filepath[0] == "~":
+            filepath = os.path.expanduser(filepath)
         book = Cookbook.new(None)
         __kwd = dict(kookbook=self, prop=self._book.prop)
         __kwd.update(self._decorators)
