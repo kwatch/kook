@@ -6,7 +6,7 @@
 ### $License$
 ###
 
-import os, re, types
+import sys, os, re, types
 from kook import KookRecipeError
 from kook.decorators import RecipeDecorator
 from kook.misc import Category, _debug, _trace
@@ -196,6 +196,9 @@ class KookbookProxy(object):
     def load_book(self, filepath):
         if filepath[0] == "~":
             filepath = os.path.expanduser(filepath)
+        elif filepath[0] == "@":
+            dirname = os.path.dirname(sys._getframe(1).f_code.co_filename) or '.'
+            filepath = dirname + filepath[1:]
         book = Cookbook.new(None)
         __kwd = dict(kookbook=self, prop=self._book.prop)
         __kwd.update(self._decorators)
