@@ -15,8 +15,6 @@ __export__ = ('kook_clean_files', 'kook_sweep_files')
 
 kook_clean_files = []
 
-__builtins__['_gl'] = globals()
-
 @recipe
 def clean(c):
     """remove by-products"""
