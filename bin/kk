@@ -13,7 +13,8 @@ command=`basename $0`
 #else
 	cwd=`pwd`
 	while [ true ]; do
-		n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
+		#n=`/bin/ls Kookbook.* 2>/dev/null | wc -l`
+		n=`/bin/ls Kookbook.{py,rb,pl,php,js,yaml} 2>/dev/null | wc -l`
 		[ $n -eq 1 ] && break
 		[ $n -gt 1 ] && die "$command: Kookbook.*: Two or more kookbooks found."
 		old=$cwd
@@ -23,8 +24,9 @@ command=`basename $0`
 	done
 #fi
 
-kookbook=`echo Kookbook.*`
-case $kookbook in
+#kookbook=`echo Kookbook.*`
+kookbook=`/bin/ls Kookbook.{py,rb,pl,php,js,yaml} 2>/dev/null`
+case "$kookbook" in
 *.py)	pykook "$@"  ;;
 *.rb)	rbkook "$@"  ;;
 *.pl)	plkook "$@"  ;;
