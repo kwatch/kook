@@ -40,6 +40,12 @@ class Cookbook(object):
         self.generic_task_recipes  = []
         self.specific_file_recipes = []
         self.generic_file_recipes  = []
+        self._recipes_list = [
+            self.specific_task_recipes,
+            self.specific_file_recipes,
+            self.generic_task_recipes,
+            self.generic_file_recipes,
+        ]
         self._loaded_books = {}
 
     @classmethod
@@ -125,9 +131,7 @@ class Cookbook(object):
             assert False, "recipe.kind=%r" % (recipe.kind,)
 
     def find_recipe(self, target):
-        recipes_tuple = (self.specific_task_recipes, self.specific_file_recipes,
-                         self.generic_task_recipes,  self.generic_file_recipes, )
-        for recipes in recipes_tuple:      ## TODO: use dict for specific recipes
+        for recipes in self._recipes_list:      ## TODO: use dict for specific recipes
             for recipe in recipes:
                 if recipe.match(target):
                     _trace("Cookbook#find_recipe(): target=%s, func=%s, product=%s" % \
@@ -180,16 +184,11 @@ class KookbookProxy(object):
         return recipe
 
     def get_recipe(self, product):
-        book = self._book
-        def _find(recipes, prod=product):
+        for recipes in self._book._recipes_list:
             for r in recipes:
-                if r.product == prod:
+                if r.product == product:
                     return r
-            return None
-        return _find(book.specific_task_recipes) or \
-               _find(book.specific_file_recipes) or \
-               _find(book.generic_task_recipes)  or \
-               _find(book.generic_file_recipes)
+        return None
 
     def __getitem__(self, name):
         return self.find_recipe(name)
