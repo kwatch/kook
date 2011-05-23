@@ -197,8 +197,18 @@ class KookbookProxy(object):
         if filepath[0] == "~":
             filepath = os.path.expanduser(filepath)
         elif filepath[0] == "@":
-            dirname = os.path.dirname(sys._getframe(1).f_code.co_filename) or '.'
-            filepath = dirname + filepath[1:]
+            m = re.search(r'^@(\w*)', filepath)
+            module_name = m.group(1)
+            if module_name:
+                try:
+                    mod = __import__(module_name)
+                except ImportError:
+                    raise ValueError("load_book(): @%s: failed to import module.")
+                rest = filepath[len('@')+len(module_name):]
+                filepath = os.path.dirname(mod.__file__) + rest
+            else:
+                dirname = os.path.dirname(sys._getframe(1).f_code.co_filename) or '.'
+                filepath = dirname + filepath[1:]
         book = Cookbook.new(None)
         __kwd = dict(kookbook=self, prop=self._book.prop)
         __kwd.update(self._decorators)
