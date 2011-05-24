@@ -61,7 +61,7 @@ class KookTasksTest(object):
         if "loaded then defines 'clean' task.":
             fname = "__Kookbook1.py"
             fcont = r"""
-kookbook.load_book('@kook/books/clean.py')
+kookbook.load('@kook/books/clean.py')
 r = kookbook['clean']
 assert r
 assert r.__class__.__name__ == 'Recipe'
@@ -85,7 +85,7 @@ assert kook_clean_files == ['*.hogeratta', '*.geriatta']
         if "loaded then defines 'sweep' task.":
             fname = "__Kookbook2.py"
             fcont = r"""
-kookbook.load_book('@kook/books/clean.py')
+kookbook.load('@kook/books/clean.py')
 r = kookbook['sweep']
 assert r
 assert r.__class__.__name__ == 'Recipe'
@@ -110,9 +110,9 @@ kookbook['clean'].add('*.hogeratta')
 
         if "called several times then loaded only one time.":
             input = r"""
-kookbook.load_book('@kook/books/clean.py')
+kookbook.load('@kook/books/clean.py')
 kook_clean_files.append('*.foo')
-kookbook.load_book('@kook/books/clean.py')
+kookbook.load('@kook/books/clean.py')
 kook_clean_files.append('*.bar')
 expected = ['*.foo', '*.bar']
 assert kook_clean_files == expected, "%r != %r" % (kook_clean_files, expected)
@@ -128,7 +128,7 @@ assert kook_clean_files == expected, "%r != %r" % (kook_clean_files, expected)
         if "loaded then defines 'all' task.":
             fname = "__Kookbook1.py"
             fcont = r"""
-kookbook.load_book('@kook/books/all.py')
+kookbook.load('@kook/books/all.py')
 r = kookbook['all']
 assert r
 assert r.__class__.__name__ == 'Recipe'
