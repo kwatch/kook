@@ -71,7 +71,7 @@ kookbook['clean'].add('*.hogeratta', '*.geriatta')
 assert kook_clean_files == ['*.hogeratta', '*.geriatta']
 """[1:]
             def fn1():
-                book = Cookbook.new(fname)
+                book = Cookbook().load_file(fname)
                 ok (book.find_recipe('clean')).is_a(Recipe)
                 kitchen = Kitchen(book)
                 kitchen.start_cooking('clean')
@@ -96,7 +96,7 @@ assert kook_sweep_files == ['*.hogeratta2', '*.geriatta2']
 kookbook['clean'].add('*.hogeratta')
 """[1:]
             def fn():
-                book = Cookbook.new(fname)
+                book = Cookbook().load_file(fname)
                 ok (book.find_recipe('sweep')).is_a(Recipe)
                 kitchen = Kitchen(book)
                 kitchen.start_cooking('sweep')
@@ -118,7 +118,7 @@ expected = ['*.foo', '*.bar']
 assert kook_clean_files == expected, "%r != %r" % (kook_clean_files, expected)
 """[1:]
             def fn():
-                book = Cookbook.new(None)
+                book = Cookbook()
                 book.load(input)
             ok (fn).not_raise()
 
@@ -153,7 +153,7 @@ def file_html(c):
             try:
                 def fn1():
                     def fn2():
-                        book = Cookbook.new(fname)
+                        book = Cookbook().load_file(fname)
                         r = book.find_recipe('all')
                         ok (r).is_a(Recipe)
                         ok (r.ingreds) == ['hello', 'haruhi.sos']

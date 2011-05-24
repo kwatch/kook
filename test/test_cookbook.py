@@ -149,8 +149,7 @@ def file_ext_html(c):
 def file_html(c):
   pass
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         # generic recipe
         ok (book.generic_file_recipes).is_a(list)
         ok (len(book.generic_file_recipes)) == 1
@@ -204,8 +203,7 @@ import re
 def file_html(c):
   pass
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         recipe = book.generic_file_recipes[0]
         ok (recipe.pattern).is_a(type(re.compile('dummy')))
         ok (recipe.pattern.pattern) == r'.*\.html'
@@ -214,8 +212,7 @@ def file_html(c):
         input = r"""
 kook_materials = ('index.html', )
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         ok (book.materials) == ('index.html', )
         ## kook_materials should be tuple or list
         input = r"""
@@ -240,8 +237,7 @@ class stash(Category):
   def abort(c):
     print('abort top on stash')
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         recipes = book.specific_task_recipes
         ok (len(recipes)) == 2
         ok (recipes[0].product) == 'stash:save'
@@ -271,8 +267,7 @@ class db(Category):
   def backup(c):
     pass
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         recipes = book.specific_task_recipes[:]
         ok (len(recipes)) == 4
         #recipes.sort(key=lambda r: r.product)
@@ -293,8 +288,7 @@ class db(Category):
         input = r"""
 kook_materials = ('index.html', )
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         ok (book.material_p('index.html')) == True
         ok (book.material_p('index.txt')) == False
 
@@ -311,8 +305,7 @@ def file_html(c):
 def file_index_html(c):
   pass
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         ## generic file recipe
         recipe = book.find_recipe('foo.html')
         ok (recipe.kind) == 'file'
@@ -332,8 +325,7 @@ def task_package(c):
 def package_123(c):
   pass
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         ## generic task recipe
         recipe = book.find_recipe('package_100')
         ok (recipe.kind) == 'task'
@@ -357,8 +349,7 @@ class stash(Category):
   def abort(c):
     print('abort top on stash')
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         recipe = book.find_recipe('stash:save')
         ok (recipe.kind) == 'task'
         ok (recipe.product) == 'stash:save'
@@ -390,8 +381,7 @@ class db(Category):
   def backup(c):
     pass
 """[1:]
-        book = Cookbook()
-        book.load(input)
+        book = Cookbook().load(input)
         #
         recipe = book.find_recipe('db:schema:migration:down')
         ok (recipe.kind) == 'task'
@@ -425,8 +415,7 @@ assert r.is_generic() == False
 assert r.product == "foo.html"
 assert r.ingreds == ["foo.txt"]
 """[1:]
-            book = Cookbook()
-            book.load(input)
+            book = Cookbook().load(input)
             r = book.find_recipe("foo.html")
             ok (r.is_generic()) == True
             ok (r.product) == "*.html"
@@ -444,8 +433,7 @@ def file_foo_html(c):
     kookbook.get_recipe('*.html').method(c)
 r.method = file_foo_html
 """[1:]
-            book = Cookbook()
-            book.load(input)
+            book = Cookbook().load(input)
             r = book.find_recipe("foo.html")
             ok (r.ingreds) == ["foo.txt", "sidebar.html"]
             ok (r.desc) == "create foo.html"
@@ -634,8 +622,7 @@ assert randval == d['randval'], "randval=%r, d['randval']=%r" % (randval, d['ran
             input = r"""
 kookbook.default = 'foo.html'
 """[1:]
-            book = Cookbook()
-            book.load(input)
+            book = Cookbook().load(input)
             ok (book.context).contains('kook_default_product')
             ok (book.default_product()) == 'foo.html'
             input = r"""
@@ -652,8 +639,7 @@ assert kookbook.default == 'bar.html'
             input = r"""
 kookbook.materials = ['foo.html']
 """[1:]
-            book = Cookbook()
-            book.load(input)
+            book = Cookbook().load(input)
             ok (book.context).contains('kook_materials')
             ok (book._get_kook_materials(book.context)) == ['foo.html']
             input = r"""

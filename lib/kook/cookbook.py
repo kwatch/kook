@@ -155,11 +155,13 @@ class Cookbook(ICookbook):
 
     def load(self, content, bookname='(kook)', properties=None):
         self.__setup(bookname, properties)
-        return self._load(content, None, None, True)
+        self._load(content, None, None, True)
+        return self
 
     def load_file(self, filename, properties=None):
         self.__setup(filename, properties)
-        return self.load_book(filename, True)
+        self.load_book(filename, True)
+        return self
 
     def load_book(self, filename, content_shared=False):
         if self.bookname is None: self.bookname = filename
