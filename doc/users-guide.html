@@ -1148,7 +1148,7 @@ r.ingreds.append('foo.h')
 kookbook.register(r)
 </pre>
 
-      <p>Here is steps that <code>kookbook[]</code> and <code>kookbook.find_recipe()</code> do.</p>
+      <p>Here is steps that <code>kookbook[]</code> and <code>kookbook.find_recipe()</code> do:</p>
 
       <ol type="1">
         <li>Find a specific recipe which matches to 'foo.o', but not found.</li>
@@ -1169,7 +1169,7 @@ kookbook.register(r)
         <li>Register it if <code>kookbook[]</code> called, but <code>kookbook.find_recipe()</code> doesn't.</li>
       </ol>
 
-      <p>Descrived as above, <code>kookbook[]</code> and <code>kookbook.find_recipe()</code> converts generic recipe into specific recipe. If you don't need to convert, use <code>kookbook.get_recipe()</code>.</p>
+      <p>Descrived as above, <code>kookbook[]</code> and <code>kookbook.find_recipe()</code> converts generic recipe into specific recipe. If you don't want to convert it, use <code>kookbook.get_recipe()</code>.</p>
       <pre class="program">
 @recipe('foo.o', ['foo.c', 'foo.h'])
 def file_foo_o(c):
@@ -1207,6 +1207,8 @@ kookbook['sweep'].add("*.egg", "*.war")             # products
 ## or
 kookbook['clean'].ingreds.extend(["**/*.o", "**/*.class"])
 kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
+
+#kookbook['sweep'].product = "clobber"              # if you like
 </pre>
 
       <div class="program_caption">

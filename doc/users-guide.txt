@@ -1109,7 +1109,7 @@ r.ingreds.append('foo.h')
 kookbook.register(r)
 .--------------------
 
-Here is steps that {{,kookbook[],}} and {{,kookbook.find_recipe(),}} do.
+Here is steps that {{,kookbook[],}} and {{,kookbook.find_recipe(),}} do:
 
 .1) Find a specific recipe which matches to 'foo.o', but not found.
 .2) Then find a generic recipe, and a recipe '*.o' found.
@@ -1120,7 +1120,7 @@ Here is steps that {{,kookbook[],}} and {{,kookbook.find_recipe(),}} do.
 .4) Register it if {{,kookbook[],}} called, but {{,kookbook.find_recipe(),}} doesn't.
 
 Descrived as above, {{,kookbook[],}} and {{,kookbook.find_recipe(),}} converts generic recipe into specific recipe.
-If you don't need to convert, use {{,kookbook.get_recipe(),}}.
+If you don't want to convert it, use {{,kookbook.get_recipe(),}}.
 
 .--------------------
 @recipe('foo.o', ['foo.c', 'foo.h'])
@@ -1175,6 +1175,8 @@ kookbook['sweep'].add("*.egg", "*.war")             # products
 ## or
 kookbook['clean'].ingreds.extend(["**/*.o", "**/*.class"])
 kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
+
+#kookbook['sweep'].product = "clobber"              # if you like
 .--------------------
 
 .? Example of {{,all,}} recipe
