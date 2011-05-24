@@ -945,8 +945,8 @@ The following is an example to show styles of {{,@spices,}} arguments.
 def echo(c, *args, **kwargs):
     """test of @spices"""
     opts, rests = kwargs, args
-    print "opts:", repr(opts)
-    print "rests:", repr(rests)
+    print("opts: %r " % (opts,))
+    print("rests: %r" % (rests,))
 .--------------------
 
 .? result
@@ -979,9 +979,18 @@ rests: ('AAA', 'BBB')
 
 {{!(Experimental)!}}
 
-It is possible to load other cookbooks.
-In other words, you can separate a large cookbook into several small cookbooks.
+It is possible to load other cookbooks by {{,kookbook.load(),}}.
 
+.? Available format by kookbook.load()
+.--------------------
+kookbook.load('Common.py')             # load book in current directory
+kookbook.load('../Common.py')          # load book in current directory
+kookbook.load('~/Common.py')           # load book in home directory
+kookbook.load('{{*@*}}/../tasks/Common.py')  # '@' means os.path.dirname(__file__)
+kookbook.load('{{*@kook*}}/tasks/clean.py')  # '@{{/module/}}' means os.path.dirname({{/module/}}.__file__)
+.--------------------
+
+Using it, you can separate a large cookbook into several small cookbooks.
 
 .? Common.py: common recipes and properties
 .-------------------- 11/Common.py
@@ -1019,7 +1028,7 @@ kookbook.materials = ['optparse.o', ]   # specify materials
 command  = prop('command', basename)
 
 {{*## load other cookbook*}}
-{{*kookbook.load_book('Common.py')   # or execfile('Common.py')*}}
+{{*kookbook.load('Common.py')             # or execfile('Common.py')*}}
 
 ## recipes
 @recipe
@@ -1069,30 +1078,61 @@ You can find and modify recipes as well as define recipes.
 
 .-------------------- topic-metaprog/Kookbook.py
 ##
-## Normaly, *.o is created from *.c and *.h
+## Normaly, *.o is created from *.c.
 ##
-@recipe('*.o', ['$(1).c', '$(1).h'])
+@recipe('*.o', ['$(1).c'])
 def file_o(c):
-    """compile *.c and *.h into *.o"""
+    """compile *.c into *.o"""
     system(c%"gcc -o $(ingred)")
 
 ##
 ## But you can change that rule for some files.
 ##
-hello_recipe = {{*kookbook.find_recipe('hello.o')*}}
-hello_recipe.ingreds = ['hello.c', 'hello.h', 'other.h']
-def func_hello_o(c):
-    """generate hello.o from hello.c, hello.h and other.h"""
+foo_recipe = {{*kookbook['foo.o']*}}
+foo_recipe.ingreds.extend(('foo.h', 'bar.h'))
+def func_foo_o(c):
+    """generate foo.o from foo.c, foo.h and other.h"""
     ## invoke method of original recipe
     {{*kookbook.get_recipe('*.o')*}}.method(c)    # same as file_o(c)
-hello_recipe.method = func_hello_o
-hello_recipe.desc = None     # make this recipe non-public
+foo_recipe.method = func_foo_o
+foo_recipe.desc = None     # make this recipe non-public
 .--------------------
 
-Both kookbook.find_recipe() and kookbook.get_recipe() return recipe object.
+{{,kookbook.find_recipe(),}} is similar to {{,kookbook[],}}, but it doesn't register recipe automatically.
 
-.* If you want to get specific recipe (= 'hello.o') from generic recipe (= '*.o'), use kookbook.find_recipe('hello.o').
-.* If you want to get generic recipe, use kookbook.get_recipe('*.o').
+.--------------------
+## For example:
+kookbook['foo.o'].ingreds.append('foo.h')
+## .. is same as:
+r = kookbook.find_recipe('foo.o')
+r.ingreds.append('foo.h')
+kookbook.register(r)
+.--------------------
+
+Here is steps that {{,kookbook[],}} and {{,kookbook.find_recipe(),}} do.
+
+.* Find a specific recipe which matches to 'foo.o', but not found.
+.* Then find a generic recipe, and a recipe '*.o' found.
+.* Convert it into a specific recipe to suit 'foo.o'. for example:
+   .- Product: '*.o' => foo.o'
+   .- Ingreds: ['$(1).c'] => ['foo.c']
+   .- Method: (not changed)
+.* Register it if {{,kookbook[],}} called, but {{,kookbook.find_recipe(),}} doesn't.
+
+Descrived as above, {{,kookbook[],}} and {{,kookbook.find_recipe(),}} converts generic recipe into specific recipe.
+If you don't need to convert, use {{,kookbook.get_recipe(),}}.
+
+.--------------------
+@recipe('foo.o', ['foo.c', 'foo.h'])
+def file_foo_o(c):
+  ## invoke same command as *.o
+  kookbook.get_recipe('*.o').method(c)
+.--------------------
+
+.#Both kookbook.find_recipe() and kookbook.get_recipe() return recipe object.
+.#
+.#.* If you want to get specific recipe (= 'foo.o') from generic recipe (= '*.o'), use kookbook.find_recipe('foo.o').
+.#.* If you want to get generic recipe, use kookbook.get_recipe('*.o').
 
 
 .#+++
@@ -1103,12 +1143,53 @@ Properties:
 Task recipes:
 
 File recipes:
-  hello.o             : 
-  *.o                 : compile *.c and *.h into *.o
+  foo.o               : 
+  *.o                 : compile *.c into *.o
 
 (Tips: it is able to separate properties into 'Properties.py' file.)
 .====================
 .#---
+
+
+
+.$$ {{,clean,}}, {{,sweep,}}, and {{,all,}} recipes
+
+Kook provides some useful recipes.
+
+.* Recipe {{,clean,}} is intended to remove by-products.
+.* Recipe {{,sweep,}} is intended to remove products and by-products.
+.* Recipe {{,all,} is intended to produce all products.
+
+.? Example of {{,clean,}} and {{,sweep,}} recipes
+.--------------------
+## load cookbook
+## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
+kookbook.load("@kook/books/clean.py")    # 'clean' and 'swep' recipes
+
+## specify file patterns to remove
+kook_clean_files.extend(["**/*.o", "**/*.class"])   # by-products
+kook_sweep_files.extend(["*.egg", "*.war"])   # products
+## or
+kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
+kookbook['sweep'].add("*.egg", "*.war")       # products
+## or
+kookbook['clean'].ingreds.extend(["**/*.o", "**/*.class"])
+kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
+.--------------------
+
+.? Example of {{,all,}} recipe
+.--------------------
+## load cookbook
+## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
+kookbook.load("@kook/books/all.py")      # 'all' recipe
+## specify products you want to produce
+kook_all_products.extend(['product1', 'product2'])
+## or
+kookbook['all'].add('product1', 'product2')
+## or
+kookbook['all'].ingreds.extend(['product1', 'product2'])
+.--------------------
+
 
 
 .$$ Category 			| topic-category
@@ -1407,16 +1488,16 @@ $ rm **/*.pyc
 pyKook provides short notation of recipe.
 
 .--------------------
-### normal notation                   ### short notation
-@recipe                               {{*@recipe('*.o', ['$(1).c', '$(1).h'])*}}
-@product('*.o')                       def file_o(c):
-@ingreds('$(1).c', '$(1).h')             system(c%"gcc -o $(ingred)")
+### normal notation                      ### short notation
+@recipe                                  {{*@recipe('*.o', ['$(1).c', '$(1).h'])*}}
+@product('*.o')                          def file_o(c):
+@ingreds('$(1).c', '$(1).h')                system(c%"gcc -o $(ingred)")
 def file_o(c):
    system(c%"gcc -c $(ingred)")
 
-@recipe                               {{*@recipe('build', ['hello.o'])*}}
-@ingreds('hello.o')                   def {{*task_*}}build(c):
-def build(c):                            system(c%"gcc -o hello *.o")
+@recipe                                  {{*@recipe('build', ['hello.o'])*}}
+@ingreds('hello.o')                      def {{*task_*}}build(c):
+def build(c):                               system(c%"gcc -o hello *.o")
    system(c%"gcc -o hello *.o")
 .--------------------
 

@@ -8,6 +8,8 @@ import sys, os, re, time
 from glob import glob
 import shutil
 
+python3 = sys.version_info[0] == 3
+
 from oktest import ok, run
 
 
@@ -39,6 +41,7 @@ class UsersGuide_TC(object):
     try:
         os.chdir(datadir)
         os.popen("gcc -c optparse.c")
+        time.sleep(1)    # wait for optparse.o is wrote into disk for Python3
     finally:
         os.chdir(pwd)
 
@@ -62,6 +65,8 @@ class UsersGuide_TC(object):
                 os.unlink('hello.o')
             ## parse result file
             content = read_file(result_file)
+            if python3:
+                content = content.decode('ascii')
             rexp = re.compile(r'^bash> ', re.M)
             for item in rexp.split(content):
                 if not item: continue
