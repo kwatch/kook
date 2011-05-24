@@ -319,11 +319,12 @@ def chdir(dirname, block=None):
     if block:
         ex_type = ex_obj = traceback = None
         try:
-            obj.__enter__()
-            block.__call__()
-        except Exception:
-            ex_type, ex_obj, traceback = sys.exc_info();
-            raise
+            try:
+                obj.__enter__()
+                block.__call__()
+            except Exception:
+                ex_type, ex_obj, traceback = sys.exc_info();
+                raise
         finally:
             obj.__exit__(ex_type, ex_obj, traceback)
     return obj
