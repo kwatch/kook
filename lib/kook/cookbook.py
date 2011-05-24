@@ -11,42 +11,88 @@ from kook import KookRecipeError
 from kook.decorators import RecipeDecorator
 from kook.misc import Category, _debug, _trace
 import kook.utils
-from kook.utils import _is_str, to_list, ArgumentError, has_metachars
+from kook.utils import _is_str, to_list, read_file, ArgumentError, has_metachars
 import kook.config as config
 from kook.misc import ConditionalFile
 
 __all__ = ('Cookbook', 'Recipe', )
 
 
-class Cookbook(object):
 
-    bookname = None
-    specific_task_recipes = ()
-    generic_task_recipes  = ()
-    specific_file_recipes = ()
-    generic_file_recipes  = ()
-    materials = ()
-    property_names = ()
-    _property_names_dict = None
-    context = None
+#class BookObject(object):
+#
+#    def __init__(self, content, context, filepath=None):
+#        code_obj = compile(content, filepath or "(kook)", "exec")
+#        exec(code_obj, context, context)
+#        self.__dict__ = context
+#        self.__file__ = filepath
+#
+#    def __getitem__(self, key):
+#        return self.__dict__[key]
+#
+#    def get(self, key, default=None):
+#        return self.__dict__.get(key, default)
 
-    def __init__(self, bookname=None):
-        self.bookname = bookname
-        self.property_names = []
-        self._property_names_dict = {}
-        #if bookname:
-        #    self.load_file(bookname)
+
+
+class ICookbook(object):
+
+    ## for Kitchen
+
+    def find_recipe(self, target):
+        pass
+
+    def material_p(self, target):
+        pass
+
+    def deault(self):
+        pass
+
+    ## for user
+    @classmethod
+    def new(cls, bookname, properties=None):
+        pass
+
+    def load_file(self, filename, properties=None):
+        pass
+
+    def load(self, context, bookname='(kook)', properties=None):
+        pass
+
+    def register(self, recipe):
+        pass
+
+    ## for main
+    def default_product(self):
+        pass
+
+    def all_properties(self):
+        pass
+
+
+
+class Cookbook(ICookbook):
+
+    def __init__(self, properties=None):
+        if properties is None: porperties = {}
+        self.bookname = None
+        self.properties = properties
+        self._propnames_list = []
+        self._propnames_dict = {}
+        self._loaded_books = {}
+        self._decorators = RecipeDecorator(self).to_dict()
         self.specific_task_recipes = []
-        self.generic_task_recipes  = []
         self.specific_file_recipes = []
+        self.generic_task_recipes  = []
         self.generic_file_recipes  = []
         self._recipes_list = [
-            self.specific_task_recipes,   # 0 + 0
-            self.specific_file_recipes,   # 0 + 1
-            self.generic_task_recipes,    # 2 + 0
-            self.generic_file_recipes,    # 2 + 1
+            self.specific_task_recipes,
+            self.specific_file_recipes,
+            self.generic_task_recipes,
+            self.generic_file_recipes,
         ]
-        self._loaded_books = {}
+        self._kookbook_proxy = KookbookProxy(self)
+        self.context = self._new_context()
 
     def register(self, recipe):
         index = 0
@@ -56,71 +102,25 @@ class Cookbook(object):
 
     @classmethod
     def new(cls, bookname, properties={}):
-        self = cls(bookname)
+        obj = cls(properties)
         if bookname:
-            self.load_file(bookname, properties)
-        return self
+            obj.load_book(bookname)
+        return obj
 
     def prop(self, name, value):
-        if name not in self._property_names_dict:
-            self._property_names_dict[name] = True
-            self.property_names.append(name)
-        if name in self.context:
-            value = self.context[name]
-        else:
-            self.context[name] = value
-        return value
+        if name not in self._propnames_dict:
+            self._propnames_dict[name] = True
+            self._propnames_list.append(name)
+        return self.properties.setdefault(name, value)
 
     def all_properties(self):
-        return [ (pname, self.context.get(pname)) for pname in self.property_names ]
+        return [ (pname, self.properties.get(pname)) for pname in self._propnames_list ]
 
     def default_product(self):
-        return self.context.get('kook_default_product')
+        return self.default
 
-    def load_file(self, filename, properties={}, context=None):
-        ## read file
-        self.bookname = filename
-        if not os.path.isfile(filename):
-            raise kook.utils.ArgumentError("%s: not found." % filename)
-        content = kook.utils.read_file(filename)
-        self.load(content, filename, properties, context)
-
-    def load(self, content, bookname='(kook)', properties={}, context=None):
-        if context is None:
-            context = self._new_context(properties)
-        self.context = context
-        self.bookname = bookname
-        self._eval_content(content, bookname, context)
-        self.materials = self._get_kook_materials(context)
-        _trace("specific task recipes: %s" % repr(self.specific_task_recipes))
-        _trace("generic  task recipes: %s" % repr(self.generic_task_recipes))
-        _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
-        _trace("generic  file recipes: %s" % repr(self.generic_file_recipes))
-
-    def _new_context(self, properties={}, kookbook=None):
-        context = create_context()
-        if properties:
-            context.update(properties)
-        context['prop'] = self.prop
-        if kookbook is None: kookbook = KookbookProxy(self)
-        context.update(kookbook._decorators)
-        context['kookbook'] = kookbook
-        return context
-
-    def _eval_content(self, content, bookname, context):
-        code_obj = compile(content, bookname, 'exec')
-        #exec code_obj in context, context
-        exec(code_obj, context, context)
-
-    def _get_kook_materials(self, context):
-        name = 'kook_materials'
-        if name in context:
-            arr = context.get(name)
-            if not isinstance(arr, (tuple, list)):
-                raise KookRecipeError("%s: kook_materials should be tuple or list." % repr(arr))
-            return arr
-        else:
-            return []
+    def _get_kook_materials(self, _unused=None):
+        return self.materials
 
     def material_p(self, target):
         return target in self.materials    ## TODO: use dict
@@ -132,60 +132,81 @@ class Cookbook(object):
                     _trace("Cookbook#find_recipe(): target=%r, func=%s, product=%r" % (target, r.name, r.product, ))
                     return r
         return None
-        #if target.startswith(':'):
-        #    specific_recipes = self.specific_task_recipes
-        #    generic_recipes  = self.generic_task_recipes
-        #else:
-        #    specific_recipes = self.specific_file_recipes
-        #    generic_recipes  = self.generic_file_recipes
-        #for recipe in specific_recipes:    ## TODO: use dict
-        #    if recipe.match(target):
-        #        _trace("find_recipe(): target=%s, func=%s, product=%s" % \
-        #                   (repr(target), recipe.name, repr(recipe.product), ))
-        #        return recipe
-        #for recipe in generic_recipes:
-        #    if recipe.match(target):
-        #        _trace("find_recipe(): target=%s, func=%s, product=%s" % \
-        #                   (repr(target), recipe.name, repr(recipe.product), ))
-        #        return recipe
-        #return None
-
-
-
-_re_pattern_type = type(re.compile('dummy'))
-
-
-class KookbookProxy(object):
-
-    def __init__(self, cookbook):
-        self._book = cookbook
-        self._decorators = RecipeDecorator(self).to_dict()
-
-    def register(self, recipe):
-        self._book.register(recipe)
-
-    def find_recipe(self, product, register=True):
-        if not _is_str(product):
-            raise TypeError("find_recipe(%r): string expected." % (product,))
-        if has_metachars(product):
-            raise ValueError("find_recipe(%r): not allowed meta characters." % (product,))
-        book = self._book
-        recipe = book.find_recipe(product)
-        if recipe and recipe.is_generic():
-            recipe = recipe._to_specific(product)
-            if register:
-                book.register(recipe)
-        return recipe
 
     def get_recipe(self, product):
-        for recipes in self._book._recipes_list:
+        for recipes in self._recipes_list:
             for r in recipes:
                 if r.product == product:
                     return r
         return None
 
-    def __getitem__(self, name):
-        return self.find_recipe(name)
+    def _new_context(self):
+        context = create_context()        # dict containing commands ('cp', 'rm', 'mkdir', ...)
+        context['prop'] = self.prop       # properties are shared with all books
+        context.update(self._decorators)  # decorators ('recipe', 'ingreds', ...) are shared
+        context['kookbook'] = self._kookbook_proxy
+        return context
+
+    def __setup(self, bookname, properties):
+        if self.bookname is None:
+            self.bookname = bookname
+        if properties:
+            self.properties.update(properties)
+
+    def load(self, content, bookname='(kook)', properties=None):
+        self.__setup(bookname, properties)
+        return self._load(content, None, None, True)
+
+    def load_file(self, filename, properties=None):
+        self.__setup(filename, properties)
+        return self.load_book(filename, True)
+
+    def load_book(self, filename, content_shared=False):
+        if self.bookname is None: self.bookname = filename
+        #
+        filepath = self._resolve_filepath(filename)
+        if not os.path.isfile(filepath):
+            raise kook.utils.ArgumentError("%s: not found." % filepath)
+        abspath = os.path.abspath(filepath)
+        content = read_file(abspath)
+        #
+        book = self._loaded_books.get(abspath)
+        if not book:
+            #_debug("load_book(): filepath=%r, abspath=%r" % (filepath, abspath))
+            book = self._load(content, filepath, abspath, True)
+        elif book is True:
+            _debug("load_book(): filepath=%r: loading recursively." % (filepath, ))
+            raise RuntimeError("load_book(): %s: loading recursively." % (abspath, ))
+        else:
+            #_debug("load_book(): filepath=%r: already loaded." % (filepath, ))
+            pass
+        return book
+
+    def _load(self, content, filepath, key, context_shared):
+        #
+        if not self.context:
+            context = self.context = self._new_context()
+        elif context_shared:
+            context = self.context
+        else:
+            context = self._new_context(properties)
+        #
+        if key: self._loaded_books[key] = True
+        code_obj = compile(content, filepath or "(kook)", "exec")
+        exec(code_obj, context, context)
+        if key: self._loaded_books[key] = context
+        #
+        if context is not self.context:
+            #context['__file__'] = filepath
+            if '__export__' in context:
+                for k in context['__export__']:
+                    self.context[k] = context[k]
+        #
+        _trace("specific task recipes: %s" % repr(self.specific_task_recipes))
+        _trace("generic  task recipes: %s" % repr(self.generic_task_recipes))
+        _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
+        _trace("generic  file recipes: %s" % repr(self.generic_file_recipes))
+        return context
 
     def _resolve_filepath(self, filepath):
         if filepath[0] == "~":
@@ -205,38 +226,71 @@ class KookbookProxy(object):
                 filepath = dirname + filepath[1:]
         return filepath
 
-    def load_book(self, filepath):
-        orig_filepath = filepath
-        filepath = self._resolve_filepath(filepath)
-        abspath = os.path.abspath(filepath)
-        book = self._book._loaded_books.get(abspath)
-        if book:
-            _debug("load_book(): filepath=%r: already loaded." % (orig_filepath, ))
-        else:
-            _debug("load_book(): filepath=%r, abspath=%r" % (orig_filepath, abspath))
-            book = Cookbook.new(None)
-            context = self._book._new_context(kookbook=self)
-            book.load_file(filepath, context=context)
-            if '__export__' in book.context:
-                for k in book.context['__export__']:
-                    self._book.context[k] = book.context.get(k)
-            self._book._loaded_books[abspath] = book
-        return book.context
-
     def __get_default(self):
-        return self._book.context['kook_default_product']
+        return self.context.get('kook_default_product')
 
     def __set_default(self, product):
-        self._book.context['kook_default_product'] = product
+        self.context['kook_default_product'] = product
 
     default = property(__get_default, __set_default)
 
 
     def __get_materials(self):
-        return self._book.context.setdefault('kook_materials', [])
+        return self.context.setdefault('kook_materials', [])
 
     def __set_materials(self, materials):
-        self._book.context['kook_materials'] = materials
+        if not isinstance(materials, (tuple, list)):
+            raise KookRecipeError("%r: kook_materials should be tuple or list." % (materials, ))
+        self.context['kook_materials'] = materials
+
+    materials = property(__get_materials, __set_materials)
+
+
+
+class KookbookProxy(object):
+
+    def __init__(self, cookbook):
+        self._book = cookbook
+
+    def __getitem__(self, name):
+        return self.find_recipe(name, True)
+
+    def find_recipe(self, product, register=True):
+        if not _is_str(product):
+            raise TypeError("find_recipe(%r): string expected." % (product,))
+        if has_metachars(product):
+            raise ValueError("find_recipe(%r): not allowed meta characters." % (product,))
+        r = self._book.find_recipe(product)
+        if r and r.is_generic():
+            r = r._to_specific(product)
+            if register:
+                self._book.register(r)
+        return r
+
+    def get_recipe(self, product):
+        for recipes in self._book._recipes_list:
+            for r in recipes:
+                if r.product == product:
+                    return r
+        return None
+
+    def load_book(self, filepath, context_shared=False):
+        return self._book.load_book(filepath, context_shared)
+
+    def __get_default(self):
+        return self._book.default
+
+    def __set_default(self, product):
+        self._book.default = product
+
+    default = property(__get_default, __set_default)
+
+
+    def __get_materials(self):
+        return self._book.materials
+
+    def __set_materials(self, materials):
+        self._book.materials = materials
 
     materials = property(__get_materials, __set_materials)
 
@@ -416,6 +470,9 @@ class Recipe(object):
         if buf[-1] == ",\n": buf.pop()
         buf.append(">")
         return "".join(buf)
+
+
+_re_pattern_type = type(re.compile('dummy'))
 
 
 ## TODO: define SpecificRecipe and GenericRecipe?

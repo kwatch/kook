@@ -219,7 +219,8 @@ kook_materials = ('index.html', )
         ok (book.materials) == ('index.html', )
         ## kook_materials should be tuple or list
         input = r"""
-kook_materials = ('index.html')
+#kook_materials = ('index.html')
+kookbook.materials = ('index.html')
 """[1:]
         book = Cookbook.new(None)
         def f():
@@ -519,7 +520,7 @@ assert kookbook.materials == ['index.html']
                 ok (fn).not_raise()
             dummy_file(bookname, input).run(func)
 
-        if "property is specified then propages values.":
+        if "property is specified then propagets values.":
             input = r"""
 p1 = prop('p1', 10)
 p2 = prop('p2', 20)
