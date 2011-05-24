@@ -5,6 +5,83 @@ releases:
     date:     ????
     enhances:
 
+      - 'kookbook' variable is available in your cookbook.
+        Using it, you can do:
+
+	* Find recipe and manipulate it (see below).
+	* Load other cookbook (see below).
+	* Set default product (instead of 'kook_default_product').
+	* Set materials (instead of 'kook_materials').
+
+        Example::
+
+	    ## set default product
+	    kookbook.default = 'hello.o'
+
+	    ## set materials
+	    kookbook.materials = ['index.html']
+	    kookbook.materials.extend(['A.html', 'B.html'])
+
+      - Recipe meta-programming support.
+        You can find and manipulate recipes::
+
+	    @recipe('*.o', ['$(1).c'])
+	    def file_o(c):
+	        system(c%"gcc -c $(ingred)")
+
+	    ## find recipe and manipulate it
+	    r = kookbook['foo.o']
+	    print(r.product)   #=> 'foo.o'
+	    print(r.ingreds)   #=> ['foo.c']
+	    r.ingreds.append('foo.h')
+	    def file_foo_o(c):
+	        kookbook.get_recipe('*.o').method(c)  ## equivarent to file_o(c)
+	    r.method = file_hello_o
+	    
+      - Load other cookbooks by kookbook.load().
+        This enables you to split your Kookbook.py into several files.
+
+	    ## load recipes and properties from other cookbook
+	    kookbook.load('foo.py')        # load recipes and properties
+	    kookbook.load('foo.py', True)  # load all data (i.e share everything)
+	    kookbook.load('~/foo.py')      # load from home directory
+	    kookbook.load('@/foo.py')      # '@' == os.path.dirname(__file__)
+	    kookbook.load('@foo/bar.py')   # '@module' == dirname(module.__file__)
+
+        If you set '__export__' in foobar.py, data are imported into
+	your Kookbook.py.
+        See 'kook/books/clean.py' or 'kook/books/all.py' as examples.
+
+      - Support some useful task recipes: clean, sweep, and all.
+
+        * 'clean' is a recipe to remove by-products (such as *.o or *.java).
+        * 'sweep' is a recipe to remove products and by-products.
+        * 'all' is a recipe to produce all products.
+
+	Exaple::
+
+	    ## load cookbook
+	    ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
+	    kookbook.load("@kook/books/clean.py")
+	    kookbook.load("@kook/books/all.py")
+	    
+	    ## specify file patterns to remove
+	    kook_clean_files.extend(["**/*.o", "**/*.class"])   # by-products
+	    kook_sweep_files.extend(["*.egg", "*.war"])         # products
+	    ## or
+	    kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
+	    kookbook['sweep'].add("*.egg", "*.war")             # products
+	    ## or
+	    kookbook['clean'].ingreds.extend(["**/*.o", "**/*.class"])
+	    kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
+
+	    ## specify products you want to produce
+	    kook_all_products.extend(['product1', 'product2'])
+	    ## or
+	    kookbook['all'].add('product1', 'product2')
+	    ## or
+	    kookbook['all'].ingreds.extend(['product1', 'product2'])
+
       - Argument description is available.
         In the following example, the last argument of @spices() is
 	argument description of task_copy().
