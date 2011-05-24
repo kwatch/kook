@@ -48,7 +48,7 @@ def file_html(c):
         ok (recipes[0].kind) == 'file'
 
     def test_load_file(self):
-        book = Cookbook.new(None)
+        book = Cookbook()
         ok (book.bookname) == None
         ok (book.specific_file_recipes) == []
         input = r"""
@@ -72,7 +72,7 @@ def compile(c):
   pass
 """[1:]
         ## before loading, bookname is None
-        book = Cookbook.new(None)
+        book = Cookbook()
         ok (book.bookname) == None
         ## after loaded, bookname is specified
         book.load(input, '<kookbook>')
@@ -93,7 +93,7 @@ def task_build(c):
 def task_build_files(c):
   pass
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input, '<kookbook>')
         recipes = book.specific_task_recipes
         ok (recipes).is_a(list)
@@ -149,7 +149,7 @@ def file_ext_html(c):
 def file_html(c):
   pass
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         # generic recipe
         ok (book.generic_file_recipes).is_a(list)
@@ -191,7 +191,7 @@ def file_html(c):
 def ext_html(c):
   pass
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         def f():
             book.load(input)
         ok (f).raises(KookRecipeError, "ext_html(): prefix ('file_' or 'task_') required when product is specified.")
@@ -204,7 +204,7 @@ import re
 def file_html(c):
   pass
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         recipe = book.generic_file_recipes[0]
         ok (recipe.pattern).is_a(type(re.compile('dummy')))
@@ -214,7 +214,7 @@ def file_html(c):
         input = r"""
 kook_materials = ('index.html', )
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         ok (book.materials) == ('index.html', )
         ## kook_materials should be tuple or list
@@ -222,7 +222,7 @@ kook_materials = ('index.html', )
 #kook_materials = ('index.html')
 kookbook.materials = ('index.html')
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         def f():
             book.load(input)
         errmsg = "'index.html': kook_materials should be tuple or list."
@@ -240,7 +240,7 @@ class stash(Category):
   def abort(c):
     print('abort top on stash')
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         recipes = book.specific_task_recipes
         ok (len(recipes)) == 2
@@ -271,7 +271,7 @@ class db(Category):
   def backup(c):
     pass
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         recipes = book.specific_task_recipes[:]
         ok (len(recipes)) == 4
@@ -293,7 +293,7 @@ class db(Category):
         input = r"""
 kook_materials = ('index.html', )
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         ok (book.material_p('index.html')) == True
         ok (book.material_p('index.txt')) == False
@@ -311,7 +311,7 @@ def file_html(c):
 def file_index_html(c):
   pass
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         ## generic file recipe
         recipe = book.find_recipe('foo.html')
@@ -332,7 +332,7 @@ def task_package(c):
 def package_123(c):
   pass
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         ## generic task recipe
         recipe = book.find_recipe('package_100')
@@ -357,7 +357,7 @@ class stash(Category):
   def abort(c):
     print('abort top on stash')
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         recipe = book.find_recipe('stash:save')
         ok (recipe.kind) == 'task'
@@ -390,7 +390,7 @@ class db(Category):
   def backup(c):
     pass
 """[1:]
-        book = Cookbook.new(None)
+        book = Cookbook()
         book.load(input)
         #
         recipe = book.find_recipe('db:schema:migration:down')
@@ -425,7 +425,7 @@ assert r.is_generic() == False
 assert r.product == "foo.html"
 assert r.ingreds == ["foo.txt"]
 """[1:]
-            book = Cookbook.new(None)
+            book = Cookbook()
             book.load(input)
             r = book.find_recipe("foo.html")
             ok (r.is_generic()) == True
@@ -444,7 +444,7 @@ def file_foo_html(c):
     kookbook.get_recipe('*.html').method(c)
 r.method = file_foo_html
 """[1:]
-            book = Cookbook.new(None)
+            book = Cookbook()
             book.load(input)
             r = book.find_recipe("foo.html")
             ok (r.ingreds) == ["foo.txt", "sidebar.html"]
@@ -458,7 +458,7 @@ def file_html(c):
 import re
 r = kookbook.find_recipe(re.compile('foo.html'))
 """[1:]
-            book = Cookbook.new(None)
+            book = Cookbook()
             def fn(): book.load(input)
             ok (fn).raises(TypeError)
             ok (str(fn.exception)).matches(r"find_recipe\(.*\): string expected.")
@@ -470,7 +470,7 @@ def file_html(c):
   cp(c.ingred, c.product)
 r = kookbook.find_recipe("*.html")
 """[1:]
-            book = Cookbook.new(None)
+            book = Cookbook()
             def fn(): book.load(input)
             ok (fn).raises(ValueError, "find_recipe('*.html'): not allowed meta characters.")
 
@@ -487,7 +487,7 @@ r = kookbook.get_recipe("*.html")
 assert r is not None
 assert r is file_html._kook_recipe
 """[1:]
-            book = Cookbook.new(None)
+            book = Cookbook()
             def fn(): book.load(input)
             ok (fn).not_raise()
 
@@ -510,7 +510,7 @@ def file_html(c):
 kookbook.load('""" + bookname + """')
 """
             def func():
-                book = Cookbook.new(None)
+                book = Cookbook()
                 def fn(): book.load(input2)
                 ok (fn).not_raise()
                 ## recipes are loaded
@@ -534,7 +534,7 @@ assert kookbook.default == "foo.html"
 assert kookbook.materials == ['index.html']
 """
             def func():
-                book = Cookbook.new(None)
+                book = Cookbook()
                 def fn(): book.load(input2)
                 ok (fn).not_raise()
             dummy_file(bookname, input).run(func)
@@ -559,7 +559,8 @@ p3 = prop('p3', 31)  # set after loading
 assert p3 == 30      # != 31, because it is set after loading
 """
             def func():
-                book = Cookbook.new(None)
+                #book = Cookbook.new(None)
+                book = Cookbook()
                 def fn(): book.load(input2, properties={"p2": 25})   # set property
                 ok (fn).not_raise()
             dummy_file(bookname, input).run(func)
@@ -577,7 +578,7 @@ assert foo == 123
 assert bar == ["AAA"]
 """
             def func():
-                book = Cookbook.new(None)
+                book = Cookbook()
                 def fn(): book.load(input2)
                 #ok (fn).not_raise()
                 fn()
@@ -600,7 +601,7 @@ assert 'foo' in ret
 assert ret['foo'] == "AAA"
 """
             def func():
-                book = Cookbook.new(None)
+                book = Cookbook()
                 def fn(): book.load(input2)
                 ok (fn).not_raise()
             dummy_file(bookname, input).run(func)
@@ -620,7 +621,7 @@ d = kookbook.load('""" + bookname + """')
 assert randval == d['randval'], "randval=%r, d['randval']=%r" % (randval, d['randval'])
 """
             def func():
-                book = Cookbook.new(None)
+                book = Cookbook()
                 def fn(): book.load(input3)
                 fn()
                 ok (fn).not_raise()
@@ -633,7 +634,7 @@ assert randval == d['randval'], "randval=%r, d['randval']=%r" % (randval, d['ran
             input = r"""
 kookbook.default = 'foo.html'
 """[1:]
-            book = Cookbook.new(None)
+            book = Cookbook()
             book.load(input)
             ok (book.context).contains('kook_default_product')
             ok (book.default_product()) == 'foo.html'
@@ -641,7 +642,7 @@ kookbook.default = 'foo.html'
 kook_default_product = 'bar.html'
 assert kookbook.default == 'bar.html'
 """[1:]
-            book = Cookbook.new(None)
+            book = Cookbook()
             def fn(): book.load(input)
             ok (fn).not_raise()
 
@@ -651,7 +652,7 @@ assert kookbook.default == 'bar.html'
             input = r"""
 kookbook.materials = ['foo.html']
 """[1:]
-            book = Cookbook.new(None)
+            book = Cookbook()
             book.load(input)
             ok (book.context).contains('kook_materials')
             ok (book._get_kook_materials(book.context)) == ['foo.html']
@@ -659,7 +660,7 @@ kookbook.materials = ['foo.html']
 kook_materials = ['bar.html']
 assert kookbook.materials == ['bar.html']
 """[1:]
-            book = Cookbook.new(None)
+            book = Cookbook()
             def fn(): book.load(input)
             ok (fn).not_raise()
 

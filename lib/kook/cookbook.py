@@ -74,7 +74,7 @@ class ICookbook(object):
 class Cookbook(ICookbook):
 
     def __init__(self, properties=None):
-        if properties is None: porperties = {}
+        if properties is None: properties = {}
         self.bookname = None
         self.properties = properties
         self._propnames_list = []
