@@ -265,6 +265,7 @@ class KookbookProxy(object):
         r = self._book.find_recipe(product)
         if r and r.is_generic():
             r = r._to_specific(product)
+            r.desc = None    # clear desc not to show when '-l' or '-L' specified
             if register:
                 self._book.register(r)
         return r

@@ -420,6 +420,22 @@ assert r.ingreds == ["foo.txt"]
             ok (r.is_generic()) == True
             ok (r.product) == "*.html"
 
+        if "generic recipe is converted into specific then desc is cleared.":
+            input = r"""
+@recipe("*.html", ["$(1).txt"])
+def file_html(c):
+  '''create html file from text file'''
+  cp(c.ingred, c.product)
+
+r = kookbook["foo.html"]
+assert r.product == "foo.html"
+assert r.desc    == None
+assert r.method.__doc__ == 'create html file from text file'
+"""[1:]
+            book = Cookbook().load(input)
+            r = book.find_recipe("foo.html")
+            ok (r.desc) == None
+
         if "2nd argumetn is True then register found recipe automatically.":
             input = r"""
 @recipe("*.html", ["$(1).txt"])
