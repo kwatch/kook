@@ -6,15 +6,21 @@
 ### $License$
 ###
 
+
 ###
-### Usage (in Kookbook.py):
+### 'all' task recipe to generate all products.
 ###
-###    kookbook.load_book('@kook/books/all.py')
-###    kookbook['all'].add('task1', 'task2')
-###    # or
-###    # kookbook_all_products.extend(('task1', 'task2'))
-###    # or
-###    # kookbook['all'].ingreds.extend(('task1', 'task2'))
+### example::
+###
+###    ## load cookbook
+###    ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
+###    kookbook.load('@kook/books/all.py')
+###    ## specify products you want to produce
+###    kook_all_products.extend(['product1', 'product2'])
+###    ## or
+###    kookbook['all'].add('product1', 'product2')
+###    ## or
+###    kookbook['all'].ingreds.extend(['product1', 'product2'])
 ###
 
 

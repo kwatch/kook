@@ -6,6 +6,31 @@
 ### $License$
 ###
 
+
+###
+### 'clean' and 'sweep' recipes.
+###
+### * 'clean' task is intended to remove by-products, such as *.o or *.class.
+### * 'sweep' task is intended to remove products and by-products,
+###   for example *.war, *.egg, and so on.
+###
+### example::
+###
+###    ## load cookbook
+###    ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
+###    kookbook.load("@kook/books/clean.py")
+###    ## specify file patterns to remove
+###    kook_clean_files.extend(["**/*.o", "**/*.class"])   # by-products
+###    kook_sweep_files.extend(["*.egg", "*.war"])         # products
+###    ## or
+###    kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
+###    kookbook['sweep'].add("*.egg", "*.war")             # products
+###    ## or
+###    kookbook['clean'].ingreds.extend(["*.o", "*.class"])
+###    kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
+###
+
+
 import types
 from kook.utils import flatten
 
