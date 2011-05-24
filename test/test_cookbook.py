@@ -491,7 +491,7 @@ assert r is file_html._kook_recipe
             def fn(): book.load(input)
             ok (fn).not_raise()
 
-    def test_load_book(self):
+    def test_load(self):
 
         if "called then load recipes in other book.":
             input = r"""
@@ -505,9 +505,9 @@ def file_html(c):
     '''create *.html from *.txt'''
     cp(c.ingred, c.product)
 """[1:]
-            bookname = "_load_book_test.py"
+            bookname = "_load_test.py"
             input2 = r"""
-kookbook.load_book('""" + bookname + """')
+kookbook.load('""" + bookname + """')
 """
             def func():
                 book = Cookbook.new(None)
@@ -527,9 +527,9 @@ kookbook.load_book('""" + bookname + """')
 kookbook.default = "foo.html"
 kookbook.materials = ['index.html']
 """[1:]
-            bookname = "_load_book_test2.py"
+            bookname = "_load_test2.py"
             input2 = r"""
-ret = kookbook.load_book('""" + bookname + """')
+ret = kookbook.load('""" + bookname + """')
 assert kookbook.default == "foo.html"
 assert kookbook.materials == ['index.html']
 """
@@ -548,13 +548,13 @@ assert p1 == 11      # != 10, because it is set before loading
 assert p2 == 25      # != 25, because it is provided by book.load()
 assert p3 == 30
 """[1:]
-            bookname = "_load_book_test3.py"
+            bookname = "_load_test3.py"
             input2 = r"""
 p1 = prop('p1', 11)  # set before loading
 assert p1 == 11
 p2 = prop('p2', 21)  # set before loading
 assert p2 == 25      # != 21, because p2 is specified by book.load()
-kookbook.load_book('""" + bookname + """')
+kookbook.load('""" + bookname + """')
 p3 = prop('p3', 31)  # set after loading
 assert p3 == 30      # != 31, because it is set after loading
 """
@@ -570,9 +570,9 @@ __export__ = ('foo', 'bar')
 foo = 123
 bar = ["AAA"]
 """[1:]
-            bookname = "_load_book_test4.py"
+            bookname = "_load_test4.py"
             input2 = r"""
-ret = kookbook.load_book('""" + bookname + """')
+ret = kookbook.load('""" + bookname + """')
 assert foo == 123
 assert bar == ["AAA"]
 """
@@ -591,9 +591,9 @@ def hello1(c):
 
 foo = "AAA"
 """[1:]
-            bookname = "_load_book_test5.py"
+            bookname = "_load_test5.py"
             input2 = r"""
-ret = kookbook.load_book('""" + bookname + """')
+ret = kookbook.load('""" + bookname + """')
 assert isinstance(ret, dict)
 assert 'hello1' in ret
 assert 'foo' in ret
@@ -611,12 +611,12 @@ __export__ = ('randval')
 import random
 randval = random.randint(0, 1000)
 """[1:]
-            bookname = "_load_book_test6.py"
+            bookname = "_load_test6.py"
             input3 = r"""
-d = kookbook.load_book('""" + bookname + """')
+d = kookbook.load('""" + bookname + """')
 assert 'randval' in d
 randval = d['randval']
-d = kookbook.load_book('""" + bookname + """')
+d = kookbook.load('""" + bookname + """')
 assert randval == d['randval'], "randval=%r, d['randval']=%r" % (randval, d['randval'])
 """
             def func():

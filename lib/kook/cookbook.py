@@ -274,7 +274,7 @@ class KookbookProxy(object):
                     return r
         return None
 
-    def load_book(self, filepath, context_shared=False):
+    def load(self, filepath, context_shared=False):
         return self._book.load_book(filepath, context_shared)
 
     def __get_default(self):
