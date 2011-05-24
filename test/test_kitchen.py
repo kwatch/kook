@@ -74,15 +74,13 @@ class KookKitchenTest(object):
         _teardown_stdio()
 
     def _start(self, content, *targets):
-        kookbook = Cookbook()
-        kookbook.load(content)
+        kookbook = Cookbook().load(content)
         kitchen = Kitchen(kookbook)
         kitchen.start_cooking(*targets)
         return kitchen
 
     def _kitchen(self, kookbook_py):
-        kookbook = Cookbook()
-        kookbook.load(kookbook_py)
+        kookbook = Cookbook().load(kookbook_py)
         kitchen = Kitchen(kookbook)
         return kitchen
 
