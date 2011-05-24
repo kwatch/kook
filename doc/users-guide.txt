@@ -851,7 +851,7 @@ $ gcc -g -O2 -o hello hello.o optparse.o
 
 
 
-.$$ Command-line options for recipe	| cookbook-spices
+.$$ Command-line Options for Recipe	| cookbook-spices
 
 You can specify command-line options for certain recipes by {{,@spices(),}} decorator.
 
@@ -975,7 +975,7 @@ rests: ('AAA', 'BBB')
 
 
 
-.$$ Load other cookbooks	| cookbook-load
+.$$ Load Other Cookbooks	| cookbook-load
 
 {{!(Experimental)!}}
 
@@ -1070,7 +1070,7 @@ $ gcc -g -O2 -o hello hello.o optparse.o
 
 
 
-.$$ Meta programming	| topic-metaprog
+.$$ Meta Programming	| topic-metaprog
 
 {{!(Experimental)!}}
 
@@ -1111,13 +1111,13 @@ kookbook.register(r)
 
 Here is steps that {{,kookbook[],}} and {{,kookbook.find_recipe(),}} do.
 
-.* Find a specific recipe which matches to 'foo.o', but not found.
-.* Then find a generic recipe, and a recipe '*.o' found.
-.* Convert it into a specific recipe to suit 'foo.o'. for example:
+.1) Find a specific recipe which matches to 'foo.o', but not found.
+.2) Then find a generic recipe, and a recipe '*.o' found.
+.3) Convert it into a specific recipe to suit 'foo.o'. for example:
    .- Product: '*.o' => foo.o'
    .- Ingreds: ['$(1).c'] => ['foo.c']
    .- Method: (not changed)
-.* Register it if {{,kookbook[],}} called, but {{,kookbook.find_recipe(),}} doesn't.
+.4) Register it if {{,kookbook[],}} called, but {{,kookbook.find_recipe(),}} doesn't.
 
 Descrived as above, {{,kookbook[],}} and {{,kookbook.find_recipe(),}} converts generic recipe into specific recipe.
 If you don't need to convert, use {{,kookbook.get_recipe(),}}.
@@ -1125,8 +1125,8 @@ If you don't need to convert, use {{,kookbook.get_recipe(),}}.
 .--------------------
 @recipe('foo.o', ['foo.c', 'foo.h'])
 def file_foo_o(c):
-  ## invoke same command as *.o
-  kookbook.get_recipe('*.o').method(c)
+    ## invoke same command as *.o
+    {{*kookbook.get_recipe('*.o').method(c)*}}
 .--------------------
 
 .#Both kookbook.find_recipe() and kookbook.get_recipe() return recipe object.
@@ -1152,26 +1152,26 @@ File recipes:
 
 
 
-.$$ {{,clean,}}, {{,sweep,}}, and {{,all,}} recipes
+.$$ {{,clean,}}, {{,sweep,}}, and {{,all,}} recipes	| topic-books
 
 Kook provides some useful recipes.
 
 .* Recipe {{,clean,}} is intended to remove by-products.
 .* Recipe {{,sweep,}} is intended to remove products and by-products.
-.* Recipe {{,all,} is intended to produce all products.
+.* Recipe {{,all,}} is intended to produce all products.
 
 .? Example of {{,clean,}} and {{,sweep,}} recipes
 .--------------------
 ## load cookbook
 ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
-kookbook.load("@kook/books/clean.py")    # 'clean' and 'swep' recipes
+{{*kookbook.load("@kook/books/clean.py")*}}               # 'clean' and 'swep' recipes
 
 ## specify file patterns to remove
-kook_clean_files.extend(["**/*.o", "**/*.class"])   # by-products
-kook_sweep_files.extend(["*.egg", "*.war"])   # products
+{{*kook_clean_files.extend(["**/*.o", "**/*.class"])*}}   # by-products
+{{*kook_sweep_files.extend(["*.egg", "*.war"])*}}         # products
 ## or
 kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
-kookbook['sweep'].add("*.egg", "*.war")       # products
+kookbook['sweep'].add("*.egg", "*.war")             # products
 ## or
 kookbook['clean'].ingreds.extend(["**/*.o", "**/*.class"])
 kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
@@ -1181,9 +1181,9 @@ kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
 .--------------------
 ## load cookbook
 ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
-kookbook.load("@kook/books/all.py")      # 'all' recipe
+{{*kookbook.load("@kook/books/all.py")*}}      # 'all' recipe
 ## specify products you want to produce
-kook_all_products.extend(['product1', 'product2'])
+{{*kook_all_products.extend(['product1', 'product2'])*}}
 ## or
 kookbook['all'].add('product1', 'product2')
 ## or
