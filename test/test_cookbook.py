@@ -413,23 +413,42 @@ class KookbookProxyTest(object):
 
     def test_find_recipe(self):
 
-        input = r"""
+        if "called then returns matched recipe, converting generic into specific":
+            input = r"""
 @recipe("*.html", ["$(1).txt"])
 def file_html(c):
   cp(c.ingred, c.product)
 
 r = kookbook.find_recipe("foo.html")
+assert r.__class__.__name__ == "Recipe"
+assert r.is_generic() == False
+assert r.product == "foo.html"
+assert r.ingreds == ["foo.txt"]
+"""[1:]
+            book = Cookbook.new(None)
+            book.load(input)
+            r = book.find_recipe("foo.html")
+            ok (r.is_generic()) == True
+            ok (r.product) == "*.html"
+
+        if "2nd argumetn is True then register found recipe automatically.":
+            input = r"""
+@recipe("*.html", ["$(1).txt"])
+def file_html(c):
+  cp(c.ingred, c.product)
+
+r = kookbook.find_recipe("foo.html", True)
 r.ingreds = ["foo.txt", "sidebar.html"]
 def file_foo_html(c):
     "create foo.html"
     kookbook.get_recipe('*.html').method(c)
 r.method = file_foo_html
 """[1:]
-        book = Cookbook.new(None)
-        book.load(input)
-        r = book.find_recipe("foo.html")
-        ok (r.ingreds) == ["foo.txt", "sidebar.html"]
-        ok (r.desc) == "create foo.html"
+            book = Cookbook.new(None)
+            book.load(input)
+            r = book.find_recipe("foo.html")
+            ok (r.ingreds) == ["foo.txt", "sidebar.html"]
+            ok (r.desc) == "create foo.html"
 
         if "product is not a string then raises TypeError.":
             input = r"""

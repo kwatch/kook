@@ -255,7 +255,7 @@ class KookbookProxy(object):
     def __getitem__(self, name):
         return self.find_recipe(name, True)
 
-    def find_recipe(self, product, register=True):
+    def find_recipe(self, product, register=False):
         if not _is_str(product):
             raise TypeError("find_recipe(%r): string expected." % (product,))
         if has_metachars(product):
