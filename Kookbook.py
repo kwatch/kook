@@ -91,6 +91,10 @@ def uninstall(c):
             #edit(filename, by=repl)
 
 
+vs_path = '/opt/lang/python'
+python_versions = [ '2.5.5', '2.6.6', '2.7.1', '3.0.1', '3.1.3', '3.2.0' ]
+
+
 @recipe
 @spices('-v version: version of python',
         '-a: do test for all version of python')
@@ -105,7 +109,8 @@ def test(c, *args, **kwargs):
                     system(c%"$(python_bin) $(fname)")
     else:
         ver = kwargs.get('v')
-        python_bin = ver and ('/usr/local/python/%s/bin/python' % ver) or 'python'
+        #python_bin = ver and ('/usr/local/python/%s/bin/python' % ver) or 'python'
+        python_bin = ver and ('/opt/local/bin/python%s' % ver) or 'python'
         targets = [ 'test_%s.py' % arg for arg in args ]
         with chdir('test') as d:
             #system("python test_all.py 2>&1 >  test.log")
