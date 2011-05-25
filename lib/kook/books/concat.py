@@ -47,6 +47,10 @@ kook_modules = [
     kook.main,
 ]
 
+def _escape(content):
+    s = "'''"
+    return content.replace("'''", '%s + "%s" + r%s' % (s, s, s))
+
 
 @recipe
 @spices("-o outfile: output filename",
@@ -66,9 +70,7 @@ def concat(c, *args, **kwargs):
         add("_BOOK_CONTENT = r'''")
         for fname in args:
             s = read_file(fname)
-            t = "'''"
-            s = s.replace("'''", '%s + "%s" + r%s' % (t, t, t))
-            add(s)
+            add(_escape(s))
             add("\n")
         add("'''\n")
         add("\n")
@@ -76,12 +78,12 @@ def concat(c, *args, **kwargs):
     add("import sys\n")
     add("\n")
     for name, fpath in pairs:
-        source = read_file(fpath)
+        s = read_file(fpath)
         add("#" * 20 + " " + fpath + "\n")
         add("\n")
         add("%s = type(sys)('%s')\n" % (name, name))
         add("exec(compile(r'''");
-        add(source);
+        add(_escape(s));
         add("''', '%s', 'exec'), %s.__dict__, %s.__dict__)\n" % (name, name, name))
         add("sys.modules['%s'] = %s\n" % (name, name))
         add("\n")
