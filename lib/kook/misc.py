@@ -76,12 +76,12 @@ class Category(object):
 
 
 if python3:
-    exec('''
+    exec("""
 Category = None
 class Category(object, metaclass=_CategoryMetaClass):
-    """Namespace of recipes"""
+    "Namespace of recipes"
     _outer = None
-''')
+""")
 
 
 ###
