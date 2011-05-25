@@ -11,6 +11,7 @@ __all__ = ('MainObject', 'MainCommand', 'MainApplication')
 
 
 import sys, os, re
+import kook
 from kook import KookCommandError, KookRecipeError, __RELEASE__
 from kook.cookbook import Cookbook
 from kook.kitchen import Kitchen
@@ -117,7 +118,10 @@ class MainCommand(MainObject):
         if longopts:
             props.update(longopts)
         ## create cookbook
-        cookbook = Cookbook.new(bookname, props)
+        if getattr(kook, '_BOOK_CONTENT', None):
+            cookbook = Cookbook(props).load(kook._BOOK_CONTENT)
+        else:
+            cookbook = Cookbook.new(bookname, props)
         ## list recipes
         if opts.get('l') or opts.get('L'):
             self._list_recipes(cookbook, opts)
