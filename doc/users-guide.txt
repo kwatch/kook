@@ -1584,6 +1584,37 @@ File recipes:
 .#---
 
 
+
+.$$ Cookbook Concatenation		| topic-concat
+
+It is possible to concatenate your cookbook and pyKook libraries into a file.
+Using concatenated file, user can use your cookbook without installing pyKook.
+
+To concatenate files, add the following into your Kookbook.py::
+
+.--------------------
+kookbook.load('@kook/books/concat.py')
+.--------------------
+
+And try the following commands in terminal::
+
+.====================
+bash> pykook -o yourscript.py YourBookName.py
+bash> chmod a+x yourscript.py
+bash> ./yourscript.py -l
+.====================
+
+If you don't specify YourBookName.py, it means that all pyKook libraries are concatenated into a file.
+You can use it instead of 'pykook' script.
+
+.====================
+bash> pykook -o yourscript   # 'yourscript' contains all pyKook library content
+bash> chmod a+x yourscript
+bash> ./yourscript -h        # 'yourscrit' can be an alternative of pykook command
+.====================
+
+    
+
 .#
 .#.$$ Invoke rook command recursively	| topic-recursive
 .#

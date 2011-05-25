@@ -102,6 +102,8 @@
             <li><a href="#topic-forcedly">Invoke Recipes Forcedly</a></li>
 
             <li><a href="#topic-nestedarray">Nested Array</a></li>
+
+            <li><a href="#topic-concat">Cookbook Concatenation</a></li>
           </ul>
         </li>
 
@@ -1493,6 +1495,30 @@ def file_hello(c):
 @ingreds("$(1).c")
 def file_ext_o(c):
     sytem(c%"gcc -c $(ingred)")
+</pre><br>
+      <a name="topic-concat" id="topic-concat"></a>
+
+      <h3 class="section2">Cookbook Concatenation</h3>
+
+      <p>It is possible to concatenate your cookbook and pyKook libraries into a file. Using concatenated file, user can use your cookbook without installing pyKook.</p>
+
+      <p>To concatenate files, add the following into your Kookbook.py::</p>
+      <pre class="program">
+kookbook.load('@kook/books/concat.py')
+</pre>
+
+      <p>And try the following commands in terminal::</p>
+      <pre class="terminal">
+bash&gt; pykook -o yourscript.py YourBookName.py
+bash&gt; chmod a+x yourscript.py
+bash&gt; ./yourscript.py -l
+</pre>
+
+      <p>If you don't specify YourBookName.py, it means that all pyKook libraries are concatenated into a file. You can use it instead of 'pykook' script.</p>
+      <pre class="terminal">
+bash&gt; pykook -o yourscript   # 'yourscript' contains all pyKook library content
+bash&gt; chmod a+x yourscript
+bash&gt; ./yourscript -h        # 'yourscrit' can be an alternative of pykook command
 </pre><br>
       <br>
       <a name="trouble" id="trouble"></a>
