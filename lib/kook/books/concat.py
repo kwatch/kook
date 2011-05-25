@@ -66,12 +66,13 @@ def concat(c, *args, **kwargs):
     pairs = [ (mod.__name__, mod.__file__.replace('.pyc', '.py'))
                for mod in kook_modules ]
     buf = []; add = buf.append
-    add("#!/usr/bin/env python\n")
-    add("\n")
-    add("###\n")
-    add("### concatenated pykook\n")
-    add("###\n")
-    add("\n")
+    add(r'''#!/usr/bin/env python
+
+###
+### concatenated pykook
+###
+
+''')
     if args:
         add("_BOOK_CONTENT = r'''")
         for fname in args:
