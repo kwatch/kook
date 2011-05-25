@@ -192,6 +192,18 @@ def glob2(pattern):
 def resolve_filepath(filepath, depth=1):
     if filepath[0] == "~":
         filepath = os.path.expanduser(filepath)
+    elif filepath.startswith('@@/'):
+        rest = filepath[2:]
+        dirname = os.path.dirname
+        exists = os.path.exists
+        d = os.path.dirname(sys._getframe(depth+1).f_code.co_filename) or '.'
+        while not exists(d + rest):
+            parent = dirname(d)
+            if not parent: parent = '.'
+            if parent == d:
+                raise ValueError("%s: not found." % filepath)
+            d = parent
+        filepath = d + rest
     elif filepath[0] == "@":
         m = re.search(r'^@(\w*)', filepath)
         module_name = m.group(1)
