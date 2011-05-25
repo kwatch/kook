@@ -194,3 +194,6 @@ def file_test_oktest_py(c):
 def update_oktest(c):
     """update 'test/oktest.py'"""
     pass
+
+
+kookbook.load("@kook/books/concat.py")
