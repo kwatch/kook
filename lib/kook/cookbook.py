@@ -160,13 +160,16 @@ class Cookbook(ICookbook):
 
     def load_file(self, filename, properties=None):
         self.__setup(filename, properties)
-        self.load_book(filename, True)
+        filepath = resolve_filepath(filename, 1)
+        self.load_book(filepath, True)
         return self
 
     def load_book(self, filename, content_shared=False):
         if self.bookname is None: self.bookname = filename
-        #
         filepath = resolve_filepath(filename, 1)
+        return self._load_book(filepath, content_shared)
+
+    def _load_book(self, filepath, content_shared=False):
         if not os.path.isfile(filepath):
             raise kook.utils.ArgumentError("%s: not found." % filepath)
         abspath = os.path.abspath(filepath)
