@@ -553,7 +553,7 @@ kookbook.load('@/f1.py')
                 except Exception:
                     pass
 
-        if "filepath starts with '.../' then search file in parent directly recursively.":
+        if "filepath starts with '@*/' then search file in parent directly recursively.":
             input = r"""
 @recipe
 def hello99(c):
@@ -561,7 +561,7 @@ def hello99(c):
     print("Hello!")
 """[1:]
             input2 = r"""
-kookbook.load('@@/f1.py')
+kookbook.load('@*/f1.py')
 """
             try:
                 os.mkdir('t.d1')
@@ -576,6 +576,36 @@ kookbook.load('@@/f1.py')
                 #
                 book = Cookbook.new(fname2)
                 r = book.find_recipe('hello99')
+                ok (r).is_a(Recipe)
+            finally:
+                try:
+                    shutil.rmtree('t.d1')
+                except Exception:
+                    pass
+
+        if "filepath starts with '@@/' then search file in 2-level above directly.":
+            input = r"""
+@recipe
+def hello96(c):
+    '''print hello'''
+    print("Hello!")
+"""[1:]
+            input2 = r"""
+kookbook.load('@@@/f1.py')
+"""
+            try:
+                os.mkdir('t.d1')
+                os.mkdir('t.d1/d2')
+                fname1 = 'f1.py'
+                f = open(fname1, 'w'); f.write(input); f.close()
+                fname2 = 't.d1/d2/f2.py'
+                f = open(fname2, 'w'); f.write(input2); f.close()
+                #
+                assert os.path.exists('./f1.py')
+                assert os.path.exists('t.d1/d2/f2.py')
+                #
+                book = Cookbook.new(fname2)
+                r = book.find_recipe('hello96')
                 ok (r).is_a(Recipe)
             finally:
                 try:
