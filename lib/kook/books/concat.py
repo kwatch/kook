@@ -65,7 +65,10 @@ def concat(c, *args, **kwargs):
     if args:
         add("_BOOK_CONTENT = r'''")
         for fname in args:
-            add(read_file(fname))
+            s = read_file(fname)
+            t = "'''"
+            s = s.replace("'''", '%s + "%s" + r%s' % (t, t, t))
+            add(s)
             add("\n")
         add("'''\n")
         add("\n")
