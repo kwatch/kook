@@ -35,7 +35,9 @@ import kook.cookbook
 import kook.kitchen
 import kook.main
 
-kook_modules = [
+from kook.utils import resolve_filepath
+
+kook_concat_modules = [
     kook,
     kook.utils,
     kook.config,
@@ -47,11 +49,14 @@ kook_modules = [
     kook.main,
 ]
 
-kook_books = [
+kook_concat_books = [
     'kook/books/clean.py',
     'kook/books/all.py',
     'kook/books/concat.py',
 ]
+
+__export__ = ('kook_concat_modules', 'kook_concat_books')
+
 
 def _escape(content):
     s = "'''"
@@ -64,7 +69,7 @@ def _escape(content):
 def concat(c, *args, **kwargs):
     """concatenate cookbook and pyKook libraries into a file"""
     pairs = [ (mod.__name__, mod.__file__.replace('.pyc', '.py'))
-               for mod in kook_modules ]
+               for mod in kook_concat_modules ]
     buf = []; add = buf.append
     add(r'''#!/usr/bin/env python
 
@@ -94,10 +99,8 @@ def concat(c, *args, **kwargs):
         add("''', '%s', 'exec'), %s.__dict__, %s.__dict__)\n" % (name, name, name))
         add("sys.modules['%s'] = %s\n" % (name, name))
         add("\n")
-    _ = os.path.dirname
-    basedir = _(_(kook.__file__))
-    for bookname in kook_books:
-        fpath = basedir + '/' + bookname
+    for bookname in kook_concat_books:
+        fpath = resolve_filepath(bookname)
         s = read_file(fpath)
         add("#" * 20 + " " + fpath + "\n")
         add("\n")
