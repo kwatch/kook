@@ -192,31 +192,31 @@ def glob2(pattern):
 def resolve_filepath(filepath, depth=1):
     if filepath[0] == "~":
         filepath = os.path.expanduser(filepath)
-    elif filepath.startswith('@@/'):
-        rest = filepath[2:]
+    elif filepath[0] == "@":
         dirname = os.path.dirname
         exists = os.path.exists
-        d = os.path.dirname(sys._getframe(depth+1).f_code.co_filename) or '.'
-        while not exists(d + rest):
-            parent = dirname(d)
-            if not parent: parent = '.'
-            if parent == d:
-                raise ValueError("%s: not found." % filepath)
-            d = parent
-        filepath = d + rest
-    elif filepath[0] == "@":
-        m = re.search(r'^@(\w*)', filepath)
-        module_name = m.group(1)
-        if module_name:
+        m = re.search(r'^@(\w+)', filepath)
+        if m:
+            module_name = m.group(1)
             try:
                 mod = __import__(module_name)
             except ImportError:
                 raise ValueError("%s: module '%s' not found." % (filepath, module_name))
-            rest = filepath[len('@')+len(module_name):]
-            filepath = os.path.dirname(mod.__file__) + rest
+            rest = filepath[1+len(module_name):]
+            filepath = dirname(mod.__file__) + rest
+        elif filepath.startswith('@@'):
+            d = dirname(sys._getframe(depth+1).f_code.co_filename) or '.'
+            rest = filepath[2:]
+            while not exists(d + rest):
+                parent = dirname(d)
+                if not parent: parent = '.'
+                if parent == d:
+                    raise ValueError("%s: not found." % filepath)
+                d = parent
+            filepath = d + rest
         else:
-            dirname = os.path.dirname(sys._getframe(depth+1).f_code.co_filename) or '.'
-            filepath = dirname + filepath[1:]
+            d = dirname(sys._getframe(depth+1).f_code.co_filename) or '.'
+            filepath = d + filepath[1:]
     return filepath
 
 
