@@ -155,7 +155,7 @@ class Cookbook(ICookbook):
 
     def load(self, content, bookname='(kook)', properties=None):
         self.__setup(bookname, properties)
-        self._load(content, None, None, True)
+        self._load(content, None, True)
         return self
 
     def load_file(self, filename, properties=None):
@@ -174,20 +174,24 @@ class Cookbook(ICookbook):
             raise kook.utils.ArgumentError("%s: not found." % filepath)
         abspath = os.path.abspath(filepath)
         content = read_file(abspath)
-        #
-        book = self._loaded_books.get(abspath)
+        return self._load_content_with_check(content, filepath, abspath, content_shared)
+
+    def _load_content_with_check(self, content, filepath, key, content_shared):
+        book = self._loaded_books.get(key)
         if not book:
-            #_debug("load_book(): filepath=%r, abspath=%r" % (filepath, abspath))
-            book = self._load(content, filepath, abspath, True)
+            #_debug("load_book(): filepath=%r, abspath=%r" % (filepath, key))
+            if key: self._loaded_books[key] = True
+            book = self._load(content, filepath, True)
+            if key: self._loaded_books[key] = book
         elif book is True:
             _debug("load_book(): filepath=%r: loading recursively." % (filepath, ))
-            raise RuntimeError("load_book(): %s: loading recursively." % (abspath, ))
+            raise RuntimeError("load_book(): %s: loading recursively." % (filepath, ))
         else:
             #_debug("load_book(): filepath=%r: already loaded." % (filepath, ))
             pass
         return book
 
-    def _load(self, content, filepath, key, context_shared):
+    def _load(self, content, filepath, context_shared):
         #
         if not self.context:
             context = self.context = self._new_context()
@@ -196,10 +200,8 @@ class Cookbook(ICookbook):
         else:
             context = self._new_context(properties)
         #
-        if key: self._loaded_books[key] = True
         code_obj = compile(content, filepath or "(kook)", "exec")
         exec(code_obj, context, context)
-        if key: self._loaded_books[key] = context
         #
         if context is not self.context:
             #context['__file__'] = filepath
