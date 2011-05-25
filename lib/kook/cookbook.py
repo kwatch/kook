@@ -11,7 +11,7 @@ from kook import KookRecipeError
 from kook.decorators import RecipeDecorator
 from kook.misc import Category, _debug, _trace
 import kook.utils
-from kook.utils import _is_str, to_list, read_file, ArgumentError, has_metachars
+from kook.utils import _is_str, to_list, read_file, resolve_filepath, ArgumentError, has_metachars
 import kook.config as config
 from kook.misc import ConditionalFile
 
@@ -166,7 +166,7 @@ class Cookbook(ICookbook):
     def load_book(self, filename, content_shared=False):
         if self.bookname is None: self.bookname = filename
         #
-        filepath = self._resolve_filepath(filename)
+        filepath = resolve_filepath(filename, 2)
         if not os.path.isfile(filepath):
             raise kook.utils.ArgumentError("%s: not found." % filepath)
         abspath = os.path.abspath(filepath)
@@ -209,24 +209,6 @@ class Cookbook(ICookbook):
         _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
         _trace("generic  file recipes: %s" % repr(self.generic_file_recipes))
         return context
-
-    def _resolve_filepath(self, filepath):
-        if filepath[0] == "~":
-            filepath = os.path.expanduser(filepath)
-        if filepath[0] == "@":
-            m = re.search(r'^@(\w*)', filepath)
-            module_name = m.group(1)
-            if module_name:
-                try:
-                    mod = __import__(module_name)
-                except ImportError:
-                    raise ValueError("load_book(): @%s: failed to import module.")
-                rest = filepath[len('@')+len(module_name):]
-                filepath = os.path.dirname(mod.__file__) + rest
-            else:
-                dirname = os.path.dirname(sys._getframe(2).f_code.co_filename) or '.'
-                filepath = dirname + filepath[1:]
-        return filepath
 
     def __get_default(self):
         return self.context.get('kook_default_product')

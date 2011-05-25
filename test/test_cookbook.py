@@ -8,6 +8,7 @@ import oktest
 from oktest import *
 from oktest.dummy import dummy_file
 import sys, os, re
+import shutil
 
 from kook import KookRecipeError
 from kook.cookbook import Cookbook, Recipe
@@ -525,6 +526,32 @@ kookbook.load('""" + bookname + """')
                 ok (r).is_a(Recipe)
                 ok (r.ingreds) == ["$(1).txt"]
             dummy_file(bookname, input).run(func)
+
+        if "1st character of filepath is '@' then regarded as file's location.":
+            input = r"""
+@recipe
+def hello99(c):
+    '''print hello'''
+    print("Hello!")
+"""[1:]
+            input2 = r"""
+kookbook.load('@/f1.py')
+"""
+            try:
+                os.mkdir('t.d1')
+                os.mkdir('t.d1/d2')
+                fname1 = 't.d1/d2/f1.py'
+                f = open(fname1, 'w'); f.write(input); f.close()
+                fname2 = 't.d1/d2/f2.py'
+                f = open(fname2, 'w'); f.write(input2); f.close()
+                book = Cookbook.new(fname2)
+                r = book.find_recipe('hello99')
+                ok (r).is_a(Recipe)
+            finally:
+                try:
+                    shutil.rmtree('t.d1')
+                except Exception:
+                    pass
 
         if "kook_default_product and kook_materials are found then copy it into current context.":
             input = r"""

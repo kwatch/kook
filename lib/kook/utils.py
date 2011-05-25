@@ -189,6 +189,25 @@ def glob2(pattern):
     return filenames
 
 
+def resolve_filepath(filepath, depth=1):
+    if filepath[0] == "~":
+        filepath = os.path.expanduser(filepath)
+    elif filepath[0] == "@":
+        m = re.search(r'^@(\w*)', filepath)
+        module_name = m.group(1)
+        if module_name:
+            try:
+                mod = __import__(module_name)
+            except ImportError:
+                raise ValueError("%s: module '%s' not found." % (filepath, module_name))
+            rest = filepath[len('@')+len(module_name):]
+            filepath = os.path.dirname(mod.__file__) + rest
+        else:
+            dirname = os.path.dirname(sys._getframe(depth+1).f_code.co_filename) or '.'
+            filepath = dirname + filepath[1:]
+    return filepath
+
+
 class CommandOptionError(Exception):   # StandardError is not available in Python 3.0
     pass
 
