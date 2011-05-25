@@ -204,27 +204,23 @@ def resolve_filepath(filepath, depth=1):
                 raise ValueError("%s: module '%s' not found." % (filepath, module_name))
             rest = filepath[1+len(module_name):]
             filepath = dirname(mod.__file__) + rest
-        elif filepath.startswith('@*'):
-            d = dirname(sys._getframe(depth+1).f_code.co_filename) or '.'
-            rest = filepath[2:]
-            while not exists(d + rest):
-                parent = dirname(d)
-                if not parent: parent = '.'
-                if parent == d:
-                    raise ValueError("%s: not found." % filepath)
-                d = parent
-            filepath = d + rest
         else:
             d = dirname(sys._getframe(depth+1).f_code.co_filename) or '.'
-            m = re.search(r'^(@+)', filepath)
-            n = len(m.group(1))
-            rest = filepath[n:]
-            n -= 1
+            m = re.search(r'^(@+)(\*)?', filepath)
+            rest = filepath[len(m.group(0)):]
+            n = len(m.group(1)) - 1
             while n:
                 parent = dirname(d) or '.'
                 if parent == d: break
                 d = parent
                 n -= 1
+            if m.group(2):
+                while not exists(d + rest):
+                    parent = dirname(d)
+                    if not parent: parent = '.'
+                    if parent == d:
+                        raise ValueError("%s: not found." % filepath)
+                    d = parent
             filepath = d + rest
     return filepath
 
