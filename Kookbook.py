@@ -118,10 +118,9 @@ def test(c, *args, **kwargs):
                 run(c%"$(python_bin) $(fname)")
 
 
-@recipe
-def clean(c):
-    rm_rf('**/*.pyc', '**/__pycache__', 'dist', 'doc/users-guide.toc.html')
-
+kookbook.load("@kook/books/clean.py")
+kookbook['clean'].add("**/*.pyc", "**/__pycache__", "dist", "doc/*.toc.html",
+                      "lib/Kook.egg-info")
 
 kookbook.default = 'test'
 
