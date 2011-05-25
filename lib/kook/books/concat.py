@@ -47,6 +47,12 @@ kook_modules = [
     kook.main,
 ]
 
+kook_books = [
+    'kook/books/clean.py',
+    'kook/books/all.py',
+    'kook/books/concat.py',
+]
+
 def _escape(content):
     s = "'''"
     return content.replace("'''", '%s + "%s" + r%s' % (s, s, s))
@@ -87,14 +93,52 @@ def concat(c, *args, **kwargs):
         add("''', '%s', 'exec'), %s.__dict__, %s.__dict__)\n" % (name, name, name))
         add("sys.modules['%s'] = %s\n" % (name, name))
         add("\n")
+    _ = os.path.dirname
+    basedir = _(_(kook.__file__))
+    for bookname in kook_books:
+        fpath = basedir + '/' + bookname
+        s = read_file(fpath)
+        add("#" * 20 + " " + fpath + "\n")
+        add("\n")
+        add("kook.__dict__.setdefault('_BOOK_LIBRARY', {})\n")
+        add("kook._BOOK_LIBRARY['%s'] = r'''" % bookname)
+        add(_escape(s))
+        add("'''\n")
     add("#" * 70 + "\n")
-    add("\n")
     if args:
         add("\n")
         add("kook._BOOK_CONTENT = _BOOK_CONTENT\n")
         add("\n")
-    add("status = kook.main.MainCommand(sys.argv).main()\n")
-    add("sys.exit(status)\n")
+    add(r'''
+
+import re
+
+## dict to store 'kook/books/{clean,all}.py' in memory
+kook.__dict__.setdefault('_BOOK_LIBRARY', {})
+
+## monkey patch to load '@kook/books/{clean,all}.py' from memory
+def load(self, filename, context_shared=False):
+    m = re.match(r'^@(\w+)', filename)
+    if m:
+        content = kook._BOOK_LIBRARY.get(filename[1:])
+        if content:
+            return self._book._load_content_with_check(content, filename, filename, context_shared)
+    #return self._orig_load(filename, context_shared)
+    filepath = kook.utils.resolve_filepath(filename, 1)
+    return self._book.load_book(filepath, context_shared)
+
+cls = kook.cookbook.KookbookProxy
+cls._orig_load = cls.load
+cls.load = load
+
+## use this filename instead of Kookbook.py
+argv = list(sys.argv)
+argv[1:1] = ['-f', __file__]
+
+## start command
+status = kook.main.MainCommand(argv).main()
+sys.exit(status)
+''')
     s = "".join(buf)
     if kwargs.get('o'):
         write_file(kwargs.get('o'), s)
