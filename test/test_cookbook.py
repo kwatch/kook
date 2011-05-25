@@ -15,6 +15,23 @@ from kook.cookbook import Cookbook, Recipe
 from kook.utils import write_file
 
 
+def mkdir_p(path):
+    d = None
+    mkdir = os.mkdir
+    for item in os.path.split(path):
+        if d is None:
+            os.mkdir(item)
+            d = item
+        else:
+            d = d + '/' + item
+            os.mkdir(d)
+
+
+def rm_rf(path):
+    if os.path.exists(path):
+        shutil.rmtree(path)
+
+
 bookname = 'Kookbook.py'
 
 class KookCookbookTest(object):
@@ -538,20 +555,14 @@ def hello99(c):
 kookbook.load('@/f1.py')
 """
             try:
-                os.mkdir('t.d1')
-                os.mkdir('t.d1/d2')
-                fname1 = 't.d1/d2/f1.py'
-                f = open(fname1, 'w'); f.write(input); f.close()
-                fname2 = 't.d1/d2/f2.py'
-                f = open(fname2, 'w'); f.write(input2); f.close()
+                mkdir_p('t.d1/d2')
+                fname1 = 't.d1/d2/f1.py'  ; write_file(fname1, input)
+                fname2 = 't.d1/d2/f2.py'  ; write_file(fname2, input2)
                 book = Cookbook.new(fname2)
                 r = book.find_recipe('hello99')
                 ok (r).is_a(Recipe)
             finally:
-                try:
-                    shutil.rmtree('t.d1')
-                except Exception:
-                    pass
+                rm_rf('t.d1')
 
         if "filepath starts with '@*/' then search file in parent directly recursively.":
             input = r"""
@@ -564,24 +575,14 @@ def hello99(c):
 kookbook.load('@*/f1.py')
 """
             try:
-                os.mkdir('t.d1')
-                os.mkdir('t.d1/d2')
-                fname1 = 'f1.py'
-                f = open(fname1, 'w'); f.write(input); f.close()
-                fname2 = 't.d1/d2/f2.py'
-                f = open(fname2, 'w'); f.write(input2); f.close()
-                #
-                assert os.path.exists('./f1.py')
-                assert os.path.exists('t.d1/d2/f2.py')
-                #
+                mkdir_p('t.d1/d2')
+                fname1 = 'f1.py'          ; write_file(fname1, input)
+                fname2 = 't.d1/d2/f2.py'  ; write_file(fname2, input2)
                 book = Cookbook.new(fname2)
                 r = book.find_recipe('hello99')
                 ok (r).is_a(Recipe)
             finally:
-                try:
-                    shutil.rmtree('t.d1')
-                except Exception:
-                    pass
+                rm_rf('t.d1')
 
         if "filepath starts with '@@/' then search file in 2-level above directly.":
             input = r"""
@@ -594,24 +595,14 @@ def hello96(c):
 kookbook.load('@@@/f1.py')
 """
             try:
-                os.mkdir('t.d1')
-                os.mkdir('t.d1/d2')
-                fname1 = 'f1.py'
-                f = open(fname1, 'w'); f.write(input); f.close()
-                fname2 = 't.d1/d2/f2.py'
-                f = open(fname2, 'w'); f.write(input2); f.close()
-                #
-                assert os.path.exists('./f1.py')
-                assert os.path.exists('t.d1/d2/f2.py')
-                #
+                mkdir_p('t.d1/d2')
+                fname1 = 'f1.py'         ; write_file(fname1, input)
+                fname2 = 't.d1/d2/f2.py' ; write_file(fname2, input2)
                 book = Cookbook.new(fname2)
                 r = book.find_recipe('hello96')
                 ok (r).is_a(Recipe)
             finally:
-                try:
-                    shutil.rmtree('t.d1')
-                except Exception:
-                    pass
+                rm_rf('t.d1')
 
         if "kook_default_product and kook_materials are found then copy it into current context.":
             input = r"""

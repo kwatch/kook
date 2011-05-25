@@ -210,14 +210,15 @@ def resolve_filepath(filepath, depth=1):
             rest = filepath[len(m.group(0)):]
             n = len(m.group(1)) - 1
             while n:
+                if d == '.': d = os.getcwd()
                 parent = dirname(d) or '.'
                 if parent == d: break
                 d = parent
                 n -= 1
             if m.group(2):
                 while not exists(d + rest):
-                    parent = dirname(d)
-                    if not parent: parent = '.'
+                    if d == '.': d = os.getcwd()
+                    parent = dirname(d) or '.'
                     if parent == d:
                         raise ValueError("%s: not found." % filepath)
                     d = parent
