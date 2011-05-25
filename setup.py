@@ -1,6 +1,6 @@
 ###
-### $Release: 0.0.5 $
-### copyright(c) 2008-2009 kuwata-lab.com all rights reserved.
+### $Release: 0.0.0 $
+### copyright(c) 2008-2011 kuwata-lab.com all rights reserved.
 ### MIT License
 ###
 
@@ -23,7 +23,7 @@ except ImportError:
 
 def _kwargs():
     name             = 'Kook'
-    version          = '0.0.5'
+    version          = '0.0.0'
     author           = 'makoto kuwata'
     author_email     = 'kwa@kuwata-lab.com'
     maintainer       = author
