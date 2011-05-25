@@ -112,33 +112,35 @@ def concat(c, *args, **kwargs):
         add("\n")
     add(r'''
 
-import re
-
 ## dict to store 'kook/books/{clean,all}.py' in memory
 kook.__dict__.setdefault('_BOOK_LIBRARY', {})
 
-## monkey patch to load '@kook/books/{clean,all}.py' from memory
-def load(self, filename, context_shared=False):
-    m = re.match(r'^@(\w+)', filename)
-    if m:
-        content = kook._BOOK_LIBRARY.get(filename[1:])
-        if content:
-            return self._book._load_content_with_check(content, filename, filename, context_shared)
-    #return self._orig_load(filename, context_shared)
-    filepath = kook.utils.resolve_filepath(filename, 1)
-    return self._book.load_book(filepath, context_shared)
+if __name__ == '__main__':
+    import re
 
-cls = kook.cookbook.KookbookProxy
-cls._orig_load = cls.load
-cls.load = load
+    ## monkey patch to load '@kook/books/{clean,all}.py' from memory
+    def load(self, filename, context_shared=False):
+        m = re.match(r'^@(\w+)', filename)
+        if m:
+            content = kook._BOOK_LIBRARY.get(filename[1:])
+            if content:
+                return self._book._load_content_with_check(content, filename, filename, context_shared)
+        #return self._orig_load(filename, context_shared)
+        filepath = kook.utils.resolve_filepath(filename, 1)
+        return self._book.load_book(filepath, context_shared)
 
-## use this filename instead of Kookbook.py
-argv = list(sys.argv)
-argv[1:1] = ['-f', __file__]
+    cls = kook.cookbook.KookbookProxy
+    cls._orig_load = cls.load
+    cls.load = load
 
-## start command
-status = kook.main.MainCommand(argv).main()
-sys.exit(status)
+    ## use this filename instead of Kookbook.py
+    argv = list(sys.argv)
+    if getattr(kook, '_BOOK_CONTENT', None):
+        argv[1:1] = ['-f', __file__]
+
+    ## start command
+    status = kook.main.MainCommand(argv).main()
+    sys.exit(status)
 ''')
     s = "".join(buf)
     if kwargs.get('o'):
