@@ -17,7 +17,7 @@ from kook.misc import _report_cmd
 
 
 __all__ = (
-    'system_f', 'system',
+    'system_f', 'system', 'run_f', 'run',
     'cp', 'cp_r', 'cp_p', 'cp_pr',
     'mkdir', 'mkdir_p',
     'rm', 'rm_r', 'rm_f', 'rm_rf',
@@ -45,6 +45,10 @@ def system(command):
         #status = status % 255
         raise KookCommandError("command failed (status=%s)." % status)
     return status
+
+
+run_f = system_f
+run   = system
 
 
 def cp(*filenames):

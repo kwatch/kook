@@ -79,6 +79,32 @@ class KookCommandsTest(object):
                 os.unlink(f)
 
 
+    def test_run(command):
+        not_ok ('hello2.c').is_file()
+        run('cat -n hello.c > hello2.c')
+        ok ('hello2.c').is_file()
+        i = 0
+        buf = []
+        for line in read_file('hello.c').splitlines(True):
+            i += 1
+            buf.append("%6d\t%s" % (i, line))
+        ok (read_file('hello2.c')) == "".join(buf)
+        #
+        sout, serr = _getvalues()
+        ok (sout) == "$ cat -n hello.c > hello2.c\n"
+        ok (serr) == ""
+        # raises KookCommandError
+        def f():
+            run('cat -n hello999.c 2>/dev/null')
+        ok (f).raises(KookCommandError, "command failed (status=256).")
+
+    def test_run_f(command):
+        # raises KookCommandError
+        def f():
+            run_f('cat -n hello999.c 2>/dev/null')
+        not_ok (f).raises(Exception)
+
+
     def test_system(command):
         not_ok ('hello2.c').is_file()
         system('cat -n hello.c > hello2.c')
