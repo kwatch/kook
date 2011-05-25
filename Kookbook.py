@@ -35,8 +35,8 @@ def task_package(c):
     edit('setup.py', by=repl)
     ## setup
     #rm_f('MANIFEST')
-    system('python setup.py sdist')
-    #system('python setup.py sdist --keep-temp')
+    run('python setup.py sdist')
+    #run('python setup.py sdist --keep-temp')
     #
     with chdir('dist') as d:
         #pkgs = kook.utils.glob2(c%"$(package)-$(release).tar.gz");
@@ -44,28 +44,28 @@ def task_package(c):
         pkg = c%"$(package)-$(release).tar.gz"
         echo(c%"pkg=$(pkg)")
         #tar_xzf(pkg)
-        system(c%"tar xzf $(pkg)")
+        run(c%"tar xzf $(pkg)")
         dir = c%"$(package)-$(release)"
         #echo("*** debug: pkg=%s, dir=%s" % (pkg, dir))
-        edit(c%"$(dir)/**/*", by=repl)
+        edit(c%"$(dir)/**/*", exclude="*.png", by=repl)
         #with chdir(dir) as d2:
-        #    system("python setup.py egg_info --egg-base .")
+        #    run("python setup.py egg_info --egg-base .")
         #    rm("*.pyc")
         mv(pkg, c%"$(pkg).bkup")
         #tar_czf(c%"$(dir).tar.gz", dir)
-        system(c%"tar -cf $(dir).tar $(dir)")
-        system(c%"gzip -f9 $(dir).tar")
+        run(c%"tar -cf $(dir).tar $(dir)")
+        run(c%"gzip -f9 $(dir).tar")
         ## create *.egg file
         #for python in ['python2.5', 'python2.6']:
         for python in ['python']:
             rm_rf(dir)
-            system(c%"tar xzf $(dir).tar.gz")
+            run(c%"tar xzf $(dir).tar.gz")
             with chdir(dir):
-                system(c%"$(python) setup.py bdist_egg")
+                run(c%"$(python) setup.py bdist_egg")
                 mv("dist/*.egg", "..")
                 #rm_rf("build", "dist")
         rm_rf(dir)
-        system(c%"tar -xzf $(dir).tar.gz")
+        run(c%"tar -xzf $(dir).tar.gz")
 
 
 @recipe
@@ -106,16 +106,16 @@ def test(c, *args, **kwargs):
             print(c%"---------- python $(ver)")
             with chdir('test') as testdir:
                 for fname in glob('test_*.py'):
-                    system(c%"$(python_bin) $(fname)")
+                    run(c%"$(python_bin) $(fname)")
     else:
         ver = kwargs.get('v')
         #python_bin = ver and ('/usr/local/python/%s/bin/python' % ver) or 'python'
         python_bin = ver and ('/opt/local/bin/python%s' % ver) or 'python'
         targets = [ 'test_%s.py' % arg for arg in args ]
         with chdir('test') as d:
-            #system("python test_all.py 2>&1 >  test.log")
+            #run("python test_all.py 2>&1 >  test.log")
             for fname in targets or glob('test_*.py'):
-                system(c%"$(python_bin) $(fname)")
+                run(c%"$(python_bin) $(fname)")
 
 
 @recipe
@@ -131,10 +131,10 @@ kookbook.default = 'test'
 #def default(c):
 #    pass
 #    #rm_rf("dist")
-#    #system("python setup.py sdist")
+#    #run("python setup.py sdist")
 #    #with chdir("dist"):
-#    #    system(c%"tar xzf $(package)-$(release).tar.gz")
-#    #    system(c%"ls $(package)-$(release)/")
+#    #    run(c%"tar xzf $(package)-$(release).tar.gz")
+#    #    run(c%"ls $(package)-$(release)/")
 
 
 @recipe(None, ['doc/users-guide.html', 'doc/docstyle.css', 'retrieve'])
@@ -147,15 +147,15 @@ def doc(c):
 def file_users_guide_html(c):
     u = 'users-guide'
     with chdir("doc"):
-        system(c%"kwaser -t html-css -T $(u).txt > $(u).toc.html")
-        system(c%"kwaser -t html-css    $(u).txt > $(u).tmp")
-        system_f(c%"tidy -q -i -wrap 9999 $(u).tmp > $(u).html")
+        run(c%"kwaser -t html-css -T $(u).txt > $(u).toc.html")
+        run(c%"kwaser -t html-css    $(u).txt > $(u).tmp")
+        run_f(c%"tidy -q -i -wrap 9999 $(u).tmp > $(u).html")
         rm(c%'$(u).tmp', c%'$(u).toc.html')
 
 @recipe('doc/users-guide.txt', ['../common/doc/users-guide.eruby'])
 def file_users_guide_txt(c):
     os.path.isdir('doc') or mkdir('doc')
-    system(c%"erubis -E PercentLine -p '\\[% %\\]' $(ingred) > $(product)")
+    run(c%"erubis -E PercentLine -p '\\[% %\\]' $(ingred) > $(product)")
 
 @recipe('doc/docstyle.css', ['../common/doc/docstyle.css'])
 def file_users_guide_css(c):
@@ -169,19 +169,19 @@ def retrieve(c):
     path = 'doc/data/users_guide'
     rm_rf(path)
     mkdir_p(path)
-    system(c%"retrieve -Fd $(path) $(ingred)")
+    run(c%"retrieve -Fd $(path) $(ingred)")
 
 @recipe(None, ['retrieve'])
 def doctest(c):
     """do test of users guide"""
     with chdir("doc"):
-        system("python users_guide_test.py")
+        run("python users_guide_test.py")
 
 
 @recipe('test/oktest.py', ['../../oktest/python/lib/oktest.py'])
 def file_test_oktest_py(c):
     rm_f(c.product)
-    system(c%'ln $(ingred) $(product)')
+    run(c%'ln $(ingred) $(product)')
     #cp(c.ingred, c.product)
     #def f(s):
     #    s = re.sub(r'\$Release:.*?\$', '$Release: $', s)
