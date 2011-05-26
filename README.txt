@@ -38,14 +38,14 @@ Kookbook.py::
     from __future__ import with_statement
 
     ## default task
-    kook_default_product = 'all'
+    kookbook.default = 'all'
 
     ## properties
     release = prop('release', '1.0.0')
     CC      = prop('CC, 'gcc')
 
     ## file recipe
-    @recipe('hello', ['hello.o'])     # product, [ingedients, ...]
+    @recipe('hello', ['hello.o'])   # product, [ingedients, ...]
     def file_hello(c):
         """build hello command"""
         system(c%"$(CC) -o $(product) $(ingred)")
@@ -57,11 +57,12 @@ Kookbook.py::
         system(c%"$(CC) -c $(ingreds[0])")
 
     ## task recipe
-    @recipe('package', ['hello'])     # product, [ingredients, ...]
-    def task_package(c):
+    @recipe                         # or @recipe(None, ['hello'])
+    @ingreds('hello')
+    def package(c):                 # or task_package(c)
         """create package"""
-        base = "hello-" + release
-        pkgdir  = "build/" + base
+        base   = "hello-" + release
+        pkgdir = "build/" + base
         rm_rf(pkgdir)
 	mkdir_p(pkgdir)
         cp('README.txt', 'hello', pkgdir)
@@ -69,16 +70,15 @@ Kookbook.py::
             system(c%"tar czf $(base).tar.gz $(base)")
 
     ## task recipe
-    @recipe('all', ['package'])       # product, [ingredients, ...]
-    def task_all(c):
+    @recipe                         # or @recipe(None, ['package'])
+    @ingreds('package')
+    def task_all(c):                # or all(c)
         """build all"""
         pass
     
-    ## task recipe
-    @recipe
-    def task_clean(c):
-        """remove *.o"""
-        rm_f("*.o")
+    ## load 'clean' and 'sweep' recipes
+    kookbook.load('@kook/books/clean.py')
+    kook_clean_files.append("**/*.o")
 
 
 Command-line example::
@@ -91,16 +91,17 @@ Command-line example::
     Task recipes:
       package             : create package
       all                 : build all
-      clean               : remove *.o
+      clean               : remove byproducts
+      sweep               : remove products and by-products
     
     File recipes:
       *.o                 : build hello command
     
-    kook_default_product: all
+    kookbook.default: all
     
     (Tips: you can override properties with '--propname=propvalue'.)
 
-    bash> pykook
+    bash> pykook         # or kk
     ### **** hello.o (func=file_ext_o)
     $ gcc -c hello.c
     ### *** hello (func=file_hello)
@@ -114,9 +115,9 @@ Command-line example::
     $ chdir -   # /Users/kwatch/src/kook2/python/tmp/readme
     ### * all (func=task_all)
 
-    bash> pykook clean
+    bash> pykook clean   # or kk clean
     ### * clean (func=task_clean)
-    $ rm -f *.o
+    $ rm -f **/*.o
 
 
 See 'doc/users-guide.html' for details.
