@@ -1,5 +1,5 @@
 ###
-### $Release: 0.0.0 $
+### $Release: 0.6.0 $
 ### copyright(c) 2008-2011 kuwata-lab.com all rights reserved.
 ### MIT License
 ###
@@ -19,7 +19,7 @@ else:
 
 def _kwargs():
     name             = 'Kook'
-    version          = '0.0.0'
+    version          = '0.6.0'
     author           = 'makoto kuwata'
     author_email     = 'kwa@kuwata-lab.com'
     maintainer       = author
@@ -31,7 +31,19 @@ pyKook is a very useful tool to control your task such as compile, install or cl
 pyKook is similar to Make, Rake, Ant, or Cook.
 Kookbook.py, which is a task definition file for pyKook, is written in Python.
 
-Example of Kookbook.py::
+Simple Example of Kookbook.py::
+
+    @recipe
+    def hello(c):
+        print("Hello")
+
+Output Result::
+
+    bash> kk hello
+    ### * hello (recipe=hello)
+    Hello
+
+Other Example of Kookbook.py::
 
     CC = prop('CC', 'gcc -Wall')
     kookbook.default = 'all'

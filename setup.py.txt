@@ -31,7 +31,19 @@ pyKook is a very useful tool to control your task such as compile, install or cl
 pyKook is similar to Make, Rake, Ant, or Cook.
 Kookbook.py, which is a task definition file for pyKook, is written in Python.
 
-Example of Kookbook.py::
+Simple Example of Kookbook.py::
+
+    @recipe
+    def hello(c):
+        print("Hello")
+
+Output Result::
+
+    bash> kk hello
+    ### * hello (recipe=hello)
+    Hello
+
+Other Example of Kookbook.py::
 
     CC = prop('CC', 'gcc -Wall')
     kookbook.default = 'all'
