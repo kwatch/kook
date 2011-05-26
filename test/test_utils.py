@@ -35,6 +35,14 @@ char *command = "hello";
 class KookUtilsTest(object):
 
 
+    def test_meta2rexp(self):
+        from kook.utils import meta2rexp
+        ok (meta2rexp('foo.html')) == r'^foo\.html$'
+        ok (meta2rexp('*.html')) == r'^(.*?)\.html$'
+        ok (meta2rexp('*_???.{gif,jpg,png}')) == r'^(.*?)\_(...)\.(gif|jpg|png)$'
+        ok (meta2rexp(r'index[abc][0-9].html')) == r'^index[abc][0-9]\.html$'
+
+
     def test_glob2(self):
         try:
             #

@@ -144,6 +144,8 @@ def meta2rexp(pattern):
                 raise ArgumentError("%s: '{' is not closed by '}'." % pattern)  # or StandardError
             words = pattern[left+1:right].split(',')
             buf.extend(('(', '|'.join(words), ')', ))
+        elif ch == '[' or ch == ']' or ch == '-':
+            buf.append(ch)     # not escape
         else:
             buf.append(re.escape(ch))
         i += 1
