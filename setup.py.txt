@@ -37,10 +37,10 @@ Kookbook.py, which is a task definition file for pyKook, is written in Python.
 """[1:]
     license          = 'MIT License'
     platforms        = 'any'
-    download         = 'http://pypi.python.org/packages/source/K/%s/%s-%s.tar.gz' % (name, name, version)
-    #download        = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
-    #download        = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
-    #download        = 'http://jaist.dl.sourceforge.net/sourceforge/kook/%s-%s.tar.gz' % (name, version)
+    download_url     = 'http://pypi.python.org/packages/source/K/%s/%s-%s.tar.gz' % (name, name, version)
+    #download_url    = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
+    #download_url    = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
+    #download_url    = 'http://jaist.dl.sourceforge.net/sourceforge/kook/%s-%s.tar.gz' % (name, version)
 
     py_modules       = ['kook']
     package_dir      = {'': 'lib'}
