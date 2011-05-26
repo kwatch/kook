@@ -82,7 +82,7 @@ def file_setup_py(c):
     cp(c.ingred, c.product)
     edit(c.product, by=replacer)
 
-@recipe(None, ['setup.py', 'doc'])
+@recipe(None, ['doc'])
 def task_dist(c):
     """create package"""
     dir = 'dist-' + release
@@ -95,6 +95,7 @@ def task_dist(c):
     store('lib/kook/**/*.py', 'bin/kk', 'bin/pykook', 'test/**/*.py', dir)
     rm(dir + '/lib/kook/remote.py')
     store('doc/users-guide.html', 'doc/docstyle.css', 'doc/fig001.png', dir)
+    cp('setup.py.txt', dir + '/setup.py')    # copy setup.py.txt as setup.py
     ##
     def f():
         edit("**/*", exclude=["*.png", "oktest.py", "Kookbook.py"], by=replacer)
