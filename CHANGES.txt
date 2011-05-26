@@ -177,6 +177,20 @@ releases:
         
         Currently only task recipe is available in Category.
 
+      - New command 'pushd()' provided.
+        This is almost same as 'chdir()', but it can be used as decorator.
+
+	    ## for Python >= 2.5
+	    with pushd("tmp"):
+	        # ... do something in 'tmp' directory ...
+	    # ... back to previous directory automatically ...
+
+	    ## for Python <= 2.4
+	    @pushd("tmp")
+	    def do():     # called by pushd() automatically!
+	        # ... do something in 'tmp' directory ...
+	    # ... back to previous directory automatically ...
+
     changes:
 
       - (internal) Update 'oktest.py' to 0.8.0
