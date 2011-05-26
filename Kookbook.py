@@ -68,6 +68,47 @@ def task_package(c):
         run(c%"tar -xzf $(dir).tar.gz")
 
 
+replacer = (
+    (r'\$Release\$', release),
+    (r'\$Release:.*?\$', '$Release: %s $' % release),
+    (r'\$Copyright\$', copyright),
+    (r'\$Package\$', package),
+    (r'\$License\$', license),
+)
+
+
+@recipe('setup.py', ['setup.py.txt'])
+def file_setup_py(c):
+    cp(c.ingred, c.product)
+    edit(c.product, by=replacer)
+
+@recipe(None, ['setup.py', 'doc'])
+def task_dist(c):
+    """create package"""
+    dir = 'dist-' + release
+    rm_rf(dir)
+    mkdir_p(dir)
+    ## copy files
+    text_files = ['README.txt', 'CHANGES.txt', 'MIT-LICENSE', 'MANIFEST.in',
+                  'setup.py', 'ez_setup.py', 'Kookbook.py', 'Properties.py', ]
+    store(text_files, dir)
+    store('lib/kook/**/*.py', 'bin/kk', 'bin/pykook', 'test/**/*.py', dir)
+    rm(dir + '/lib/kook/remote.py')
+    store('doc/users-guide.html', 'doc/docstyle.css', 'doc/fig001.png', dir)
+    ##
+    def f():
+        edit("**/*", exclude=["*.png", "oktest.py", "Kookbook.py"], by=replacer)
+    chdir(dir, f)
+    ##
+    def f():
+        #run('python setup.py sdist --force-manifest')
+        run('python setup.py sdist --manifest-only')
+        run('python setup.py sdist')
+        #run('python setup.py sdist --keep-temp')
+    chdir(dir, f)
+    #
+
+
 @recipe
 def uninstall(c):
     site_packages_dir = None
