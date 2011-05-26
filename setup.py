@@ -5,20 +5,16 @@
 ###
 
 
-#import sys, re, os
-#arg1 = len(sys.argv) > 1 and sys.argv[1] or None
-#if arg1 == 'egg_info':
-#    #from ez_setup import use_setuptools
-#    #use_setuptools()
-#    pass
-#elif arg1 == 'bdist_egg':
-#    from setuptools import setup
-#else:
-#    from distutils.core import setup
-try:
-    from setuptools import setup
-except ImportError:
+import sys
+arg1 = len(sys.argv) >= 2 and sys.argv[1] or None
+if arg1 == 'sdist':
+    # --force-manifest is not supported in setuptools
     from distutils.core import setup
+else:
+    try:
+        from setuptools import setup
+    except ImportError:
+        from distutils.core import setup
 
 
 def _kwargs():
