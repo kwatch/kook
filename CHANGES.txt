@@ -82,56 +82,8 @@ releases:
 	    ## or
 	    kookbook['all'].ingreds.extend(['product1', 'product2'])
 
-      - Concatenation supported.
-        You can concatenate your cookbook and pyKook libraries into a file.
-	Using concatenated file, user doesn't need to install pyKook at all.
-        To concatenated files, add the following into your cookbook::
-
-	    kookbook.load('@kook/books/concat')
-
-	And type in terminal::
-
-	    bash> pykook -o yourscript YourBookName.py
-	    bash> chmod a+x yourscript
-	    bash> ./yourscript -l
-
-	If you don't specify YourBookName.py, it means that all pyKook
-	libraries are concatenated into a file. You can use it instead
-	of 'pykook' script.
-
-	    bash> pykook -o yourscript
-	    bash> chmod a+x yourscript
-	    bash> ./yourscript -h
-	
-      - Argument description is available.
-        In the following example, the last argument of @spices() is
-	argument description of task_copy().
-
-        Ex (Kookbook.py)::
-
-	    @recipe
-	    @spices('-r: recursive', 'src dest')   # argument description
-	    def task_copy(c, *args, **kwargs):
-	        """copy files"""
-		if kwargs.get('r'):
-		    cp_pr(*args)
-		else:
-		    cp_p(*args)
-
-        Argument desription is displayed when '-l' or '-L' option is specified.
-
-        Ex (command-line)::
-
-	    $ kk -l
-	    Properties:
-	    
-	    Task recipes:
-	      copy src dest       : copy files
-	        -r                    recursive
-	    
-	    File recipes:
-
       - Namespace is now supported. It is called as 'Category' in Kook.
+        Category is just an class which is provided by Kook.
         Category can be nested.
 
         Ex::
@@ -176,6 +128,57 @@ releases:
             $ git stash save
         
         Currently only task recipe is available in Category.
+
+      - Concatenation supported.
+        You can concatenate your cookbook and pyKook libraries into a file.
+	Using concatenated file, user doesn't need to install pyKook at all.
+        To concatenated files, add the following into your cookbook::
+
+	    kookbook.load('@kook/books/concat')
+	    #kook_concat_modules.append(foo.bar.module)  # if you want
+	    #kook_concat_books.append('foo/bar/book.py') # if you want
+
+	And type in terminal::
+
+	    bash> pykook -o yourscript YourBookName.py
+	    bash> chmod a+x yourscript
+	    bash> ./yourscript -l
+
+	If you don't specify YourBookName.py, it means that all pyKook
+	libraries are concatenated into a file. You can use it instead
+	of 'pykook' script.
+
+	    bash> pykook -o yourscript
+	    bash> chmod a+x yourscript
+	    bash> ./yourscript -h
+	
+      - Argument description is available.
+        In the following example, the last argument of @spices() is
+	argument description of task_copy().
+
+        Ex (Kookbook.py)::
+
+	    @recipe
+	    @spices('-r: recursive', 'src dest')   # argument description
+	    def task_copy(c, *args, **kwargs):
+	        """copy files"""
+		if kwargs.get('r'):
+		    cp_pr(*args)
+		else:
+		    cp_p(*args)
+
+        Argument desription is displayed when '-l' or '-L' option is specified.
+
+        Ex (command-line)::
+
+	    $ kk -l
+	    Properties:
+	    
+	    Task recipes:
+	      copy src dest       : copy files
+	        -r                    recursive
+	    
+	    File recipes:
 
       - New command 'pushd()' provided.
         This is almost same as 'chdir()', but it can be used as decorator.
