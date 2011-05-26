@@ -47,6 +47,15 @@ if python2:
         finally:
             f.close()
 
+    def func_argnames(func):
+        if isinstance(func, types.MethodType):
+            codeobj = func.im_func.func_code
+            index = 1
+        else:
+            codeobj = func.func_code
+            index = 0
+        return codeobj.co_varnames[index:codeobj.co_argcount]
+
 elif python3:
 
     def read_file(filename, encoding='utf-8'):
@@ -68,6 +77,15 @@ elif python3:
             f.write(content)
         finally:
             f.close()
+
+    def func_argnames(func):
+        if isinstance(func, types.MethodType):
+            codeobj = func.__func__.__code__
+            index = 1
+        else:
+            codeobj = func.__code__
+            index = 0
+        return codeobj.co_varnames[index:codeobj.co_argcount]
 
 
 def flatten(items, _arr=None):

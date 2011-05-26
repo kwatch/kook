@@ -483,6 +483,39 @@ $ chdir -   # back to %s
             cd(cwd)
 
 
+    def test_pushd1(self):
+        cwd = os.getcwd()
+        try:
+            x = pushd('hello.d')
+            ok (x).is_a(kook.commands._Pushd)
+            ok (os.getcwd()) == cwd
+            ok (x.__enter__()).is_(x)
+            ok (os.getcwd()) == cwd + "/hello.d"
+            ok (x.__exit__()) == None
+            ok (os.getcwd()) == cwd
+        finally:
+            os.chdir(cwd)
+
+    def test_pushd2(self):
+        cwd = os.getcwd()
+        try:
+            @pushd('hello.d')
+            def do():
+                return os.getcwd()
+            ok (do).is_a(str)
+            ok (do) == os.getcwd() + "/hello.d"
+            ok (os.getcwd()) == cwd
+            #
+            @pushd('hello.d')
+            def do(path):
+                return [os.getcwd(), path]
+            ok (do).is_a(list)
+            ok (do) == [os.getcwd() + "/hello.d", "hello.d"]
+            ok (os.getcwd()) == cwd
+        finally:
+            os.chdir(cwd)
+
+
     def _test_edit(self, check_hello2=True):
         content = read_file('hello.h')
         ok (content.find('1.2.3')) > 0

@@ -11,7 +11,7 @@ import shutil
 #from glob import glob as _glob
 import kook
 from kook import KookCommandError
-from kook.utils import glob2, flatten, has_metachars, meta2rexp, ArgumentError, _is_str
+from kook.utils import glob2, flatten, has_metachars, meta2rexp, ArgumentError, _is_str, func_argnames
 import kook.config as config
 from kook.misc import _report_cmd
 
@@ -24,7 +24,7 @@ __all__ = (
     'mv',
     'echo', 'echo_n',
     'store', 'store_p',
-    'chdir', 'cd',
+    'chdir', 'cd', 'pushd',
     'edit', 'edit_p',
 )
 
@@ -351,6 +351,66 @@ def _chdir(dirname, func, cmd):
     cwd = os.getcwd()
     os.chdir(dirname)
     return cwd
+
+
+class _Pushd(object):
+
+    def __init__(self, dirpath):
+        self.dirpath = dirpath
+        self.back_to = None
+
+    def __enter__(self):
+        #_prepare([self.dirpath], "pushd")
+        self.back_to = os.getcwd()
+        os.chdir(self.dirpath)
+        return self
+
+    def __exit__(self, *args):
+        _prepare(['  # back to '+self.back_to], "popd")
+        os.chdir(self.back_to)
+
+    def __call__(self, func):
+        self.__enter__()
+        exc_info = (None, None, None)
+        try:
+            try:
+                n = len(func_argnames(func))
+                if n == 0:
+                    return func()
+                else:
+                    return func(self.dirpath)
+            except Exception:
+                exc_info = sys.exc_info()
+                raise
+        finally:
+            self.__exit__(*exc_info)
+
+def pushd(dirpath):
+    """emulates pushd and popd.
+    ex1.
+        ## for Python >= 2.5
+        with pushd("tmp/log"):
+            ## .. directory is changed ...
+        ## ... directory is backed ...
+
+    ex2.
+        ## for Python <= 2.4
+        @pushd("tmp/log")
+        def do():
+            ## .. directory is changed ...
+        ## ... directory is backed ...
+    """
+    cmd = "pushd"
+    dnames = _prepare([dirpath], cmd)
+    n = len(dnames)
+    if n < 1:  raise KookCommandError("pushd: directory name required.")
+    if n > 1:  raise KookCommandError("pushd: too many directories.")
+    dname = dnames[0]
+    if not os.path.exists(dname):
+        raise KookCommandError("pushd: %s: directory not found." % (dname,))
+    elif not os.path.isdir(dname):
+        raise KookCommandError("pushd: %s: not a directory." % (dname,))
+    return _Pushd(dname)
 
 
 def edit(*filenames, **kwargs):
