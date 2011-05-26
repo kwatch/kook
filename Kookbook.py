@@ -190,9 +190,9 @@ def doc(c):
 @recipe('doc/users-guide.html', ['doc/users-guide.txt'])
 @byprods('doc/users-guide.toc.html')
 def file_users_guide_html(c):
-    u = 'users-guide'
     @pushd("doc")
     def do():
+        u = 'users-guide'
         run(c%"kwaser -t html-css -T $(u).txt > $(u).toc.html")
         run(c%"kwaser -t html-css    $(u).txt > $(u).tmp")
         run_f(c%"tidy -q -i -wrap 9999 $(u).tmp > $(u).html")
