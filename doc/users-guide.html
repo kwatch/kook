@@ -1018,20 +1018,7 @@ rests: ('AAA', 'BBB')
 
       <p><span style="color:#FF0000">(Experimental)</span></p>
 
-      <p>It is possible to load other cookbooks by <code>kookbook.load()</code>.</p>
-
-      <div class="program_caption">
-        Available format by kookbook.load()
-      </div>
-      <pre class="program">
-kookbook.load('Common.py')             # load book in current directory
-kookbook.load('../Common.py')          # load book in current directory
-kookbook.load('~/Common.py')           # load book in home directory
-kookbook.load('<strong>@</strong>/../tasks/Common.py')  # '@' means os.path.dirname(__file__)
-kookbook.load('<strong>@kook</strong>/tasks/clean.py')  # '@<em>module</em>' means os.path.dirname(<em>module</em>.__file__)
-</pre>
-
-      <p>Using it, you can separate a large cookbook into several small cookbooks.</p><a name="11/Common.py"></a>
+      <p>It is possible to load other cookbooks by <code>kookbook.load()</code>. Using it, you can separate a large cookbook into several small cookbooks.</p><a name="11/Common.py"></a>
 
       <div class="program_caption">
         Common.py: common recipes and properties
@@ -1048,15 +1035,6 @@ CFLAGS   = prop('CFLAGS', '-g -O2')
 def file_ext_o(c):
     """commpile *.c and *.h into *.o"""
     system(c%"$(CC) $(CFLAGS) -c $(ingred)")
-
-## common data or utilities
-<strong>__export__ = ('unpack', )</strong>
-
-def unpack(file):
-    if file.endswith('.tar.gz'):    system("tar xzf " + file)
-    elif file.endswith('.tar.bz2'): system("tar xjf " + file)
-    elif file.endswith('.zip'):     system("unzip -q " + file)
-    else: raise ValueError("%r: unknown file type" % (file,))
 </pre><a name="11/Kookbook.py"></a>
 
       <div class="program_caption">
@@ -1095,18 +1073,48 @@ def install(c, *args, **kwargs):
     dir = opts.get('d', '/usr/local/bin')  # get option value
     cmd = opts.get('command', command)     # get option value
     system(c%"sudo cp $(command) $(dir)/$(cmd)")   # or use 'install' command
-</pre><a name="11/base.result"></a>
+</pre>
 
-      <div class="terminal_caption">
-        command-line example
+      <p><code>kookbook.load()</code> accepts the followng format. Notice that '<code>@</code>' is depends on <code>__file__</code>, not on $PWD of current process.</p>
+
+      <div class="program_caption">
+        Available format by kookbook.load()
       </div>
-      <pre class="terminal">
-bash&gt; kk
-### *** hello.o (recipe=file_ext_o)
-$ gcc -g -O2 -c hello.c
-### ** hello (recipe=file_command)
-$ gcc -g -O2 -o hello hello.o optparse.o
-### * all (recipe=all)
+      <pre class="program">
+kookbook.load('Common.py')             # load book in current directory
+kookbook.load('../Common.py')          # load book in parent directory
+kookbook.load('~/Common.py')           # load book in home directory
+kookbook.load('<strong>@</strong>/../../../Common.py')  # '@' means os.path.dirname(__file__)
+kookbook.load('<strong>@@</strong>/../../Common.py')    # '@@' means dirname(dirname(__file__))
+kookbook.load('<strong>@@@</strong>/../Common.py')      # '@@@' means dirname(dirname(dirname(__file__)))
+kookbook.load('<strong>@*</strong>/Common.py')          # '@*' searches cookbook in parent directory recursively
+kookbook.load('<strong>@kook</strong>/tasks/clean.py')  # '@<em>module</em>' means os.path.dirname(<em>module</em>.__file__)
+</pre>
+
+      <p><code>kookbook.load()</code> imports recipes and properties, but not import other variables or functions. If you have variables or functions to be imported, specify their names to <code>__export__</code>.</p>
+
+      <div class="program_caption">
+        Exports data or functions
+      </div>
+      <pre class="program">
+<strong>__export__ = ('kook_clean_files', )</strong>
+
+# this variable is exported, so user can add or manipulate
+# filenames to be removed by 'clean' recipe.
+kook_clean_files = ['**/*.pyc', '**/__pycache__']
+
+@recipe
+def clean(c):
+    rm_rf kook_clean_files
+</pre>
+
+      <p>If you want everything on other cookbook to be imported, use <code>kookbook.load(bookname, True).</code></p>
+
+      <div class="program_caption">
+        import other cookbook with context shared
+      </div>
+      <pre class="program">
+kookbook.load('Common.py', <strong>True</strong>)
 </pre><br>
       <br>
       <a name="topic" id="topic"></a>
@@ -1671,6 +1679,26 @@ with chdir('test') as d:
 def f():
     sytem('python test_all.py')
 chdir('test', f)   ## f() is called at 'test' directory
+## back to current directry automatically
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>pushd(<em>dir</em>)</b></dt>
+
+        <dd class="dd3">
+          Change current directory temporary. If this is used with Python's with-statement, current directory will be backed automatically.
+          <pre class="program">
+with pushd('test') as d:
+    ## in 'test' directory
+    system('python test_all.py')
+## back to current directry automatically
+</pre>Or it is available as function decorator. This is useful in Python 2.4 or older which doesn't support 'with' statement.
+          <pre class="program">
+@pushd('test')
+def do():
+    sytem('python test_all.py')  ## invoked on 'test' directory
 ## back to current directry automatically
 </pre>
         </dd>

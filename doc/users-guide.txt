@@ -980,16 +980,6 @@ rests: ('AAA', 'BBB')
 {{!(Experimental)!}}
 
 It is possible to load other cookbooks by {{,kookbook.load(),}}.
-
-.? Available format by kookbook.load()
-.--------------------
-kookbook.load('Common.py')             # load book in current directory
-kookbook.load('../Common.py')          # load book in current directory
-kookbook.load('~/Common.py')           # load book in home directory
-kookbook.load('{{*@*}}/../tasks/Common.py')  # '@' means os.path.dirname(__file__)
-kookbook.load('{{*@kook*}}/tasks/clean.py')  # '@{{/module/}}' means os.path.dirname({{/module/}}.__file__)
-.--------------------
-
 Using it, you can separate a large cookbook into several small cookbooks.
 
 .? Common.py: common recipes and properties
@@ -1005,17 +995,7 @@ CFLAGS   = prop('CFLAGS', '-g -O2')
 def file_ext_o(c):
     """commpile *.c and *.h into *.o"""
     system(c%"$(CC) $(CFLAGS) -c $(ingred)")
-
-## common data or utilities
-{{*__export__ = ('unpack', )*}}
-
-def unpack(file):
-    if file.endswith('.tar.gz'):    system("tar xzf " + file)
-    elif file.endswith('.tar.bz2'): system("tar xjf " + file)
-    elif file.endswith('.zip'):     system("unzip -q " + file)
-    else: raise ValueError("%r: unknown file type" % (file,))
 .--------------------
-
 
 .? Kookbook.py: load other cookbook
 .-------------------- 11/Kookbook.py
@@ -1053,6 +1033,7 @@ def install(c, *args, **kwargs):
     system(c%"sudo cp $(command) $(dir)/$(cmd)")   # or use 'install' command
 .--------------------
 
+.#+++
 
 .? command-line example
 .==================== 11/base.result
@@ -1063,6 +1044,46 @@ $ gcc -g -O2 -c hello.c
 $ gcc -g -O2 -o hello hello.o optparse.o
 ### * all (recipe=all)
 .====================
+
+.#---
+
+{{,kookbook.load(),}} accepts the followng format.
+Notice that '{{,@,}}' is depends on {{,__file__,}}, not on $PWD of current process.
+
+.? Available format by kookbook.load()
+.--------------------
+kookbook.load('Common.py')             # load book in current directory
+kookbook.load('../Common.py')          # load book in parent directory
+kookbook.load('~/Common.py')           # load book in home directory
+kookbook.load('{{*@*}}/../../../Common.py')  # '@' means os.path.dirname(__file__)
+kookbook.load('{{*@@*}}/../../Common.py')    # '@@' means dirname(dirname(__file__))
+kookbook.load('{{*@@@*}}/../Common.py')      # '@@@' means dirname(dirname(dirname(__file__)))
+kookbook.load('{{*@**}}/Common.py')          # '@*' searches cookbook in parent directory recursively
+kookbook.load('{{*@kook*}}/tasks/clean.py')  # '@{{/module/}}' means os.path.dirname({{/module/}}.__file__)
+.--------------------
+
+{{,kookbook.load(),}} imports recipes and properties, but not import other variables or functions.
+If you have variables or functions to be imported, specify their names to {{,__export__,}}.
+
+.? Exports data or functions
+.--------------------
+{{*__export__ = ('kook_clean_files', )*}}
+
+# this variable is exported, so user can add or manipulate
+# filenames to be removed by 'clean' recipe.
+kook_clean_files = ['**/*.pyc', '**/__pycache__']
+
+@recipe
+def clean(c):
+    rm_rf kook_clean_files
+.--------------------
+
+If you want everything on other cookbook to be imported, use {{,kookbook.load(bookname, True).,}}
+
+.? import other cookbook with context shared
+.--------------------
+kookbook.load('Common.py', {{*True*}})
+.--------------------
 
 
 
@@ -1915,6 +1936,23 @@ The following functions are available in recipe.
 	def f():
 	    sytem('python test_all.py')
 	chdir('test', f)   ## f() is called at 'test' directory
+	## back to current directry automatically
+	.--------------------
+
+.[ pushd({{/dir/}}) ]
+	Change current directory temporary. If this is used with Python's with-statement, current directory will be backed automatically.
+	.--------------------
+	with pushd('test') as d:
+	    ## in 'test' directory
+	    system('python test_all.py')
+	## back to current directry automatically
+	.--------------------
+	Or it is available as function decorator.
+	This is useful in Python 2.4 or older which doesn't support 'with' statement.
+	.--------------------
+	@pushd('test')
+	def do():
+	    sytem('python test_all.py')  ## invoked on 'test' directory
 	## back to current directry automatically
 	.--------------------
 
