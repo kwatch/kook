@@ -583,6 +583,7 @@ kookbook.load('@*/f1.py')
                 ok (r).is_a(Recipe)
             finally:
                 rm_rf('t.d1')
+                if os.path.exists('f1.py'): os.unlink('f1.py')
 
         if "filepath starts with '@@/' then search file in 2-level above directly.":
             input = r"""
@@ -603,6 +604,7 @@ kookbook.load('@@@/f1.py')
                 ok (r).is_a(Recipe)
             finally:
                 rm_rf('t.d1')
+                if os.path.exists('f1.py'): os.unlink('f1.py')
 
         if "kook_default_product and kook_materials are found then copy it into current context.":
             input = r"""
