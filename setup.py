@@ -30,11 +30,44 @@ def _kwargs():
     maintainer_email = author_email
     url              = 'http://www.kuwata-lab.com/kook/'
     description      = 'a smart build tool for Python, similar to Make, Rake, Ant, or Cook'
-    long_description = r"""
+    long_description = r'''
 pyKook is a very useful tool to control your task such as compile, install or clean.
 pyKook is similar to Make, Rake, Ant, or Cook.
 Kookbook.py, which is a task definition file for pyKook, is written in Python.
-"""[1:]
+
+Example of Kookbook.py::
+
+    CC = prop('CC', 'gcc -Wall')
+    kookbook.default = 'all'
+
+    @recipe
+    @ingreds('hello')                      # ingredients
+    def all(c):                            # or task_all(c)
+        pass
+
+    @recipe('*.o', ['$(1).c', '$(1).h'])   # @recipe(product, [ingredients])
+    def file_o(c):
+        """compile *.c and *.h into *.o"""
+        system(c%'$(CC) -c $(ingred)')
+
+    @recipe('hello', ['hello.o'])          # @recipe(product, [ingredients])
+    def file_hello(c):
+        """create 'hello' command"""
+        system(c%'$(CC) -o $(product) $(ingred)')
+
+    @recipe
+    def clean(c):
+        rm_rf("**/*.o", "**/*~")
+
+    ## or
+    kookbook.load('@kook/books/clean.py')   # load 'clean' and 'sweep' recipes
+    kook_clean_files.append("**/*.o")
+
+See `User's Guide`_ for details.
+
+.. _User's Guide: http://www.kuwata-lab.com/kook/pykook-users-guide.html
+
+'''[1:]
     license          = 'MIT License'
     platforms        = 'any'
     download_url     = 'http://pypi.python.org/packages/source/K/%s/%s-%s.tar.gz' % (name, name, version)
