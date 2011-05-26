@@ -1594,9 +1594,11 @@ To concatenate files, add the following into your Kookbook.py::
 
 .--------------------
 kookbook.load('@kook/books/concat.py')
+#kook_concat_modules.append(foo.bar.module)  # if you want
+#kook_concat_books.append('foo/bar/book.py') # if you want
 .--------------------
 
-And try the following commands in terminal::
+And type the following commands in terminal::
 
 .====================
 bash> pykook -o yourscript.py YourBookName.py

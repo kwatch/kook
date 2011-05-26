@@ -1505,9 +1505,11 @@ def file_ext_o(c):
       <p>To concatenate files, add the following into your Kookbook.py::</p>
       <pre class="program">
 kookbook.load('@kook/books/concat.py')
+#kook_concat_modules.append(foo.bar.module)  # if you want
+#kook_concat_books.append('foo/bar/book.py') # if you want
 </pre>
 
-      <p>And try the following commands in terminal::</p>
+      <p>And type the following commands in terminal::</p>
       <pre class="terminal">
 bash&gt; pykook -o yourscript.py YourBookName.py
 bash&gt; chmod a+x yourscript.py
