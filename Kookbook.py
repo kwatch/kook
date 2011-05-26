@@ -1,4 +1,4 @@
-from __future__ import with_statement
+#from __future__ import with_statement
 
 import os, sys, re
 #from glob import glob
@@ -38,7 +38,8 @@ def task_package(c):
     run('python setup.py sdist')
     #run('python setup.py sdist --keep-temp')
     #
-    with chdir('dist') as d:
+    @pushd('dist')
+    def do(d):
         #pkgs = kook.utils.glob2(c%"$(package)-$(release).tar.gz");
         #pkg = pkgs[0]
         pkg = c%"$(package)-$(release).tar.gz"
@@ -60,7 +61,8 @@ def task_package(c):
         for python in ['python']:
             rm_rf(dir)
             run(c%"tar xzf $(dir).tar.gz")
-            with chdir(dir):
+            @pushd(dir)
+            def do():
                 run(c%"$(python) setup.py bdist_egg")
                 mv("dist/*.egg", "..")
                 #rm_rf("build", "dist")
@@ -97,16 +99,16 @@ def task_dist(c):
     store('doc/users-guide.html', 'doc/docstyle.css', 'doc/fig001.png', dir)
     cp('setup.py.txt', dir + '/setup.py')    # copy setup.py.txt as setup.py
     ##
-    def f():
+    @pushd(dir)
+    def do():
         edit("**/*", exclude=["*.png", "oktest.py", "Kookbook.py"], by=replacer)
-    chdir(dir, f)
     ##
-    def f():
+    @pushd(dir)
+    def do():
         #run('python setup.py sdist --force-manifest')
         run('python setup.py sdist --manifest-only')
         run('python setup.py sdist')
         #run('python setup.py sdist --keep-temp')
-    chdir(dir, f)
     #
 
 
@@ -146,7 +148,8 @@ def test(c, *args, **kwargs):
         for ver in python_versions:
             python_bin = vs_path + '/' + ver + '/bin/python'
             print(c%"---------- python $(ver)")
-            with chdir('test') as testdir:
+            @pushd('test')
+            def do(testdir):
                 for fname in glob('test_*.py'):
                     run(c%"$(python_bin) $(fname)")
     else:
@@ -154,7 +157,8 @@ def test(c, *args, **kwargs):
         #python_bin = ver and ('/usr/local/python/%s/bin/python' % ver) or 'python'
         python_bin = ver and ('/opt/local/bin/python%s' % ver) or 'python'
         targets = [ 'test_%s.py' % arg for arg in args ]
-        with chdir('test') as d:
+        @pushd('test')
+        def do(d):
             #run("python test_all.py 2>&1 >  test.log")
             for fname in targets or glob('test_*.py'):
                 run(c%"$(python_bin) $(fname)")
@@ -187,7 +191,8 @@ def doc(c):
 @byprods('doc/users-guide.toc.html')
 def file_users_guide_html(c):
     u = 'users-guide'
-    with chdir("doc"):
+    @pushd("doc")
+    def do():
         run(c%"kwaser -t html-css -T $(u).txt > $(u).toc.html")
         run(c%"kwaser -t html-css    $(u).txt > $(u).tmp")
         run_f(c%"tidy -q -i -wrap 9999 $(u).tmp > $(u).html")
@@ -215,7 +220,8 @@ def retrieve(c):
 @recipe(None, ['retrieve'])
 def doctest(c):
     """do test of users guide"""
-    with chdir("doc"):
+    @pushd("doc")
+    def do():
         run("python users_guide_test.py")
 
 
