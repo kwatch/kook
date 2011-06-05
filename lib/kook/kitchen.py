@@ -36,45 +36,45 @@ class Kitchen(object):
             cookbook = Cookbook.new(cookbook)
         return cls(cookbook, **properties)
 
-    def create_cooking_tree(self, target_product, cookables=None):
+    def create_cooking_tree(self, target_product, cookings=None):
         """create tree of RecipeCooking and MaterialCooking. raises error if recipe or material not found."""
-        if cookables is None: cookables = {}  # key: product name, value: cookable object
+        if cookings is None: cookings = {}  # key: product name, value: cooking object
         cookbook = self.cookbook
         def _create(target, parent_product):
             exists = os.path.exists
-            if target in cookables:
-                return cookables[target]
-            cookable = None
+            if target in cookings:
+                return cookings[target]
+            cooking = None
             if cookbook.material_p(target):
                 if not exists(target):
                     raise KookRecipeError("%s: material not found." % target)
-                cookable = MaterialCooking.new(target)
+                cooking = MaterialCooking.new(target)
             else:
                 recipe = cookbook.find_recipe(target)
-                if   recipe:          cookable = RecipeCooking.new(target, recipe)
-                elif exists(target):  cookable = MaterialCooking.new(target)
+                if   recipe:          cooking = RecipeCooking.new(target, recipe)
+                elif exists(target):  cooking = MaterialCooking.new(target)
                 else:
                     if parent_product:
                         raise KookRecipeError("%s: no such recipe nor material (required for %s)." % (target, repr(parent_product)))
                     else:
                         raise KookRecipeError("%s: no such recipe nor material." % target)
-            assert cookable is not None
-            cookables[target] = cookable
-            if cookable.ingreds:
-                assert isinstance(cookable, RecipeCooking)
-                for ingred in cookable.ingreds:
+            assert cooking is not None
+            cookings[target] = cooking
+            if cooking.ingreds:
+                assert isinstance(cooking, RecipeCooking)
+                for ingred in cooking.ingreds:
                     if isinstance(ingred, ConditionalFile):
                         filename = ingred()
                         if not filename: continue
                         ingred = filename
                     #if isinstance(ingred, IfExists):
                     #    if not exists(ingred.filename): continue
-                    child_cookable = _create(ingred, target)
-                    cookable.children.append(child_cookable)
-            return cookable
+                    child_cooking = _create(ingred, target)
+                    cooking.children.append(child_cooking)
+            return cooking
         _create(target_product, None)
-        root = cookables[target_product]
-        return root   # cookable object
+        root = cookings[target_product]
+        return root   # cooking object
 
     def check_cooking_tree(self, root):
         """raise KookRecipeError if tree has a loop."""
@@ -113,10 +113,10 @@ class Kitchen(object):
             target = self.cookbook.context.get('kook_default_product')
             if not target:
                 raise KookError('Kitchen#start_cooking(): no argv nor no kook_default_product.')
-        ## create tree of cookable object
+        ## create tree of cooking object
         root = self.create_cooking_tree(target)
         self.check_cooking_tree(root)
-        assert isinstance(root, Cookable)
+        assert isinstance(root, Cooking)
         assert root.product == target
         _trace("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ))
         if isinstance(root, MaterialCooking):
@@ -125,7 +125,7 @@ class Kitchen(object):
         root.cook(argv=argv, depth=1)
 
 
-class Cookable(object):
+class Cooking(object):
     """abstract class for RecipeCooking and MaterialCooking."""
 
     product = None
@@ -144,7 +144,7 @@ TOUCHED = 2     # file content of product is not changed (recipe may be invoked 
 SKIPPED = 1     # recipe is not invoked (= skipped), for example product is newer than all ingredients
 
 
-class MaterialCooking(Cookable):
+class MaterialCooking(Cooking):
     """represents material file."""
 
     def __init__(self, filename):
@@ -163,7 +163,7 @@ class MaterialCooking(Cookable):
         return True
 
 
-class RecipeCooking(Cookable):
+class RecipeCooking(Cooking):
     """represens recipe invocation. in other words, Recipe is 'definition', RecipeCooking is 'execution'."""
 
     def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None, matched=None, m=None):
@@ -179,7 +179,7 @@ class RecipeCooking(Cookable):
         self.byprod  = byprods and byprods[0] or None
         self.matched = matched
         self.m       = m
-        self.children = []       # child cookables
+        self.children = []       # child cookings
         self.spices  = spices
         self.cooked  = None
         self.argv = ()
