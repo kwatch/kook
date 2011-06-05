@@ -37,7 +37,7 @@ class Kitchen(object):
         return cls(cookbook, **properties)
 
     def create_cooking_tree(self, target_product, cookables=None):
-        """create tree of Cooking and MaterialCooking. raises error if recipe or material not found."""
+        """create tree of RecipeCooking and MaterialCooking. raises error if recipe or material not found."""
         if cookables is None: cookables = {}  # key: product name, value: cookable object
         cookbook = self.cookbook
         def _create(target, parent_product):
@@ -51,7 +51,7 @@ class Kitchen(object):
                 cookable = MaterialCooking.new(target)
             else:
                 recipe = cookbook.find_recipe(target)
-                if   recipe:          cookable = Cooking.new(target, recipe)
+                if   recipe:          cookable = RecipeCooking.new(target, recipe)
                 elif exists(target):  cookable = MaterialCooking.new(target)
                 else:
                     if parent_product:
@@ -61,7 +61,7 @@ class Kitchen(object):
             assert cookable is not None
             cookables[target] = cookable
             if cookable.ingreds:
-                assert isinstance(cookable, Cooking)
+                assert isinstance(cookable, RecipeCooking)
                 for ingred in cookable.ingreds:
                     if isinstance(ingred, ConditionalFile):
                         filename = ingred()
@@ -82,13 +82,13 @@ class Kitchen(object):
             route.append(cooking.product)
             visited[cooking.product] = True
             for child in cooking.children:
-                # assert isinstance(child, (MaterialCooking, Cooking))
+                # assert isinstance(child, (MaterialCooking, RecipeCooking))
                 if child.product in visited:
                     pos = route.index(child.product)
                     loop = "->".join(route[pos:] + [child.product])
                     raise KookRecipeError("%s: recipe is looped (%s)." % (child.product, loop))
                 elif child.children:
-                    # assert isinstance(child, Cooking)
+                    # assert isinstance(child, RecipeCooking)
                     _traverse(child, route, visited)
             assert len(route) > 0
             prod = route.pop()
@@ -126,7 +126,7 @@ class Kitchen(object):
 
 
 class Cookable(object):
-    """abstract class for Cooking and MaterialCooking."""
+    """abstract class for RecipeCooking and MaterialCooking."""
 
     product = None
     ingreds = ()
@@ -163,8 +163,8 @@ class MaterialCooking(Cookable):
         return True
 
 
-class Cooking(Cookable):
-    """represens recipe invocation. in other words, Recipe is 'definition', Cooking is 'execution'."""
+class RecipeCooking(Cookable):
+    """represens recipe invocation. in other words, Recipe is 'definition', RecipeCooking is 'execution'."""
 
     def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None, matched=None, m=None):
         if product is None: product = recipe.product
