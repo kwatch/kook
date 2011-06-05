@@ -220,12 +220,36 @@ class RecipeCooking(Cooking):
     ##     return SKIPPED
     ##
     def cook(self, depth=1, argv=()):
-        """invoke recipe function."""
-        is_file_recipe = self.recipe.kind == 'file'
+        """invoke recipe method."""
         ## return if already cooked
         if self.cooked:
             _debug("pass %s (already cooked)" % self.product, depth)
             return self.cooked
+        ##
+        if self.recipe.kind == 'task':
+            return self._cook_task_recipe(depth, argv)
+        else:
+            return self._cook_file_recipe(depth, argv)
+
+    def _cook_task_recipe(self, depth, argv):
+        product = self.product
+        _debug("begin %s" % product, depth)
+        ## invoke ingredients' recipes
+        if self.children:
+            for child in self.children:
+                child.cook(depth+1, ())
+        ## invoke recipe
+        _trace("cannot skip: task recipe should be invoked in any case.", depth)
+        assert self.recipe.method is not None
+        _debug("perform %s (%s)" % (product, self._r), depth)
+        _report_msg("%s (%s)" % (product, self._r), depth)
+        self._invoke_recipe_with(argv)
+        _debug("end %s (content changed)" % product, depth)
+        self.cooked = CHANGED
+        return self.cooked
+
+    def _cook_file_recipe(self, depth, argv):
+        is_file_recipe = self.recipe.kind == 'file'
         ## get mtime of product file if it exists
         _debug("begin %s" % self.product, depth)
         if is_file_recipe and os.path.exists(self.product):
@@ -288,9 +312,6 @@ class RecipeCooking(Cooking):
     def _can_skip(self, child_status, depth):
         if config.forced:
             #_trace("cannot skip: invoked forcedly.", depth)
-            return False
-        if self.recipe.kind == 'task':
-            _trace("cannot skip: task recipe should be invoked in any case.", depth)
             return False
         if not self.children:
             _trace("cannot skip: no children for product '%s'." % self.product, depth)
