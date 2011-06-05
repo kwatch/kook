@@ -96,7 +96,7 @@ class KookCommandsTest(object):
         # raises KookCommandError
         def f():
             run('cat -n hello999.c 2>/dev/null')
-        ok (f).raises(KookCommandError, "command failed (status=256).")
+        ok (f).raises(KookCommandError, "command failed (status=1).")
 
     def test_run_f(command):
         # raises KookCommandError
@@ -122,7 +122,7 @@ class KookCommandsTest(object):
         # raises KookCommandError
         def f():
             system('cat -n hello999.c 2>/dev/null')
-        ok (f).raises(KookCommandError, "command failed (status=256).")
+        ok (f).raises(KookCommandError, "command failed (status=1).")
 
     def test_system_f(command):
         # raises KookCommandError
