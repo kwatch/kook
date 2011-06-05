@@ -249,25 +249,12 @@ class RecipeCooking(Cooking):
         return self.cooked
 
     def _cook_file_recipe(self, depth, argv):
-        is_file_recipe = self.recipe.kind == 'file'
+        product = self.product
+        _debug("begin %s" % product, depth)
         ## get mtime of product file if it exists
-        _debug("begin %s" % self.product, depth)
-        if is_file_recipe and os.path.exists(self.product):
-            product_mtime = os.path.getmtime(self.product)  # exist
-        else:
-            product_mtime = 0    # product doesn't exist
+        product_mtime = os.path.exists(product) and os.path.getmtime(product) or 0
         ## invoke ingredients' recipes
-        child_status = SKIPPED
-        if self.children:
-            for child in self.children:
-                ret = child.cook(depth+1, ())
-                assert ret is not None
-                if ret > child_status:  child_status = ret
-                if product_mtime and ret == SKIPPED and child.has_product_file():
-                    assert os.path.exists(child.product)
-                    if os.path.getmtime(child.product) > product_mtime:
-                        _trace("child file '%s' is newer than product '%s'." % (child.product, self.product), depth)
-                        child_status = CHANGED
+        child_status = self._cook_children(product_mtime, depth)
         assert child_status in (CHANGED, TOUCHED, SKIPPED)
         ## there are some cases to skip recipe invocation (ex. product is newer than ingredients)
         if self._can_skip(child_status, depth):
@@ -281,66 +268,84 @@ class RecipeCooking(Cooking):
             try:
                 ## if product file exists, rename it to temporary filename
                 if product_mtime:
-                    tmp_filename = self._tmp_filename(self.product)
-                    os.rename(self.product, tmp_filename)
+                    tmp_filename = self._tmp_filename(product)
+                    os.rename(product, tmp_filename)
                 ## invoke recipe
-                s = is_file_recipe and 'create' or 'perform'
-                _debug("%s %s (%s)" % (s, self.product, self._r), depth)
-                _report_msg("%s (%s)" % (self.product, self._r), depth)
+                _debug("create %s (%s)" % (product, self._r), depth)
+                _report_msg("%s (%s)" % (product, self._r), depth)
                 self._invoke_recipe_with(argv)
                 ## check whether product file created or not
-                if is_file_recipe and not config.noexec and not os.path.exists(self.product):
-                    raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.recipe.name, ))
+                if not config.noexec and not os.path.exists(product):
+                    raise KookRecipeError("%s: product not created (in %s())." % (product, self.recipe.name, ))
                 ## if new product file is same as old one, return TOUCHED, else return CHANGED
-                if config.compare_contents and product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
-                    _debug("end %s (content not changed, mtime updated)" % self.product, depth)
+                if product_mtime and self._same_content(product, tmp_filename):
+                    _debug("end %s (content not changed, mtime updated)" % product, depth)
                     self.cooked = TOUCHED
                 else:
-                    _debug("end %s (content changed)" % self.product, depth)
+                    _debug("end %s (content changed)" % product, depth)
                     self.cooked = CHANGED
                 return self.cooked
             except Exception:
                 ## if product file exists, remove it when error raised
                 if product_mtime:
-                    _report_msg("(remove %s because unexpected error raised (%s))" % (self.product, self._r), depth)
-                    if os.path.isfile(self.product): os.unlink(self.product)
+                    _report_msg("(remove %s because unexpected error raised (%s))" % (product, self._r), depth)
+                    if os.path.isfile(product): os.unlink(product)
                 raise
         finally:
             ## remove temporary file
             if product_mtime: os.unlink(tmp_filename)
 
+    def _cook_children(self, product_mtime, depth):
+        flag_changed = flag_touched = False
+        if self.children:
+            for child in self.children:
+                status = child.cook(depth+1, ())
+                assert status in (CHANGED, TOUCHED, SKIPPED)
+                if   status == CHANGED: flag_changed = True
+                elif status == TOUCHED: flag_touched = True
+                if product_mtime and status == SKIPPED and child.has_product_file():
+                    assert os.path.exists(child.product)
+                    if os.path.getmtime(child.product) > product_mtime:
+                        _trace("child file '%s' is newer than product '%s'." % (child.product, self.product), depth)
+                        flag_changed = True
+        if flag_changed: return CHANGED
+        if flag_touched: return TOUCHED
+        return SKIPPED
+
     def _can_skip(self, child_status, depth):
+        product = self.product
         if config.forced:
             #_trace("cannot skip: invoked forcedly.", depth)
             return False
         if not self.children:
-            _trace("cannot skip: no children for product '%s'." % self.product, depth)
+            _trace("cannot skip: no children for product '%s'." % product, depth)
             return False
-        if not os.path.exists(self.product):
-            _trace("cannot skip: product '%s' not found." % self.product, depth)
+        if not os.path.exists(product):
+            _trace("cannot skip: product '%s' not found." % product, depth)
             return False
         ##
         if child_status == CHANGED:
-            _trace("cannot skip: there is newer file in children than product '%s'." % self.product, depth)
+            _trace("cannot skip: there is newer file in children than product '%s'." % product, depth)
             return False
         #if child_status == SKIPPED:
-        #    timestamp = os.path.getmtime(self.product)
+        #    timestamp = os.path.getmtime(product)
         #    for child in self.children:
         #        if child.has_product_file() and os.path.getmtime(child.product) > timestamp:
-        #            _trace("cannot skip: child '%s' is newer than product '%s'." % (child.product, self.product), depth)
+        #            _trace("cannot skip: child '%s' is newer than product '%s'." % (child.product, product), depth)
         #            return False
         ##
         return True
 
     def _skip(self, child_status, depth):
+        product = self.product
         if child_status == TOUCHED:
-            assert os.path.exists(self.product)
-            _report_msg("%s (%s)" % (self.product, self._r), depth)
-            _debug("touch and skip %s (%s)" % (self.product, self._r), depth)
-            _report_cmd("touch %s   # skipped" % self.product)
-            os.utime(self.product, None)    # update mtime of product file to current timestamp
+            assert os.path.exists(product)
+            _report_msg("%s (%s)" % (product, self._r), depth)
+            _debug("touch and skip %s (%s)" % (product, self._r), depth)
+            _report_cmd("touch %s   # skipped" % product)
+            os.utime(product, None)    # update mtime of product file to current timestamp
         elif child_status == SKIPPED:
-            _debug("skip %s (%s)" % (self.product, self._r), depth)
+            _debug("skip %s (%s)" % (product, self._r), depth)
         else:
             assert 'unreachable'
 
@@ -355,6 +360,9 @@ class RecipeCooking(Cooking):
             self.recipe.method(self, *rests, **opts)
         else:
             self.recipe.method(self, *argv)
+
+    def _same_content(self, product, tmp_filename):
+        return config.compare_contents and kook.utils.has_same_content(product, tmp_filename)
 
     ## utility method for convenience
     def __mod__(self, string):
