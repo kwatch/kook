@@ -158,7 +158,7 @@ def test(c, *args, **kwargs):
         python_bin = ver and ('/opt/local/bin/python%s' % ver) or 'python'
         targets = [ 'test_%s.py' % arg for arg in args ]
         @pushd('test')
-        def do(d):
+        def do(d, python_bin=python_bin):
             #run("python test_all.py 2>&1 >  test.log")
             for fname in targets or glob('test_*.py'):
                 run(c%"$(python_bin) $(fname)")
