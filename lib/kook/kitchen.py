@@ -36,7 +36,31 @@ class Kitchen(object):
             cookbook = Cookbook.new(cookbook)
         return cls(cookbook, **properties)
 
-    def create_cooking_tree(self, target_product, cookings=None):
+    def start_cooking(self, *argv):
+        ## target
+        if argv:
+            target = argv[0]
+            argv = argv[1:]
+        else:
+            target = self.cookbook.context.get('kook_default_product')
+            if not target:
+                raise KookError('Kitchen#start_cooking(): no argv nor no kook_default_product.')
+        ## create tree of cooking object
+        tree = CookingTree(self.cookbook).build(target)
+        tree.verify()
+        root = tree.root
+        assert tree.root.product == target
+        tree.start_cooking(argv)
+
+
+class CookingTree(object):
+    """tree of cooking objects"""
+
+    def __init__(self, cookbook):
+        self.cookbook = cookbook
+        self.root = None
+
+    def build(self, target_product, cookings=None):
         """create tree of RecipeCooking and MaterialCooking. raises error if recipe or material not found."""
         if cookings is None: cookings = {}  # key: product name, value: cooking object
         cookbook = self.cookbook
@@ -73,10 +97,11 @@ class Kitchen(object):
                     cooking.children.append(child_cooking)
             return cooking
         _create(target_product, None)
-        root = cookings[target_product]
-        return root   # cooking object
+        self.root = cookings[target_product]
+        assert self.root.product == target_product
+        return self
 
-    def check_cooking_tree(self, root):
+    def verify(self):
         """raise KookRecipeError if tree has a loop."""
         def _traverse(cooking, route, visited):
             route.append(cooking.product)
@@ -96,33 +121,19 @@ class Kitchen(object):
             assert prod in visited
             visited.pop(prod)
         #
-        if not root.children:
+        if not self.root.children:
             return
         route = []
         visited = {}
-        _traverse(root, route, visited)
+        _traverse(self.root, route, visited)
         assert len(route) == 0
         assert len(visited) == 0
 
-    def start_cooking(self, *argv):
-        ## target
-        if argv:
-            target = argv[0]
-            argv = argv[1:]
-        else:
-            target = self.cookbook.context.get('kook_default_product')
-            if not target:
-                raise KookError('Kitchen#start_cooking(): no argv nor no kook_default_product.')
-        ## create tree of cooking object
-        root = self.create_cooking_tree(target)
-        self.check_cooking_tree(root)
-        assert isinstance(root, Cooking)
-        assert root.product == target
-        _trace("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ))
-        if isinstance(root, MaterialCooking):
-            raise KookError("%s: is a material (= a file to which no recipe matched)." % target)
-        ## start cooking
-        root.cook(argv=argv, depth=1)
+    def start_cooking(self, argv=()):
+        _trace("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(self.root.product), repr(self.root.ingreds), ))
+        if isinstance(self.root, MaterialCooking):
+            raise KookError("%s: is a material (= a file to which no recipe matched)." % self.root.product)
+        self.root.cook(argv=argv, depth=1)
 
 
 class Cooking(object):
