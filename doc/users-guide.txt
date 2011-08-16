@@ -1794,24 +1794,24 @@ Using concatenated file, user can use your cookbook without installing pyKook.
 To concatenate files, add the following into your Kookbook.py::
 
 .--------------------
-kookbook.load('@kook/books/concat.py')
-#kook_concat_modules.append(foo.bar.module)  # if you want
-#kook_concat_books.append('foo/bar/book.py') # if you want
+kookbook.load('@kook/books/concatenate.py')
+#kook_concatenate_modules.append(foo.bar.module)  # if you want
+#kook_concatenate_books.append('foo/bar/book.py') # if you want
 .--------------------
 
 And type the following commands in terminal::
 
 .====================
-bash> pykook -o yourscript.py YourBookName.py
+bash> pykook concatenate -o yourscript.py Kookbook.py
 bash> chmod a+x yourscript.py
 bash> ./yourscript.py -l
 .====================
 
-If you don't specify YourBookName.py, it means that all pyKook libraries are concatenated into a file.
-You can use it instead of 'pykook' script.
+If you don't specify {{,Kookbook.py,}}, it means that all pyKook libraries are concatenated into a file.
+You can use it instead of '{{,pykook,}}' command.
 
 .====================
-bash> pykook -o yourscript   # 'yourscript' contains all pyKook library content
+bash> pykook concatenate -o yourscript   # 'yourscript' contains all pyKook library content
 bash> chmod a+x yourscript
 bash> ./yourscript -h        # 'yourscrit' can be an alternative of pykook command
 .====================

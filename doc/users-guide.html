@@ -1585,21 +1585,21 @@ def file_ext_o(c):
 
       <p>To concatenate files, add the following into your Kookbook.py::</p>
       <pre class="program">
-kookbook.load('@kook/books/concat.py')
-#kook_concat_modules.append(foo.bar.module)  # if you want
-#kook_concat_books.append('foo/bar/book.py') # if you want
+kookbook.load('@kook/books/concatenate.py')
+#kook_concatenate_modules.append(foo.bar.module)  # if you want
+#kook_concatenate_books.append('foo/bar/book.py') # if you want
 </pre>
 
       <p>And type the following commands in terminal::</p>
       <pre class="terminal">
-bash&gt; pykook -o yourscript.py YourBookName.py
+bash&gt; pykook concatenate -o yourscript.py Kookbook.py
 bash&gt; chmod a+x yourscript.py
 bash&gt; ./yourscript.py -l
 </pre>
 
-      <p>If you don't specify YourBookName.py, it means that all pyKook libraries are concatenated into a file. You can use it instead of 'pykook' script.</p>
+      <p>If you don't specify <code>Kookbook.py</code>, it means that all pyKook libraries are concatenated into a file. You can use it instead of '<code>pykook</code>' command.</p>
       <pre class="terminal">
-bash&gt; pykook -o yourscript   # 'yourscript' contains all pyKook library content
+bash&gt; pykook concatenate -o yourscript   # 'yourscript' contains all pyKook library content
 bash&gt; chmod a+x yourscript
 bash&gt; ./yourscript -h        # 'yourscrit' can be an alternative of pykook command
 </pre><br>
