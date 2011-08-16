@@ -8,20 +8,20 @@
 
 
 ###
-### 'concat' recipe which concatenates cookbook and pyKook libraries into a file.
+### 'concatenate' recipe which concatenates cookbook and pyKook libraries into a file.
 ###
-### Using 'concat' recipe, your cookbook can be a stand-alone script
+### Using 'concatenate' recipe, your cookbook can be a stand-alone script
 ### and user doesn't need to install pyKook.
 ###
 ### Example (Kookbook.py)::
 ###
 ###    ## load cookbook
 ###    ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
-###    kookbook.load("@kook/books/concat.py")
+###    kookbook.load("@kook/books/concatenate.py")
 ###
 ### Example (command-line)::
 ###
-###    bash> kk concat -o script.rb Kookbook.py
+###    bash> kk concatenate -o script.rb Kookbook.py
 ###    bash> python script.rb -h
 ###
 
@@ -37,7 +37,7 @@ import kook.main
 
 from kook.utils import resolve_filepath
 
-kook_concat_modules = [
+kook_concatenate_modules = [
     kook,
     kook.utils,
     kook.config,
@@ -49,13 +49,13 @@ kook_concat_modules = [
     kook.main,
 ]
 
-kook_concat_books = [
+kook_concatenate_books = [
     'kook/books/clean.py',
     'kook/books/all.py',
-    'kook/books/concat.py',
+    'kook/books/concatenate.py',
 ]
 
-__export__ = ('kook_concat_modules', 'kook_concat_books')
+__export__ = ('kook_concatenate_modules', 'kook_concatenate_books')
 
 
 def _escape(content):
@@ -66,10 +66,10 @@ def _escape(content):
 @recipe
 @spices("-o outfile: output filename",
         "[bookname..]")
-def concat(c, *args, **kwargs):
-    """concatenate cookbook and pyKook libraries into a file"""
+def concatenate(c, *args, **kwargs):
+    """concatenate cookbook and library files into a file"""
     pairs = [ (mod.__name__, mod.__file__.replace('.pyc', '.py'))
-               for mod in kook_concat_modules ]
+               for mod in kook_concatenate_modules ]
     buf = []; add = buf.append
     add(r'''#!/usr/bin/env python
 
@@ -99,7 +99,7 @@ def concat(c, *args, **kwargs):
         add("''', '%s', 'exec'), %s.__dict__, %s.__dict__)\n" % (name, name, name))
         add("sys.modules['%s'] = %s\n" % (name, name))
         add("\n")
-    for bookname in kook_concat_books:
+    for bookname in kook_concatenate_books:
         fpath = resolve_filepath(bookname)
         s = read_file(fpath)
         add("#" * 20 + " " + fpath + "\n")
