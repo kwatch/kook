@@ -356,7 +356,7 @@ def task_all(c):           # well-known recipe
   pass
 
 @recipe
-@spices('-h: help', '-f file: filename', '[files...]')
+@spices('-h: help', '-f file: filename', '-x:', '-y: ', '-z', '[files...]')
 def install(c, *args, **kwargs):        # with spices
   pass
 

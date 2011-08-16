@@ -168,7 +168,8 @@ class MainCommand(MainObject):
                         continue
                     if recipe.spices:
                         for opt, desc in optparser.helps:
-                            write(format2 % (opt, desc))
+                            if desc:
+                                write(format2 % (opt, desc))
             write("\n")
         f("Task recipes", cookbook.specific_task_recipes + cookbook.generic_task_recipes)
         f("File recipes", cookbook.specific_file_recipes + cookbook.generic_file_recipes)
