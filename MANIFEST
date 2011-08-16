@@ -2,7 +2,6 @@ CHANGES.txt
 MANIFEST
 MIT-LICENSE
 README.txt
-ez_setup.py
 setup.py
 bin/kk
 bin/pykook

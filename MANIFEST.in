@@ -1,4 +1,4 @@
-include README.txt MANIFEST MIT-LICENSE CHANGES.txt setup.py ez_setup.py
+include README.txt MANIFEST MIT-LICENSE CHANGES.txt setup.py
 include bin/pykook bin/kk
 include lib/*/*.py
 include doc/users-guide.html doc/docstyle.css doc/fig001.png

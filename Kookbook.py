@@ -92,7 +92,7 @@ def task_dist(c):
     mkdir_p(dir)
     ## copy files
     text_files = ['README.txt', 'CHANGES.txt', 'MIT-LICENSE', 'MANIFEST.in',
-                  'setup.py', 'ez_setup.py', 'Kookbook.py', 'Properties.py', ]
+                  'setup.py', 'Kookbook.py', 'Properties.py', ]
     store(text_files, dir)
     store('lib/kook/**/*.py', 'bin/kk', 'bin/pykook', 'test/**/*.py', dir)
     rm(dir + '/lib/kook/remote.py')
