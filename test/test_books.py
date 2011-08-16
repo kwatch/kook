@@ -132,12 +132,12 @@ kookbook.load('@kook/books/all.py')
 r = kookbook['all']
 assert r
 assert r.__class__.__name__ == 'Recipe'
-assert 'kook_all_products' in globals()
-assert kook_all_products == []
+assert 'ALL' in globals()
+assert ALL == []
 
 kookbook['all'].add('hello', 'haruhi.sos')
 expected = ['hello', 'haruhi.sos']
-assert kook_all_products == expected, "%r != %r" % (kook_all_products, expected)
+assert ALL == expected, "%r != %r" % (ALL, expected)
 
 @recipe
 def hello(c):
