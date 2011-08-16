@@ -49,7 +49,7 @@ char *release = "$_RELEASE_$";
 class KookCommandsTest(object):
 
 
-    def before_each(self):
+    def before(self):
         config.stdout = StringIO()
         config.stderr = StringIO()
         #
@@ -68,7 +68,7 @@ class KookCommandsTest(object):
         os.utime('hello.d/src/include/hello.h', (t, t))
         os.utime('hello.d/src/include/hello2.h', (t, t))
 
-    def after_each(self):
+    def after(self):
         config.stdout = sys.stdout
         config.stderr = sys.stderr
         #

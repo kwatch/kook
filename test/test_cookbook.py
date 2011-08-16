@@ -39,7 +39,7 @@ class KookCookbookTest(object):
     def setup(self, input):
         write_file(bookname, input)
 
-    def after_each(self):
+    def after(self):
         if os.path.exists(bookname):
             os.unlink(bookname)
 

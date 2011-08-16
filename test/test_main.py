@@ -76,7 +76,7 @@ char *command = "hello";
 
 class KookMainCommandTest(object):
 
-    def before_each(self):
+    def before(self):
         self._currdir = os.getcwd()
         self._tmpdir  = str(random.random())
         os.mkdir(self._tmpdir)
@@ -85,7 +85,7 @@ class KookMainCommandTest(object):
         write_file('hello.c', HELLO_C)
         write_file('hello.h', HELLO_H)
 
-    def after_each(self):
+    def after(self):
         #_teardown_stdio()
         os.chdir(self._currdir)
         shutil.rmtree(self._tmpdir)
@@ -605,11 +605,11 @@ class KookMainApplicationTest(object):
     def after_all(self):
         if os.path.isfile(APPNAME): os.unlink(APPNAME)
 
-    def before_each(self):
+    def before(self):
         #_setup_stdio()
         pass
 
-    def after_each(self):
+    def after(self):
         #_teardown_stdio()
         if hasattr(self, 'byprods'):
             for x in self.byprods:

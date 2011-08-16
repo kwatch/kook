@@ -63,12 +63,12 @@ char *command = "hello";
 class KookKitchenTest(object):
 
 
-    def before_each(self):
+    def before(self):
         _setup_stdio()
         write_file('hello.c', HELLO_C)
         write_file('hello.h', HELLO_H)
 
-    def after_each(self):
+    def after(self):
         for x in glob('hello*'):
             os.unlink(x)
         _teardown_stdio()
@@ -102,7 +102,7 @@ def file_hello_o(c):
         ok (_stdout()) == expected
         ok (_stderr()) == ""
         ## with @recipe
-        self.after_each(); self.before_each()
+        self.after(); self.before()
         self._start("@recipe\n" + content, 'hello.o')
         ok ('hello.o').is_file()
         ok (_stdout()) == expected
@@ -127,7 +127,7 @@ def file_ext_o(c):
         ok (_stdout()) == expected
         ok (_stderr()) == ""
         ## with @recipe
-        self.after_each(); self.before_each()
+        self.after(); self.before()
         self._start("@recipe\n" + content, 'hello.o')
         ok ('hello.o').is_file()
         ok (_stdout()) == expected
@@ -150,7 +150,7 @@ def build(c):
         ok (_stdout()) == expected
         ok (_stderr()) == ""
         ## with @recipe
-        self.after_each(); self.before_each()
+        self.after(); self.before()
         self._start("@recipe\n" + content, 'build')
         ok ('hello').is_file()
         ok (_stdout()) == expected
@@ -174,7 +174,7 @@ def task_build(c):
         ok (_stdout()) == expected
         ok (_stderr()) == ""
         ## without @recipe
-        self.after_each(); self.before_each()
+        self.after(); self.before()
         self._start("@recipe\n" + content, 'build_hello')
         ok ('hello').is_file()
         ok (_stdout()) == expected
