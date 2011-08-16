@@ -260,4 +260,4 @@ def update_oktest(c):
     pass
 
 
-kookbook.load("@kook/books/concat.py")
+kookbook.load("@kook/books/concatenate.py")
