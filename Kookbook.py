@@ -165,8 +165,7 @@ def test(c, *args, **kwargs):
 
 
 kookbook.load("@kook/books/clean.py")
-kookbook['clean'].add("**/*.pyc", "**/__pycache__", "dist", "doc/*.toc.html",
-                      "lib/Kook.egg-info")
+CLEAN.extend(["**/*.pyc", "**/__pycache__", "dist", "doc/*.toc.html", "lib/Kook.egg-info"])
 
 kookbook.default = 'test'
 
