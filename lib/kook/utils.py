@@ -268,7 +268,9 @@ class CommandOptionParser(object):
         count = len(optdef_strs)
         for i, optdef_str in enumerate(optdef_strs):
             if optdef_str.startswith('-'):
-                opt, desc = optdef_str.split(':', 1)
+                pair = optdef_str.split(':', 1)
+                if len(pair) == 1: pair.append(None)
+                opt, desc = pair
                 if desc: desc = desc.strip()
                 opt = opt.strip()
                 helps.append((opt, desc))

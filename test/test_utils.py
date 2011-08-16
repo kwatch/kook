@@ -120,6 +120,18 @@ class CommandOptionParserTest(object):
         ok (ret[0]).is_(parser.spices)
         ok (ret[1]).is_(parser.arg_desc)
         ok (ret[2]).is_(parser.helps)
+        #
+        if "help message is not specified then parsed collectly without error.":
+            spices = ('-h: help', '-x:', '-y: ', '-z')
+            parser = CommandOptionParser()
+            ret = parser.parse_spices(spices)
+            ok (ret).is_a(tuple).length(3)
+            ok (ret[0]) == {'h': False, 'x': False, 'y': False, 'z': False}
+            ok (ret[1]) == None
+            ok (ret[2]) == [('-h', 'help'), ('-x', ''), ('-y', ''), ('-z', None)]
+            ok (ret[0]).is_(parser.spices)
+            ok (ret[1]).is_(parser.arg_desc)
+            ok (ret[2]).is_(parser.helps)
 
     def test_parse_spices2(self):
         spices = ('-p port: port', 'url')
