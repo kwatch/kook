@@ -18,6 +18,8 @@
 ###    ## load cookbook
 ###    ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
 ###    kookbook.load("@kook/books/concatenate.py")
+###    #CONCATENATE_MODULES.append(foo.bar.module)  # if you want
+###    #CONCATENATE_BOOKS.append('foo/bar/book.py') # if you want
 ###
 ### Example (command-line)::
 ###
@@ -37,7 +39,7 @@ import kook.main
 
 from kook.utils import resolve_filepath
 
-kook_concatenate_modules = [
+CONCATENATE_MODULES = [
     kook,
     kook.utils,
     kook.config,
@@ -49,13 +51,13 @@ kook_concatenate_modules = [
     kook.main,
 ]
 
-kook_concatenate_books = [
+CONCATENATE_BOOKS = [
     'kook/books/clean.py',
     'kook/books/all.py',
     'kook/books/concatenate.py',
 ]
 
-__export__ = ('kook_concatenate_modules', 'kook_concatenate_books')
+__export__ = ('CONCATENATE_MODULES', 'CONCATENATE_BOOKS')
 
 
 def _escape(content):
@@ -69,7 +71,7 @@ def _escape(content):
 def concatenate(c, *args, **kwargs):
     """concatenate cookbook and library files into a file"""
     pairs = [ (mod.__name__, mod.__file__.replace('.pyc', '.py'))
-               for mod in kook_concatenate_modules ]
+               for mod in CONCATENATE_MODULES ]
     buf = []; add = buf.append
     add(r'''#!/usr/bin/env python
 
@@ -99,7 +101,7 @@ def concatenate(c, *args, **kwargs):
         add("''', '%s', 'exec'), %s.__dict__, %s.__dict__)\n" % (name, name, name))
         add("sys.modules['%s'] = %s\n" % (name, name))
         add("\n")
-    for bookname in kook_concatenate_books:
+    for bookname in CONCATENATE_BOOKS:
         fpath = resolve_filepath(bookname)
         s = read_file(fpath)
         add("#" * 20 + " " + fpath + "\n")

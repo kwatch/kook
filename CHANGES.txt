@@ -125,8 +125,8 @@ releases:
         To concatenated files, add the following into your cookbook::
 
 	    kookbook.load('@kook/books/concatenate')
-	    #kook_concatenate_modules.append(foo.bar.module)  # if you want
-	    #kook_concatenate_books.append('foo/bar/book.py') # if you want
+	    #CONCATENATE_MODULES.append(foo.bar.module)  # if you want
+	    #CONCATENATE_BOOKS.append('foo/bar/book.py') # if you want
 
 	And type in terminal::
 

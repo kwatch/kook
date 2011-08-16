@@ -1795,8 +1795,8 @@ To concatenate files, add the following into your Kookbook.py::
 
 .--------------------
 kookbook.load('@kook/books/concatenate.py')
-#kook_concatenate_modules.append(foo.bar.module)  # if you want
-#kook_concatenate_books.append('foo/bar/book.py') # if you want
+#CONCATENATE_MODULES.append(foo.bar.module)  # if you want
+#CONCATENATE_BOOKS.append('foo/bar/book.py') # if you want
 .--------------------
 
 And type the following commands in terminal::
