@@ -39,14 +39,14 @@ def clean(c):
     """remove by-products"""
     rm_rf(CLEAN)
 
-def add(self, *file_patterns):
-    CLEAN.extend(flatten(file_patterns))
-    return self
-
-r = kookbook['clean']
-r.add = types.MethodType(add, r)
-
-del r, add
+#def add(self, *file_patterns):
+#    CLEAN.extend(flatten(file_patterns))
+#    return self
+#
+#r = kookbook['clean']
+#r.add = types.MethodType(add, r)
+#
+#del r, add
 
 
 SWEEP = []
@@ -57,11 +57,11 @@ def sweep(c):
     rm_rf(CLEAN)
     rm_rf(SWEEP)
 
-def add(self, *file_patterns):
-    SWEEP.extend(flatten(file_patterns))
-    return self
-
-r = kookbook['sweep']
-r.add = types.MethodType(add, r)
-
-del r, add
+#def add(self, *file_patterns):
+#    SWEEP.extend(flatten(file_patterns))
+#    return self
+#
+#r = kookbook['sweep']
+#r.add = types.MethodType(add, r)
+#
+#del r, add

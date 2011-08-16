@@ -67,8 +67,9 @@ assert r
 assert r.__class__.__name__ == 'Recipe'
 assert 'CLEAN' in globals()
 assert CLEAN == []
-kookbook['clean'].add('*.hogeratta', '*.geriatta')
-assert CLEAN == ['*.hogeratta', '*.geriatta']
+#kookbook['clean'].add('*.hogeratta', '*.geriatta')
+#assert CLEAN == ['*.hogeratta', '*.geriatta']
+CLEAN.extend(['*.hogeratta', '*.geriatta'])
 """[1:]
             def fn1():
                 book = Cookbook().load_file(fname)
@@ -91,9 +92,11 @@ assert r
 assert r.__class__.__name__ == 'Recipe'
 assert 'SWEEP' in globals()
 assert SWEEP == []
-kookbook['sweep'].add('*.hogeratta2', '*.geriatta2')
-assert SWEEP == ['*.hogeratta2', '*.geriatta2']
-kookbook['clean'].add('*.hogeratta')
+#kookbook['sweep'].add('*.hogeratta2', '*.geriatta2')
+#assert SWEEP == ['*.hogeratta2', '*.geriatta2']
+#kookbook['clean'].add('*.hogeratta')
+SWEEP.extend(['*.hogeratta2', '*.geriatta2'])
+CLEAN.append('*.hogeratta')
 """[1:]
             def fn():
                 book = Cookbook().load_file(fname)
