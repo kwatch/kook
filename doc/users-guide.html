@@ -85,11 +85,13 @@
           <a href="#topic">Other features</a>
 
           <ul>
+            <li><a href="#topic-category">Category</a></li>
+
+            <li><a href="#topic-dyndef">Define Recipes Dinamically</a></li>
+
             <li><a href="#topic-metaprog">Meta Programming</a></li>
 
             <li><a href="#topic-books"><code>clean</code>, <code>sweep</code>, and <code>all</code> recipes</a></li>
-
-            <li><a href="#topic-category">Category</a></li>
 
             <li><a href="#topic-framework">Command-line Scripting Framework</a></li>
 
@@ -1119,7 +1121,170 @@ kookbook.load('Common.py', <strong>True</strong>)
       <br>
       <a name="topic" id="topic"></a>
 
-      <h2 class="section1">Other features</h2><a name="topic-metaprog" id="topic-metaprog"></a>
+      <h2 class="section1">Other features</h2><a name="topic-category" id="topic-category"></a>
+
+      <h3 class="section2">Category</h3>
+
+      <p>Category is a class provided by Kook. It works as namespace.</p><a name="topic-category/Kookbook.py"></a>
+
+      <div class="program_caption">
+        Kookbook.py
+      </div>
+      <pre class="program">
+from kook.utils import CommandOptionError
+
+<strong>class git(Category):</strong>
+
+  @recipe
+  def default(c):
+    """show status of working directory"""
+    system("git status")
+
+  @recipe
+  @spices("-m MESSAGE: commit message")
+  def ci(c):
+    """commit current editing"""
+    system("git commit -a")
+
+  <strong>class branch(Category):</strong>
+
+    @recipe
+    def default(c):
+      """show all branches"""
+      system("git branch -a")
+
+    @recipe
+    def switch(c, *args):
+      """switch current branch"""
+      if not args:
+        raise CommandOptionError("branch name is required.")
+      system(c%"git co $(args[0])")
+
+  <strong>class stash(Category):</strong>
+
+    @recipe
+    def default(c):
+      """show all stashes"""
+      system("git stash list")
+
+    @recipe
+    def save(c):
+      """save stash with current date"""
+      system("git stash save `date`")
+
+    @recipe
+    def pop(c):
+      """pop the latest stash"""
+      system("git stash pop")
+</pre>
+
+      <p>Nested category names are joined with ":".</p><a name="topic-category/base.result"></a>
+
+      <div class="terminal_caption">
+        Result
+      </div>
+      <pre class="terminal">
+bash&gt; kk -l
+Properties:
+
+Task recipes:
+  git                 : show status of working directory
+  git<strong>:</strong>ci              : commit current editing
+    -m MESSAGE            commit message
+  git<strong>:</strong>branch          : show all branches
+  git<strong>:</strong>branch<strong>:</strong>switch   : switch current branch
+  git<strong>:</strong>stash           : show all stashes
+  git<strong>:</strong>stash<strong>:</strong>save      : save stash with current date
+  git<strong>:</strong>stash<strong>:</strong>pop       : pop the latest stash
+
+File recipes:
+
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
+</pre>
+
+      <p>.+NOTE:</p>
+
+      <p><span style="color:#FF0000">Notice:</span> Only task recipe is available in Category. Don't define file recipe in catetory.</p>
+
+      <p>.-NOTE:</p><br>
+      <a name="topic-dyndef" id="topic-dyndef"></a>
+
+      <h3 class="section2">Define Recipes Dinamically</h3>
+
+      <p>You may define a lot of similar tasks.</p><a name="topic-dyndef1/Kookbook.py"></a>
+
+      <div class="program_caption">
+        Kookbook.py
+      </div>
+      <pre class="program">
+class apache(Category):
+
+    def task_start(c):
+        """start apache process"""
+        system("apachectl start")
+
+    def task_stop(c):
+        """stop apache process"""
+        system("apachectl stop")
+
+    def task_restart(c):
+        """restart apache process"""
+        system("apachectl restart")
+</pre>
+
+      <p>In this case, you can define recipes dinamically by exec().</p><a name="topic-dyndef2/Kookbook.py"></a>
+
+      <div class="program_caption">
+        Kookbook.py
+      </div>
+      <pre class="program">
+class apache(Category):
+
+    for cmd in ('start', 'stop', 'restart'):
+        code = r'''
+@recipe
+def task_%(cmd)s(c):
+    """%(cmd)s apache process"""
+    system("apachectl %(cmd)s")
+''' % locals()
+        exec(code)
+</pre>
+
+      <p>Or you can define recipes by calling recipe() as function, not as decorator.</p><a name="topic-dyndef3/Kookbook.py"></a>
+
+      <div class="program_caption">
+        Kookbook.py
+      </div>
+      <pre class="program">
+def def_task_recipe(command, ingreds_=(), spices_=()):
+    @ingreds(*ingreds_)
+    @spices(*spices_)
+    def task_(c, *args, **kwargs):
+        system("apachectl " + command)
+    task_.__name__ = 'task_' + command
+    task_.__doc__  = "%s apache process" % command
+    return <strong>recipe(task_)</strong>
+
+class apache(Category):
+    for command in ('start', 'stop', 'restart'):
+        fn = def_task_recipe(command, (), ())
+        locals()[fn.__name__] = fn
+    del fn
+</pre>
+
+      <p>.+NOTE:</p>
+
+      <p>It is able to integrate these recipes into a recipe which can take arguments.</p><a name="topic-dyndef4/Kookbook.py"></a>
+      <pre class="program">
+@recipe
+@spices('command')
+def task_apache(c, *args, **kwargs):
+    """invoke apachectl (ex: kk apache start; kk apache -- -l)"""
+    system("apachectl " + " ".join(args))
+</pre>
+
+      <p>.-NOTE:</p><br>
+      <a name="topic-metaprog" id="topic-metaprog"></a>
 
       <h3 class="section2">Meta Programming</h3>
 
@@ -1208,15 +1373,9 @@ def file_foo_o(c):
 ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
 <strong>kookbook.load("@kook/books/clean.py")</strong>               # 'clean' and 'swep' recipes
 
-## specify file patterns to remove
-<strong>kook_clean_files.extend(["**/*.o", "**/*.class"])</strong>   # by-products
-<strong>kook_sweep_files.extend(["*.egg", "*.war"])</strong>         # products
-## or
-kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
-kookbook['sweep'].add("*.egg", "*.war")             # products
-## or
-kookbook['clean'].ingreds.extend(["**/*.o", "**/*.class"])
-kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
+## add file patterns to remove
+<strong>CLEAN.extend(["**/*.o", "**/*.class"])</strong>   # by-products
+<strong>SWEEP.extend(["*.egg", "*.war"])</strong>         # products
 
 #kookbook['sweep'].product = "clobber"              # if you like
 </pre>
@@ -1228,99 +1387,9 @@ kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
 ## load cookbook
 ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
 <strong>kookbook.load("@kook/books/all.py")</strong>      # 'all' recipe
-## specify products you want to produce
-<strong>kook_all_products.extend(['product1', 'product2'])</strong>
-## or
-kookbook['all'].add('product1', 'product2')
-## or
-kookbook['all'].ingreds.extend(['product1', 'product2'])
+## add product names you want to produce
+<strong>ALL.extend(['product1', 'product2'])</strong>
 </pre><br>
-      <a name="topic-category" id="topic-category"></a>
-
-      <h3 class="section2">Category</h3>
-
-      <p>Category is a class provided by Kook. It is used as namespace.</p><a name="topic-category/Kookbook.py"></a>
-
-      <div class="program_caption">
-        Kookbook.py
-      </div>
-      <pre class="program">
-from kook.utils import CommandOptionError
-
-<strong>class git(Category):</strong>
-
-  @recipe
-  def default(c):
-    """show status of working directory"""
-    system("git status")
-
-  @recipe
-  @spices("-m MESSAGE: commit message")
-  def ci(c):
-    """commit current editing"""
-    system("git commit -a")
-
-  <strong>class branch(Category):</strong>
-
-    @recipe
-    def default(c):
-      """show all branches"""
-      system("git branch -a")
-
-    @recipe
-    def switch(c, *args):
-      """switch current branch"""
-      if not args:
-        raise CommandOptionError("branch name is required.")
-      system(c%"git co $(args[0])")
-
-  <strong>class stash(Category):</strong>
-
-    @recipe
-    def default(c):
-      """show all stashes"""
-      system("git stash list")
-
-    @recipe
-    def save(c):
-      """save stash with current date"""
-      system("git stash save `date`")
-
-    @recipe
-    def pop(c):
-      """pop the latest stash"""
-      system("git stash pop")
-</pre>
-
-      <p>Nested category names are joined with ":".</p><a name="topic-category/base.result"></a>
-
-      <div class="terminal_caption">
-        Result
-      </div>
-      <pre class="terminal">
-bash&gt; kk -l
-Properties:
-
-Task recipes:
-  git                 : show status of working directory
-  git<strong>:</strong>ci              : commit current editing
-    -m MESSAGE            commit message
-  git<strong>:</strong>branch          : show all branches
-  git<strong>:</strong>branch<strong>:</strong>switch   : switch current branch
-  git<strong>:</strong>stash           : show all stashes
-  git<strong>:</strong>stash<strong>:</strong>save      : save stash with current date
-  git<strong>:</strong>stash<strong>:</strong>pop       : pop the latest stash
-
-File recipes:
-
-(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
-</pre>
-
-      <p>.+NOTE:</p>
-
-      <p><span style="color:#FF0000">Notice:</span> Only task recipe is available in Category. Don't define file recipe in catetory.</p>
-
-      <p>.-NOTE:</p><br>
       <a name="topic-framework" id="topic-framework"></a>
 
       <h3 class="section2">Command-line Scripting Framework</h3>
@@ -1459,7 +1528,7 @@ def build(c):                               system(c%"gcc -o hello *.o")
         example of <code>-D</code>
       </div>
       <pre class="terminal">
-bash&gt; kk -D hello 
+bash&gt; kk -D hello
 *** debug: + begin hello
 *** debug: ++ begin hello.o
 *** debug: +++ material hello.c

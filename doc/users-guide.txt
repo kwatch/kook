@@ -404,7 +404,7 @@ Here is a matrix table of recipe kind.
 .+================================================================================
 			.,  {{*Specific recipe*}}	.,  {{*Generic recipe*}}
 {{*File recipe*}}	.,  Specific file recipe 	.,  Generic file recipe
-{{*Task recipe*}}	.,  Specific task recipe	.,  Generic task recipe 
+{{*Task recipe*}}	.,  Specific task recipe	.,  Generic task recipe
 .+================================================================================
 
 .#Recipe method of file and task recipes should be started with 'file_' and 'task_' repectively.
@@ -1090,135 +1090,10 @@ kookbook.load('Common.py', {{*True*}})
 .$ Other features			| topic
 
 
-
-.$$ Meta Programming	| topic-metaprog
-
-{{!(Experimental)!}}
-
-You can find and modify recipes as well as define recipes.
-
-.-------------------- topic-metaprog/Kookbook.py
-##
-## Normaly, *.o is created from *.c.
-##
-@recipe('*.o', ['$(1).c'])
-def file_o(c):
-    """compile *.c into *.o"""
-    system(c%"gcc -o $(ingred)")
-
-##
-## But you can change that rule for some files.
-##
-foo_recipe = {{*kookbook['foo.o']*}}
-foo_recipe.ingreds.extend(('foo.h', 'bar.h'))
-def func_foo_o(c):
-    """generate foo.o from foo.c, foo.h and other.h"""
-    ## invoke method of original recipe
-    {{*kookbook.get_recipe('*.o')*}}.method(c)    # same as file_o(c)
-foo_recipe.method = func_foo_o
-foo_recipe.desc = None     # make this recipe non-public
-.--------------------
-
-{{,kookbook.find_recipe(),}} is similar to {{,kookbook[],}}, but it doesn't register recipe automatically.
-
-.--------------------
-## For example:
-kookbook['foo.o'].ingreds.append('foo.h')
-## .. is same as:
-r = kookbook.find_recipe('foo.o')
-r.ingreds.append('foo.h')
-kookbook.register(r)
-.--------------------
-
-Here is steps that {{,kookbook[],}} and {{,kookbook.find_recipe(),}} do:
-
-.1) Find a specific recipe which matches to 'foo.o', but not found.
-.2) Then find a generic recipe, and a recipe '*.o' found.
-.3) Convert it into a specific recipe to suit 'foo.o'. for example:
-   .- Product: '*.o' => foo.o'
-   .- Ingreds: ['$(1).c'] => ['foo.c']
-   .- Method: (not changed)
-.4) Register it if {{,kookbook[],}} called, but {{,kookbook.find_recipe(),}} doesn't.
-
-Descrived as above, {{,kookbook[],}} and {{,kookbook.find_recipe(),}} converts generic recipe into specific recipe.
-If you don't want to convert it, use {{,kookbook.get_recipe(),}}.
-
-.--------------------
-@recipe('foo.o', ['foo.c', 'foo.h'])
-def file_foo_o(c):
-    ## invoke same command as *.o
-    {{*kookbook.get_recipe('*.o').method(c)*}}
-.--------------------
-
-.#Both kookbook.find_recipe() and kookbook.get_recipe() return recipe object.
-.#
-.#.* If you want to get specific recipe (= 'foo.o') from generic recipe (= '*.o'), use kookbook.find_recipe('foo.o').
-.#.* If you want to get generic recipe, use kookbook.get_recipe('*.o').
-
-
-.#+++
-.==================== topic-metaprog/base.result
-bash> kk -L
-Properties:
-
-Task recipes:
-
-File recipes:
-  foo.o               : 
-  *.o                 : compile *.c into *.o
-
-(Tips: it is able to separate properties into 'Properties.py' file.)
-.====================
-.#---
-
-
-
-.$$ {{,clean,}}, {{,sweep,}}, and {{,all,}} recipes	| topic-books
-
-Kook provides some useful recipes.
-
-.* Recipe {{,clean,}} is intended to remove by-products.
-.* Recipe {{,sweep,}} is intended to remove products and by-products.
-.* Recipe {{,all,}} is intended to produce all products.
-
-.? Example of {{,clean,}} and {{,sweep,}} recipes
-.--------------------
-## load cookbook
-## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
-{{*kookbook.load("@kook/books/clean.py")*}}               # 'clean' and 'swep' recipes
-
-## specify file patterns to remove
-{{*kook_clean_files.extend(["**/*.o", "**/*.class"])*}}   # by-products
-{{*kook_sweep_files.extend(["*.egg", "*.war"])*}}         # products
-## or
-kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
-kookbook['sweep'].add("*.egg", "*.war")             # products
-## or
-kookbook['clean'].ingreds.extend(["**/*.o", "**/*.class"])
-kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
-
-#kookbook['sweep'].product = "clobber"              # if you like
-.--------------------
-
-.? Example of {{,all,}} recipe
-.--------------------
-## load cookbook
-## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
-{{*kookbook.load("@kook/books/all.py")*}}      # 'all' recipe
-## specify products you want to produce
-{{*kook_all_products.extend(['product1', 'product2'])*}}
-## or
-kookbook['all'].add('product1', 'product2')
-## or
-kookbook['all'].ingreds.extend(['product1', 'product2'])
-.--------------------
-
-
-
 .$$ Category 			| topic-category
 
 Category is a class provided by Kook.
-It is used as namespace.
+It works as namespace.
 
 .? Kookbook.py
 .-------------------- topic-category/Kookbook.py
@@ -1297,6 +1172,307 @@ File recipes:
 Don't define file recipe in catetory.
 
 .-NOTE:
+
+
+
+.$$ Define Recipes Dinamically		| topic-dyndef
+
+You may define a lot of similar tasks.
+
+.? Kookbook.py
+.-------------------- topic-dyndef1/Kookbook.py
+class apache(Category):
+
+    def task_start(c):
+        """start apache process"""
+        system("apachectl start")
+
+    def task_stop(c):
+        """stop apache process"""
+        system("apachectl stop")
+
+    def task_restart(c):
+        """restart apache process"""
+        system("apachectl restart")
+.--------------------
+
+.#+++
+.==================== topic-dyndef1/output.result
+bash> kk -l
+Properties:
+
+Task recipes:
+  apache:start        : start apache process
+  apache:stop         : stop apache process
+  apache:restart      : restart apache process
+
+File recipes:
+
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
+
+bash> kk -n apache:start
+### * start (recipe=task_start)
+$ apachectl start
+
+bash> kk -n apache:stop
+### * stop (recipe=task_stop)
+$ apachectl stop
+
+bash> kk -n apache:restart
+### * restart (recipe=task_restart)
+$ apachectl restart
+.====================
+.#---
+
+In this case, you can define recipes dinamically by exec().
+
+.? Kookbook.py
+.-------------------- topic-dyndef2/Kookbook.py
+class apache(Category):
+
+    for cmd in ('start', 'stop', 'restart'):
+        code = r'''
+@recipe
+def task_%(cmd)s(c):
+    """%(cmd)s apache process"""
+    system("apachectl %(cmd)s")
+''' % locals()
+        exec(code)
+.--------------------
+
+.#+++
+.==================== topic-dyndef2/output.result
+bash> kk -l
+Properties:
+
+Task recipes:
+  apache:start        : start apache process
+  apache:stop         : stop apache process
+  apache:restart      : restart apache process
+
+File recipes:
+
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
+
+bash> kk -n apache:start
+### * start (recipe=task_start)
+$ apachectl start
+
+bash> kk -n apache:stop
+### * stop (recipe=task_stop)
+$ apachectl stop
+
+bash> kk -n apache:restart
+### * restart (recipe=task_restart)
+$ apachectl restart
+.====================
+.#---
+
+Or you can define recipes by calling recipe() as function, not as decorator.
+
+.? Kookbook.py
+.-------------------- topic-dyndef3/Kookbook.py
+def def_task_recipe(command, ingreds_=(), spices_=()):
+    @ingreds(*ingreds_)
+    @spices(*spices_)
+    def task_(c, *args, **kwargs):
+        system("apachectl " + command)
+    task_.__name__ = 'task_' + command
+    task_.__doc__  = "%s apache process" % command
+    return {{*recipe(task_)*}}
+
+class apache(Category):
+    for command in ('start', 'stop', 'restart'):
+        fn = def_task_recipe(command, (), ())
+        locals()[fn.__name__] = fn
+    del fn
+.--------------------
+
+.#+++
+.==================== topic-dyndef3/output.result
+bash> kk -l
+Properties:
+
+Task recipes:
+  apache:start        : start apache process
+  apache:stop         : stop apache process
+  apache:restart      : restart apache process
+
+File recipes:
+
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
+
+bash> kk -n apache:start
+### * start (recipe=task_start)
+$ apachectl start
+
+bash> kk -n apache:stop
+### * stop (recipe=task_stop)
+$ apachectl stop
+
+bash> kk -n apache:restart
+### * restart (recipe=task_restart)
+$ apachectl restart
+.====================
+.#---
+
+
+.+NOTE:
+
+It is able to integrate these recipes into a recipe which can take arguments.
+
+.-------------------- topic-dyndef4/Kookbook.py
+@recipe
+@spices('command')
+def task_apache(c, *args, **kwargs):
+    """invoke apachectl (ex: kk apache start; kk apache -- -l)"""
+    system("apachectl " + " ".join(args))
+.--------------------
+
+.#+++
+.==================== topic-dyndef4/output.result
+bash> kk -l
+Properties:
+
+Task recipes:
+  apache command      : invoke apachectl (ex: kk apache start; kk apache -- -l)
+
+File recipes:
+
+(Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
+
+bash> kk -n apache start
+### * apache (recipe=task_apache)
+$ apachectl start
+
+bash> kk -n apache -- -l
+### * apache (recipe=task_apache)
+$ apachectl -l
+.====================
+.#---
+
+.-NOTE:
+
+
+
+.$$ Meta Programming	| topic-metaprog
+
+{{!(Experimental)!}}
+
+You can find and modify recipes as well as define recipes.
+
+.-------------------- topic-metaprog/Kookbook.py
+##
+## Normaly, *.o is created from *.c.
+##
+@recipe('*.o', ['$(1).c'])
+def file_o(c):
+    """compile *.c into *.o"""
+    system(c%"gcc -o $(ingred)")
+
+##
+## But you can change that rule for some files.
+##
+foo_recipe = {{*kookbook['foo.o']*}}
+foo_recipe.ingreds.extend(('foo.h', 'bar.h'))
+def func_foo_o(c):
+    """generate foo.o from foo.c, foo.h and other.h"""
+    ## invoke method of original recipe
+    {{*kookbook.get_recipe('*.o')*}}.method(c)    # same as file_o(c)
+foo_recipe.method = func_foo_o
+foo_recipe.desc = None     # make this recipe non-public
+.--------------------
+
+{{,kookbook.find_recipe(),}} is similar to {{,kookbook[],}}, but it doesn't register recipe automatically.
+
+.--------------------
+## For example:
+kookbook['foo.o'].ingreds.append('foo.h')
+## .. is same as:
+r = kookbook.find_recipe('foo.o')
+r.ingreds.append('foo.h')
+kookbook.register(r)
+.--------------------
+
+Here is steps that {{,kookbook[],}} and {{,kookbook.find_recipe(),}} do:
+
+.1) Find a specific recipe which matches to 'foo.o', but not found.
+.2) Then find a generic recipe, and a recipe '*.o' found.
+.3) Convert it into a specific recipe to suit 'foo.o'. for example:
+   .- Product: '*.o' => foo.o'
+   .- Ingreds: ['$(1).c'] => ['foo.c']
+   .- Method: (not changed)
+.4) Register it if {{,kookbook[],}} called, but {{,kookbook.find_recipe(),}} doesn't.
+
+Descrived as above, {{,kookbook[],}} and {{,kookbook.find_recipe(),}} converts generic recipe into specific recipe.
+If you don't want to convert it, use {{,kookbook.get_recipe(),}}.
+
+.--------------------
+@recipe('foo.o', ['foo.c', 'foo.h'])
+def file_foo_o(c):
+    ## invoke same command as *.o
+    {{*kookbook.get_recipe('*.o').method(c)*}}
+.--------------------
+
+.#Both kookbook.find_recipe() and kookbook.get_recipe() return recipe object.
+.#
+.#.* If you want to get specific recipe (= 'foo.o') from generic recipe (= '*.o'), use kookbook.find_recipe('foo.o').
+.#.* If you want to get generic recipe, use kookbook.get_recipe('*.o').
+
+
+.#+++
+.==================== topic-metaprog/base.result
+bash> kk -L
+Properties:
+
+Task recipes:
+
+File recipes:
+  foo.o               :
+  *.o                 : compile *.c into *.o
+
+(Tips: it is able to separate properties into 'Properties.py' file.)
+.====================
+.#---
+
+
+
+.$$ {{,clean,}}, {{,sweep,}}, and {{,all,}} recipes	| topic-books
+
+Kook provides some useful recipes.
+
+.* Recipe {{,clean,}} is intended to remove by-products.
+.* Recipe {{,sweep,}} is intended to remove products and by-products.
+.* Recipe {{,all,}} is intended to produce all products.
+
+.? Example of {{,clean,}} and {{,sweep,}} recipes
+.--------------------
+## load cookbook
+## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
+{{*kookbook.load("@kook/books/clean.py")*}}               # 'clean' and 'swep' recipes
+
+## add file patterns to remove
+{{*CLEAN.extend(["**/*.o", "**/*.class"])*}}   # by-products
+{{*SWEEP.extend(["*.egg", "*.war"])*}}         # products
+.### or
+.#kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
+.#kookbook['sweep'].add("*.egg", "*.war")             # products
+
+#kookbook['sweep'].product = "clobber"              # if you like
+.--------------------
+
+.? Example of {{,all,}} recipe
+.--------------------
+## load cookbook
+## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
+{{*kookbook.load("@kook/books/all.py")*}}      # 'all' recipe
+## add product names you want to produce
+{{*ALL.extend(['product1', 'product2'])*}}
+.### or
+.#kookbook['all'].add('product1', 'product2')
+.### or
+.#kookbook['all'].ingreds.extend(['product1', 'product2'])
+.--------------------
 
 
 
@@ -1539,7 +1715,7 @@ Command-line option {{,-D,}} or {{,-D2,}} turn on debug mode and debug message w
 
 .? example of {{,-D,}}
 .====================
-bash> kk -D hello 
+bash> kk -D hello
 *** debug: + begin hello
 *** debug: ++ begin hello.o
 *** debug: +++ material hello.c
@@ -1597,8 +1773,8 @@ Properties:
 Task recipes:
 
 File recipes:
-  hello               : 
-  *.o                 : 
+  hello               :
+  *.o                 :
 
 (Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
 .====================
@@ -1636,7 +1812,7 @@ bash> chmod a+x yourscript
 bash> ./yourscript -h        # 'yourscrit' can be an alternative of pykook command
 .====================
 
-    
+
 
 .#
 .#.$$ Invoke rook command recursively	| topic-recursive
