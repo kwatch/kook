@@ -141,27 +141,36 @@ python_versions = [ '2.5.5', '2.6.7', '2.7.2', '3.0.1', '3.1.4', '3.2.1' ]
 
 @recipe
 @spices('-v version: version of python',
-        '-a: do test for all version of python')
+        '-a: do test for all version of python',
+        '-s style: reporting style of oktest.py')
 def test(c, *args, **kwargs):
     from glob import glob
+    pwd = os.getcwd()
+    os.environ['PYTHONPATH'] = "%s:%s/lib" % (pwd, pwd)
+    oktest_opt = ''
+    if 's' in kwargs:
+        oktest_opt = '-s ' + kwargs['s']
     if kwargs.get('a'):
         for ver in python_versions:
             python_bin = vs_path + '/' + ver + '/bin/python'
             print(c%"---------- python $(ver)")
             @pushd('test')
-            def do(testdir):
-                for fname in glob('test_*.py'):
-                    run(c%"$(python_bin) $(fname)")
+            def do(testdir, python_bin=python_bin, opt=oktest_opt):
+                opt = oktest_opt
+                #for fname in glob('test_*.py'):
+                #    run(c%"$(python_bin) $(fname)")
+                run(c%"$(python_bin) -m oktest $(opt) .")
     else:
         ver = kwargs.get('v')
         #python_bin = ver and ('/usr/local/python/%s/bin/python' % ver) or 'python'
         python_bin = ver and ('/opt/local/bin/python%s' % ver) or 'python'
         targets = [ 'test_%s.py' % arg for arg in args ]
         @pushd('test')
-        def do(d, python_bin=python_bin):
+        def do(d, python_bin=python_bin, opt=oktest_opt):
             #run("python test_all.py 2>&1 >  test.log")
-            for fname in targets or glob('test_*.py'):
-                run(c%"$(python_bin) $(fname)")
+            #for fname in targets or glob('test_*.py'):
+            #    run(c%"$(python_bin) $(fname)")
+            run(c%"$(python_bin) -m oktest $(opt) .")
 
 
 kookbook.load("@kook/books/clean.py")
