@@ -180,6 +180,30 @@ releases:
 
 	    File recipes:
 
+      - Private spice option is available.
+        If you don't specify spice option's help message, it is regarded as
+	private and is not showin to users by command-line option '-l' or '-L'.
+        In the following example, spice options '-x' and '-y' are private
+	because they don't have help message.
+
+        Ex (Kookbook.py)::
+
+	    @recipe
+	    @spices('-x', '-y arg')   # private spice options
+	    def foo(c, *args, **kwargs):
+	        """dummy recipe"""
+		print(kwargs)
+
+        Ex (command-line)::
+
+            bash> kk -l    # notice that neither '-x' nor '-y' are shown
+            Properties:
+
+            Task recipes:
+              foo                 : dummy recipe
+
+            File recipes:
+
       - New command 'pushd()' provided.
         This is almost same as 'chdir()', but it can be used as decorator.
 
