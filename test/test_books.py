@@ -65,10 +65,10 @@ kookbook.load('@kook/books/clean.py')
 r = kookbook['clean']
 assert r
 assert r.__class__.__name__ == 'Recipe'
-assert 'kook_clean_files' in globals()
-assert kook_clean_files == []
+assert 'CLEAN' in globals()
+assert CLEAN == []
 kookbook['clean'].add('*.hogeratta', '*.geriatta')
-assert kook_clean_files == ['*.hogeratta', '*.geriatta']
+assert CLEAN == ['*.hogeratta', '*.geriatta']
 """[1:]
             def fn1():
                 book = Cookbook().load_file(fname)
@@ -111,11 +111,11 @@ kookbook['clean'].add('*.hogeratta')
         if "called several times then loaded only one time.":
             input = r"""
 kookbook.load('@kook/books/clean.py')
-kook_clean_files.append('*.foo')
+CLEAN.append('*.foo')
 kookbook.load('@kook/books/clean.py')
-kook_clean_files.append('*.bar')
+CLEAN.append('*.bar')
 expected = ['*.foo', '*.bar']
-assert kook_clean_files == expected, "%r != %r" % (kook_clean_files, expected)
+assert CLEAN == expected, "%r != %r" % (CLEAN, expected)
 """[1:]
             def fn():
                 book = Cookbook()
