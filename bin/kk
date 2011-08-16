@@ -32,5 +32,6 @@ case "$kookbook" in
 *.pl)	plkook "$@"  ;;
 *.php)	phpkook "$@" ;;
 *.js)	jskook "$@"  ;;
+*.lua)	luakook "$@"  ;;
 *.yaml)	kook "$@"    ;;
 esac
