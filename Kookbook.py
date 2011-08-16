@@ -195,6 +195,13 @@ def file_users_guide_html(c):
         run(c%"kwaser -t html-css -T $(u).txt > $(u).toc.html")
         run(c%"kwaser -t html-css    $(u).txt > $(u).tmp")
         run_f(c%"tidy -q -i -wrap 9999 $(u).tmp > $(u).html")
+        replacer = [
+            (r'<p>\.\+NOTE:</p>', r'<div class="note"><span class="caption">NOTE:</span>'),
+            (r'<p>\.\-NOTE:</p>', r'</div>'),
+            (r'<p>\.\+TIPS:</p>', r'<div class="note"><span class="caption">TIPS:</span>'),
+            (r'<p>\.\-TIPS:</p>', r'</div>'),
+        ]
+        edit(c%"$(u).html", by=replacer)
         rm(c%'$(u).tmp', c%'$(u).toc.html')
 
 @recipe('doc/users-guide.txt', ['../common/doc/users-guide.eruby'])
