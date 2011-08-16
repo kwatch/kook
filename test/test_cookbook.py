@@ -649,6 +649,17 @@ assert p3 == 30      # != 31, because it is set after loading
                 ok (fn).not_raise()
             dummy_file(bookname, input).run(func)
 
+        if "called then sets '__file__' variable to book's filepath.":
+            bookname = 'kookbook_2727.py'
+            input = r"""
+filename = __file__
+assert filename == '%s'
+""" % (bookname,)
+            def func():
+                def fn(): Cookbook().load_file(bookname)
+                ok (fn).not_raise(NameError)
+            dummy_file(bookname, input).run(func)
+
         if "__export__ is provided then copy values into current context.":
             input = r"""
 __export__ = ('foo', 'bar')

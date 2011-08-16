@@ -199,6 +199,7 @@ class Cookbook(ICookbook):
             context = self.context
         else:
             context = self._new_context(properties)
+        context['__file__'] = filepath
         #
         code_obj = compile(content, filepath or "(kook)", "exec")
         exec(code_obj, context, context)
