@@ -1202,11 +1202,11 @@ File recipes:
 (Tips: you can set 'kookbook.default="XXX"' in your kookbook.)
 </pre>
 
-      <p>.+NOTE:</p>
+      <div class="note"><span class="caption">NOTE:</span>
 
-      <p><span style="color:#FF0000">Notice:</span> Only task recipe is available in Category. Don't define file recipe in catetory.</p>
+      <p>Notice that only task recipe is available in category. In other words, don't define file recipe in catetory.</p>
 
-      <p>.-NOTE:</p><br>
+      </div><br>
       <a name="topic-dyndef" id="topic-dyndef"></a>
 
       <h3 class="section2">Define Recipes Dinamically</h3>
@@ -1272,7 +1272,7 @@ class apache(Category):
     del fn
 </pre>
 
-      <p>.+NOTE:</p>
+      <div class="note"><span class="caption">NOTE:</span>
 
       <p>It is able to integrate these recipes into a recipe which can take arguments.</p><a name="topic-dyndef4/Kookbook.py"></a>
       <pre class="program">
@@ -1283,7 +1283,7 @@ def task_apache(c, *args, **kwargs):
     system("apachectl " + " ".join(args))
 </pre>
 
-      <p>.-NOTE:</p><br>
+      </div><br>
       <a name="topic-metaprog" id="topic-metaprog"></a>
 
       <h3 class="section2">Meta Programming</h3>
@@ -1491,7 +1491,11 @@ bash&gt; kk clean                       # OK
 $ rm **/*.pyc
 </pre>
 
-      <p><span style="color:#FF0000">NOTICE</span> : Current directory will be changed to parent directory in which Kookbook.py exists.</p><br>
+      <div class="note"><span class="caption">NOTE:</span>
+
+      <p>Notice that current directory will be changed to parent directory in which Kookbook.py exists.</p>
+
+      </div><br>
       <a name="topic-short-notation" id="topic-short-notation"></a>
 
       <h3 class="section2">Short notation</h3>

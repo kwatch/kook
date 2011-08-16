@@ -1168,8 +1168,8 @@ File recipes:
 
 .+NOTE:
 
-{{!Notice:!}} Only task recipe is available in Category.
-Don't define file recipe in catetory.
+Notice that only task recipe is available in category.
+In other words, don't define file recipe in catetory.
 
 .-NOTE:
 
@@ -1677,7 +1677,11 @@ $ rm **/*.pyc
 .#$ rm **/*.pyc
 .#.====================
 
-{{!NOTICE!}} : Current directory will be changed to parent directory in which Kookbook.py exists.
+.+NOTE:
+
+Notice that current directory will be changed to parent directory in which Kookbook.py exists.
+
+.-NOTE:
 
 
 
