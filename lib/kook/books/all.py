@@ -32,13 +32,13 @@ def task_all(c):
     """create all products"""
     pass
 
-def add(self, *products):
-    kookbook['all'].ingreds.extend(flatten(products))
-    return self
-
-r = kookbook['all']
-r.add = types.MethodType(add, r)
-
-del r, add
-
 ALL = kookbook['all'].ingreds
+
+#def add(self, *products):
+#    kookbook['all'].ingreds.extend(flatten(products))
+#    return self
+#
+#r = kookbook['all']
+#r.add = types.MethodType(add, r)
+#
+#del r, add
