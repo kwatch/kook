@@ -95,7 +95,8 @@ def task_dist(c):
                   'setup.py', 'Kookbook.py', 'Properties.py', ]
     store(text_files, dir)
     store('lib/kook/**/*.py', 'bin/kk', 'bin/pykook', 'test/**/*.py', dir)
-    rm(dir + '/lib/kook/remote.py')
+    remote_py = dir + '/lib/kook/remote.py'
+    os.path.isfile(remote_py) and rm_f(remote_py)
     store('doc/users-guide.html', 'doc/docstyle.css', 'doc/fig001.png', dir)
     cp('setup.py.txt', dir + '/setup.py')    # copy setup.py.txt as setup.py
     ##
