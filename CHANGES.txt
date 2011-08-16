@@ -65,22 +65,12 @@ releases:
 	    kookbook.load("@kook/books/clean.py")
 	    kookbook.load("@kook/books/all.py")
 
-	    ## specify file patterns to remove
-	    kook_clean_files.extend(["**/*.o", "**/*.class"])   # by-products
-	    kook_sweep_files.extend(["*.egg", "*.war"])         # products
-	    ## or
-	    kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
-	    kookbook['sweep'].add("*.egg", "*.war")             # products
-	    ## or
-	    kookbook['clean'].ingreds.extend(["**/*.o", "**/*.class"])
-	    kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
+	    ## add file patterns to remove
+	    CLEAN.extend(["**/*.o", "**/*.class"])   # by-products
+	    SWEEP.extend(["*.egg", "*.war"])         # products
 
-	    ## specify products you want to produce
-	    kook_all_products.extend(['product1', 'product2'])
-	    ## or
-	    kookbook['all'].add('product1', 'product2')
-	    ## or
-	    kookbook['all'].ingreds.extend(['product1', 'product2'])
+	    ## add product names you want to produce
+	    ALL.extend(['product1', 'product2'])
 
       - Namespace is now supported. It is called as 'Category' in Kook.
         Category is just an class which is provided by Kook.
