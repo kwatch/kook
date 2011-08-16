@@ -37,7 +37,7 @@ releases:
 	    def file_foo_o(c):
 	        kookbook.get_recipe('*.o').method(c)  ## equivarent to file_o(c)
 	    r.method = file_hello_o
-	    
+
       - Load other cookbooks by kookbook.load().
         This enables you to split your Kookbook.py into several files.
 
@@ -64,7 +64,7 @@ releases:
 	    ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
 	    kookbook.load("@kook/books/clean.py")
 	    kookbook.load("@kook/books/all.py")
-	    
+
 	    ## specify file patterns to remove
 	    kook_clean_files.extend(["**/*.o", "**/*.class"])   # by-products
 	    kook_sweep_files.extend(["*.egg", "*.war"])         # products
@@ -111,14 +111,14 @@ releases:
 
             bash> pykook -l
             Properties:
-            
+
             Task recipes:
               git:stash           : git stash list
               git:stash:save      : git stash save
               git:stash:pop       : git stash pop
-            
+
             File recipes:
-            
+
             bash> kk git:stash
             ### * git:stash (recipe=__index__)
             $ git stash list
@@ -126,7 +126,7 @@ releases:
             bash> kk git:stash:save
             ### * git:stash:save (recipe=save)
             $ git stash save
-        
+
         Currently only task recipe is available in Category.
 
       - Concatenation supported.
@@ -151,7 +151,7 @@ releases:
 	    bash> pykook -o yourscript
 	    bash> chmod a+x yourscript
 	    bash> ./yourscript -h
-	
+
       - Argument description is available.
         In the following example, the last argument of @spices() is
 	argument description of task_copy().
@@ -173,11 +173,11 @@ releases:
 
 	    $ kk -l
 	    Properties:
-	    
+
 	    Task recipes:
 	      copy src dest       : copy files
 	        -r                    recursive
-	    
+
 	    File recipes:
 
       - New command 'pushd()' provided.
@@ -208,7 +208,7 @@ releases:
 	and (3) back to original directory.
 	This feature is provided for Python 2.4 or older which doesn't
 	support with-statement.
-	    
+
             def f():
 	       system 'python test_all.py'
 	    chdir('test', f)
@@ -220,7 +220,7 @@ releases:
 
       - 'kk' command now searches Kookbook.py in parent directory recursively
         without $KK_CLIMB=1 setting.
-	    
+
 
   - release:  0.0.4
     date:     2009-09-06
@@ -281,12 +281,12 @@ releases:
           ## previous version
           def task_clean(c):    # 'task_' prefix is required
             rm_rf("*.o")
-        
+
           ## since this release
           @release              # @release decorator is required
           def clean(c):         # 'task_' prefix is not necessary
             rm_rf("*.o")
-        
+
         See http://www.kuwata-lab.com/kook/pykook-users-guide.html#cookbook-recipekind
         for details.
 
@@ -329,14 +329,14 @@ releases:
 
       - Decorator '@cmdopts()' is renamed to '@spices()', and
         there is no need to call parse_cmdopts().
-        
+
             ### prev version
             @cmdopts('-v: verbose', '-f file: filename')
             def task_example(c, *args):
                 opts, rests = c.parse_cmdopts(args)
                 verbose = opts.get('v', False):
                 fileame = opts.get('f', None)
-            
+
             ### since this release (0.0.2)
             @spices('-v: verbose', '-f file: filename')
             def task_example(c, *args, *kwargs):
