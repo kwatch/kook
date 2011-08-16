@@ -19,15 +19,9 @@
 ###    ## load cookbook
 ###    ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
 ###    kookbook.load("@kook/books/clean.py")
-###    ## specify file patterns to remove
+###    ## add file patterns to remove
 ###    CLEAN.extend(["**/*.o", "**/*.class"])   # by-products
 ###    SWEEP.extend(["*.egg", "*.war"])         # products
-###    ## or
-###    kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
-###    kookbook['sweep'].add("*.egg", "*.war")             # products
-###    ## or
-###    kookbook['clean'].ingreds.extend(["*.o", "*.class"])
-###    kookbook['sweep'].ingreds.extend(["*.egg", "*.war"])
 ###
 
 

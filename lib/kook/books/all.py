@@ -15,12 +15,8 @@
 ###    ## load cookbook
 ###    ## ('@kook' is equivarent to 'os.path.dirname(kook.__file__)')
 ###    kookbook.load('@kook/books/all.py')
-###    ## specify products you want to produce
+###    ## add product names you want to produce
 ###    ALL.extend(['product1', 'product2'])
-###    ## or
-###    kookbook['all'].add('product1', 'product2')
-###    ## or
-###    kookbook['all'].ingreds.extend(['product1', 'product2'])
 ###
 
 
