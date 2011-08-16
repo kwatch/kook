@@ -21,7 +21,7 @@
 ###    kookbook.load("@kook/books/clean.py")
 ###    ## specify file patterns to remove
 ###    CLEAN.extend(["**/*.o", "**/*.class"])   # by-products
-###    kook_sweep_files.extend(["*.egg", "*.war"])         # products
+###    SWEEP.extend(["*.egg", "*.war"])         # products
 ###    ## or
 ###    kookbook['clean'].add("**/*.o", "**/*.class")       # by-products
 ###    kookbook['sweep'].add("*.egg", "*.war")             # products
@@ -35,7 +35,7 @@ import types
 from kook.utils import flatten
 
 
-__export__ = ('CLEAN', 'kook_sweep_files')
+__export__ = ('CLEAN', 'SWEEP')
 
 
 CLEAN = []
@@ -55,16 +55,16 @@ r.add = types.MethodType(add, r)
 del r, add
 
 
-kook_sweep_files = []
+SWEEP = []
 
 @recipe
 def sweep(c):
     """remove products and by-products"""
     rm_rf(CLEAN)
-    rm_rf(kook_sweep_files)
+    rm_rf(SWEEP)
 
 def add(self, *file_patterns):
-    kook_sweep_files.extend(flatten(file_patterns))
+    SWEEP.extend(flatten(file_patterns))
     return self
 
 r = kookbook['sweep']

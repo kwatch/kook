@@ -89,10 +89,10 @@ kookbook.load('@kook/books/clean.py')
 r = kookbook['sweep']
 assert r
 assert r.__class__.__name__ == 'Recipe'
-assert 'kook_sweep_files' in globals()
-assert kook_sweep_files == []
+assert 'SWEEP' in globals()
+assert SWEEP == []
 kookbook['sweep'].add('*.hogeratta2', '*.geriatta2')
-assert kook_sweep_files == ['*.hogeratta2', '*.geriatta2']
+assert SWEEP == ['*.hogeratta2', '*.geriatta2']
 kookbook['clean'].add('*.hogeratta')
 """[1:]
             def fn():
