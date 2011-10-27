@@ -1,5 +1,5 @@
 ###
-### $Release: 0.6.0 $
+### $Release: 0.0.0 $
 ### copyright(c) 2008-2011 kuwata-lab.com all rights reserved.
 ### MIT License
 ###
@@ -19,13 +19,13 @@ else:
 
 def _kwargs():
     name             = 'Kook'
-    version          = '0.6.0'
+    version          = '0.0.0'
     author           = 'makoto kuwata'
     author_email     = 'kwa@kuwata-lab.com'
     maintainer       = author
     maintainer_email = author_email
     url              = 'http://www.kuwata-lab.com/kook/'
-    description      = 'a smart build tool for Python, similar to Make, Rake, Ant, or Cook'
+    description      = 'task automation tool for Python, similar to Make, Rake, Ant, or Cook'
     long_description = r'''
 pyKook is a very useful tool to control your task such as compile, install or clean.
 pyKook is similar to Make, Rake, Ant, or Cook.
