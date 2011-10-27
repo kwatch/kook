@@ -17,7 +17,7 @@ lib/kook/kitchen.py
 lib/kook/main.py
 lib/kook/misc.py
 lib/kook/utils.py
-test/oktest.py
+test/test_books.py
 test/test_commands.py
 test/test_cookbook.py
 test/test_decorators.py
