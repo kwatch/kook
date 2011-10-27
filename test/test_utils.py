@@ -35,6 +35,17 @@ char *command = "hello";
 class KookUtilsTest(object):
 
 
+    def _before(self):
+        self._cwd = os.getcwd()
+        os.mkdir('_test_tmp.d')
+        os.chdir('_test_tmp.d')
+
+    def _after(self):
+        os.chdir(self._cwd)
+        import shutil
+        shutil.rmtree('_test_tmp.d')
+
+
     def test_meta2rexp(self):
         from kook.utils import meta2rexp
         ok (meta2rexp('foo.html')) == r'^foo\.html$'
@@ -45,6 +56,7 @@ class KookUtilsTest(object):
 
     def test_glob2(self):
         try:
+            self._before()
             #
             write_file('hello.c', HELLO_C)
             write_file('hello.h', HELLO_H)
@@ -79,11 +91,7 @@ class KookUtilsTest(object):
             ok (glob2("hello.d/**/*")) == expected
             #
         finally:
-            for f in glob('hello*'):
-                if os.path.isdir(f):
-                    shutil.rmtree(f)
-                else:
-                    os.unlink(f)
+            self._after()
 
 
     def test_is_func_or_method(self):
