@@ -1,5 +1,85 @@
 .################################################################################
 
+.$ [ANN] pyKook 0.6.0 - task automation tool for Python, similar to Rake or Ant
+
+Hi,
+
+I have released pyKook 0.6.0.
+http://pypi.python.org/pypi/Kook/0.6.0
+http://www.kuwata-lab.com/kook/
+http://www.kuwata-lab.com/kook/pykook-users-guide.html
+
+In this release, a lot of enhancements are introduced.
+
+
+pyKook Overview
+---------------
+
+pyKook is a task automation tool for Python, similar to Rake or Ant.
+
+(Kookbook.py):
+
+    kookbook.default = 'build'
+
+    @recipe(None, ['hello'])
+    def build(c):
+        """build all"""
+        pass
+
+    @recipe('hello', ['hello.o'])
+    def file_hello(c):
+        """build 'hello' from 'hello.o'"""
+        system(c%'gcc -o $(product) $(ingred)')
+
+    @recipe('*.o', ['$(1).c', '$(1).h'])
+    def file_o(c):
+        system(c%'gcc -c $(ingred)')
+
+
+Command-line:
+
+    bash> kk     # or pykook
+    $ gcc -c hello.c
+    ### *** hello.o (recipe=file_o)
+    $ gcc -c hello.c
+    ### ** hello (recipe=file_hello)
+    $ gcc -o hello hello.o
+    ### * build (recipe=build)
+
+See http://www.kuwata-lab.com/kook/pykook-users-guide.html for details.
+
+
+Enhancements in this release
+----------------------------
+
+* 'kookbook' variable is available in your cookbook to specify
+  materials or default product.
+* Recipe meta-programming support.
+  You can manipulate recipe objects directly.
+* Load other cookbooks by kookbook.load().
+  This enables you to split your Kookbook.py into several files.
+* Support some useful task recipes: clean, sweep, and all.
+* Namespace is now supported. It is called as 'Category' in Kook.
+* Concatenation supported.
+  You can concatenate your cookbook and pyKook libraries into a file.
+  Using concatenated file, user doesn't need to install pyKook at all.
+* Argument description is available.
+* Private spice option is available.
+* New command 'pushd()' provided.
+
+See http://www.kuwata-lab.com/kook/pykook-CHANGES.txt for details.
+
+
+Have fun!
+
+--
+regards,
+makoto kuwata
+
+
+
+.################################################################################
+
 .$ [ANN] pyKook 0.0.4 - a smart build tool similar to Make, Rake, or Ant
 
 Hi,
