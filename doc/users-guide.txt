@@ -1008,7 +1008,7 @@ kookbook.materials = ['optparse.o', ]   # specify materials
 command  = prop('command', basename)
 
 {{*## load other cookbook*}}
-{{*kookbook.load('Common.py')             # or execfile('Common.py')*}}
+{{*kookbook.load('./Common.py')             # or execfile('./Common.py')*}}
 
 ## recipes
 @recipe
@@ -1047,18 +1047,16 @@ $ gcc -g -O2 -o hello hello.o optparse.o
 
 .#---
 
-{{,kookbook.load(),}} accepts the followng format.
-Notice that '{{,@,}}' is depends on {{,__file__,}}, not on $PWD of current process.
+{{,kookbook.load(),}} accepts the following notations.
+Notice that these depend on {{,__file__,}} of Kookbook.py, {{*not on $PWD of current process*}}.
 
 .? Available format by kookbook.load()
 .--------------------
-kookbook.load('Common.py')             # load book in current directory
-kookbook.load('../Common.py')          # load book in parent directory
-kookbook.load('~/Common.py')           # load book in home directory
-kookbook.load('{{*@*}}/../../../Common.py')  # '@' means os.path.dirname(__file__)
-kookbook.load('{{*@@*}}/../../Common.py')    # '@@' means dirname(dirname(__file__))
-kookbook.load('{{*@@@*}}/../Common.py')      # '@@@' means dirname(dirname(dirname(__file__)))
-kookbook.load('{{*@**}}/Common.py')          # '@*' searches cookbook in parent directory recursively
+kookbook.load('{{*./*}}book.py')          # load book in the same directory as 'Kookbook.py'
+kookbook.load('{{*../*}}book.py')         # load book in parent directory of 'Kookbook.py'
+kookbook.load('{{*../../*}}book.py')      # load book in parent's parent directory of 'Kookbook.py'
+kookbook.load('{{*.../*}}book.py')        # search book in parent directory recursively
+kookbook.load('{{*~/*}}book.py')          # load book in home directory
 kookbook.load('{{*@kook*}}/tasks/clean.py')  # '@{{/module/}}' means os.path.dirname({{/module/}}.__file__)
 .--------------------
 
@@ -1067,15 +1065,15 @@ If you have variables or functions to be imported, specify their names to {{,__e
 
 .? Exports data or functions
 .--------------------
-{{*__export__ = ('kook_clean_files', )*}}
+{{*__export__ = ('CLEAN_FILES', )*}}
 
 # this variable is exported, so user can add or manipulate
 # filenames to be removed by 'clean' recipe.
-kook_clean_files = ['**/*.pyc', '**/__pycache__']
+CLEAN_FILES = ['**/*.pyc', '**/__pycache__']
 
 @recipe
 def clean(c):
-    rm_rf kook_clean_files
+    rm_rf CLEAN_FILES
 .--------------------
 
 If you want everything on other cookbook to be imported, use {{,kookbook.load(bookname, True).,}}

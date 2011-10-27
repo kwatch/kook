@@ -1052,7 +1052,7 @@ kookbook.materials = ['optparse.o', ]   # specify materials
 command  = prop('command', basename)
 
 <strong>## load other cookbook</strong>
-<strong>kookbook.load('Common.py')             # or execfile('Common.py')</strong>
+<strong>kookbook.load('./Common.py')             # or execfile('./Common.py')</strong>
 
 ## recipes
 @recipe
@@ -1077,19 +1077,17 @@ def install(c, *args, **kwargs):
     system(c%"sudo cp $(command) $(dir)/$(cmd)")   # or use 'install' command
 </pre>
 
-      <p><code>kookbook.load()</code> accepts the followng format. Notice that '<code>@</code>' is depends on <code>__file__</code>, not on $PWD of current process.</p>
+      <p><code>kookbook.load()</code> accepts the following notations. Notice that these depend on <code>__file__</code> of Kookbook.py, <strong>not on $PWD of current process</strong>.</p>
 
       <div class="program_caption">
         Available format by kookbook.load()
       </div>
       <pre class="program">
-kookbook.load('Common.py')             # load book in current directory
-kookbook.load('../Common.py')          # load book in parent directory
-kookbook.load('~/Common.py')           # load book in home directory
-kookbook.load('<strong>@</strong>/../../../Common.py')  # '@' means os.path.dirname(__file__)
-kookbook.load('<strong>@@</strong>/../../Common.py')    # '@@' means dirname(dirname(__file__))
-kookbook.load('<strong>@@@</strong>/../Common.py')      # '@@@' means dirname(dirname(dirname(__file__)))
-kookbook.load('<strong>@*</strong>/Common.py')          # '@*' searches cookbook in parent directory recursively
+kookbook.load('<strong>./</strong>book.py')          # load book in the same directory as 'Kookbook.py'
+kookbook.load('<strong>../</strong>book.py')         # load book in parent directory of 'Kookbook.py'
+kookbook.load('<strong>../../</strong>book.py')      # load book in parent's parent directory of 'Kookbook.py'
+kookbook.load('<strong>.../</strong>book.py')        # search book in parent directory recursively
+kookbook.load('<strong>~/</strong>book.py')          # load book in home directory
 kookbook.load('<strong>@kook</strong>/tasks/clean.py')  # '@<em>module</em>' means os.path.dirname(<em>module</em>.__file__)
 </pre>
 
@@ -1099,15 +1097,15 @@ kookbook.load('<strong>@kook</strong>/tasks/clean.py')  # '@<em>module</em>' mea
         Exports data or functions
       </div>
       <pre class="program">
-<strong>__export__ = ('kook_clean_files', )</strong>
+<strong>__export__ = ('CLEAN_FILES', )</strong>
 
 # this variable is exported, so user can add or manipulate
 # filenames to be removed by 'clean' recipe.
-kook_clean_files = ['**/*.pyc', '**/__pycache__']
+CLEAN_FILES = ['**/*.pyc', '**/__pycache__']
 
 @recipe
 def clean(c):
-    rm_rf kook_clean_files
+    rm_rf CLEAN_FILES
 </pre>
 
       <p>If you want everything on other cookbook to be imported, use <code>kookbook.load(bookname, True).</code></p>
