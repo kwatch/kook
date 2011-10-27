@@ -63,7 +63,8 @@ def task_package(c):
             run(c%"tar xzf $(dir).tar.gz")
             @pushd(dir)
             def do():
-                run(c%"$(python) setup.py bdist_egg")
+                _python = python
+                run(c%"$(_python) setup.py bdist_egg")
                 mv("dist/*.egg", "..")
                 #rm_rf("build", "dist")
         rm_rf(dir)
