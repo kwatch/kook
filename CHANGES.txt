@@ -42,11 +42,18 @@ releases:
         This enables you to split your Kookbook.py into several files.
 
 	    ## load recipes and properties from other cookbook
-	    kookbook.load('foo.py')        # load recipes and properties
-	    kookbook.load('foo.py', True)  # load all data (i.e share everything)
-	    kookbook.load('~/foo.py')      # load from home directory
-	    kookbook.load('@/foo.py')      # '@' == os.path.dirname(__file__)
-	    kookbook.load('@foo/bar.py')   # '@module' == dirname(module.__file__)
+	    kookbook.load('./book.py')        # load book in the same directory as Kookbook.py
+	    kookbook.load('../book.py')       # load book in the parent directory as Kookbook.py
+	    kookbook.load('../../book.py')    # load book in the parent's parent directory
+	    kookbook.load('.../book.py')      # search book in the parent directory recursively
+	    kookbook.load('~/book.py')        # load book in home directory
+	    kookbook.load('@foo/book.py')     # '@module' == dirname(module.__file__)
+
+	Notice that kookbook.load() loads only recipes and properties.
+	If you want to load everything, pass True as 2nd argument.
+
+	    kookbook.load('./foo.py')        # load recipes and properties
+	    kookbook.load('./foo.py', True)  # load all data (i.e share everything)
 
         If you set '__export__' in foobar.py, data are imported into
 	your Kookbook.py.
@@ -207,10 +214,6 @@ releases:
 	    def do():     # called by pushd() automatically!
 	        # ... do something in 'tmp' directory ...
 	    # ... back to previous directory automatically ...
-
-    changes:
-
-      - (internal) Update 'oktest.py' to 0.8.0
 
 
   - release:  0.0.5
