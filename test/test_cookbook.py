@@ -544,7 +544,7 @@ kookbook.load('""" + bookname + """')
                 ok (r.ingreds) == ["$(1).txt"]
             dummy_file(bookname, input).run(func)
 
-        if "1st character of filepath is '@' then regarded as file's location.":
+        if "filepath starts with './' then ragards it to be on same directory as Kookbook.pl.":
             input = r"""
 @recipe
 def hello99(c):
@@ -552,7 +552,7 @@ def hello99(c):
     print("Hello!")
 """[1:]
             input2 = r"""
-kookbook.load('@/f1.py')
+kookbook.load('./f1.py')
 """
             try:
                 mkdir_p('t.d1/d2')
@@ -564,7 +564,7 @@ kookbook.load('@/f1.py')
             finally:
                 rm_rf('t.d1')
 
-        if "filepath starts with '@*/' then search file in parent directly recursively.":
+        if "filepath starts with '.../' then search file in parent directly recursively.":
             input = r"""
 @recipe
 def hello99(c):
@@ -572,7 +572,7 @@ def hello99(c):
     print("Hello!")
 """[1:]
             input2 = r"""
-kookbook.load('@*/f1.py')
+kookbook.load('.../f1.py')
 """
             try:
                 mkdir_p('t.d1/d2')
@@ -585,7 +585,7 @@ kookbook.load('@*/f1.py')
                 rm_rf('t.d1')
                 if os.path.exists('f1.py'): os.unlink('f1.py')
 
-        if "filepath starts with '@@/' then search file in 2-level above directly.":
+        if "filepath starts with '../../' then search file in 2-level above directly.":
             input = r"""
 @recipe
 def hello96(c):
@@ -593,7 +593,7 @@ def hello96(c):
     print("Hello!")
 """[1:]
             input2 = r"""
-kookbook.load('@@@/f1.py')
+kookbook.load('../../f1.py')
 """
             try:
                 mkdir_p('t.d1/d2')

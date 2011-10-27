@@ -266,7 +266,7 @@ class KookbookProxy(object):
         return None
 
     def load(self, filename, context_shared=False):
-        filepath = resolve_filepath(filename, 1)
+        filepath = resolve_filepath(filename, 2)
         return self._book.load_book(filepath, context_shared)
 
     def __get_default(self):
