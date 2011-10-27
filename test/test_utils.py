@@ -105,6 +105,49 @@ class KookUtilsTest(object):
             ok (is_func_or_method(Bar)).is_(False)
 
 
+    def test_resolve_filepath(self):
+        from kook.utils import resolve_filepath
+        from os.path import dirname, abspath
+        if "filepath starts with './' then expands current directory.":
+            expected = dirname(abspath(__file__)) + '/foo.py'
+            ok (resolve_filepath('./foo.py')) == expected
+        if "filepath starts with '../' then expands parent directory.":
+            expected = dirname(dirname(abspath(__file__))) + '/foo.py'
+            ok (resolve_filepath('../foo.py')) == expected
+        if "filepath starts with '../../' then expands parent's parent directory":
+            expected = dirname(dirname(dirname(abspath(__file__)))) + '/foo.py'
+            ok (resolve_filepath('../../foo.py')) == expected
+        if "filepath starts with '.../' then finds file in parent directory recursively":
+            dct = {}
+            try:
+                os.mkdir('_test_tmp.d');
+                os.mkdir('_test_tmp.d/d1');
+                os.mkdir('_test_tmp.d/d1/d2');
+                code = """
+from kook.utils import resolve_filepath
+foo_path = resolve_filepath('.../foo.py')
+bar_path = resolve_filepath('.../bar.py')
+"""
+                #write_file('_test_tmp.d/d1/d2/example.py', code);
+                write_file('_test_tmp.d/foo.py', '')
+                #
+                codeobj = compile(code, '_test_tmp.d/d1/d2/example.py', 'exec')
+                exec(codeobj, dct, dct);
+                #
+            finally:
+                import shutil
+                shutil.rmtree('_test_tmp.d')
+            ok (dct['foo_path']) == os.getcwd() + '/_test_tmp.d/foo.py'
+            ok (dct['bar_path']) == '.../bar.py'
+        if "filepath starts with '~/' then expands to home directory.":
+            ok (resolve_filepath('~/foo')) == os.environ.get('HOME') + '/foo'
+        if "filepath starts with '~user/' then expands to home directory of user.":
+            ok (resolve_filepath('~root/foo')).in_(['/foo', '/root/foo', '/var/root/foo'])
+        if "else then returns filepath as it is.":
+            ok (resolve_filepath('foo.py')) == 'foo.py'
+
+
+
 class CommandOptionParserTest(object):
 
     def test_parse_spices1(self):

@@ -210,40 +210,47 @@ def glob2(pattern):
 
 
 def resolve_filepath(filepath, depth=1):
+    dirname = os.path.dirname
+    abspath = os.path.abspath
+    exists  = os.path.exists
     if filepath[0] == "~":
-        filepath = os.path.expanduser(filepath)
-    elif filepath[0] == "@":
-        dirname = os.path.dirname
-        exists = os.path.exists
+        return os.path.expanduser(filepath)
+    elif filepath.startswith('./'):
+        d = dirname(sys._getframe(depth).f_code.co_filename) or '.'
+        d = abspath(d)
+        return d + '/' + filepath[len('./'):]
+    elif filepath.startswith('../'):
+        m = re.search(r'^((?:../)+)(.*)', filepath)
+        n = len(m.group(1)) / 3
+        d = dirname(sys._getframe(depth).f_code.co_filename) or '.'
+        d = abspath(d)
+        while n > 0:
+            d = dirname(d)
+            n -= 1
+        return d + '/' + m.group(2)
+    elif filepath.startswith('.../'):
+        base = filepath[len('...'):]
+        assert base.startswith('/')
+        d = dirname(sys._getframe(depth).f_code.co_filename) or '.'
+        d = abspath(d)
+        parent = dirname(d)
+        while parent != d:
+            if exists(parent + base):
+                return parent + base
+            d = parent
+            parent = dirname(d)
+        return filepath
+    elif re.search(r'^@(\w+)', filepath):
         m = re.search(r'^@(\w+)', filepath)
-        if m:
-            module_name = m.group(1)
-            try:
-                mod = __import__(module_name)
-            except ImportError:
-                raise ValueError("%s: module '%s' not found." % (filepath, module_name))
-            rest = filepath[1+len(module_name):]
-            filepath = dirname(mod.__file__) + rest
-        else:
-            d = dirname(sys._getframe(depth+1).f_code.co_filename) or '.'
-            m = re.search(r'^(@+)(\*)?', filepath)
-            rest = filepath[len(m.group(0)):]
-            n = len(m.group(1)) - 1
-            while n:
-                if d == '.': d = os.getcwd()
-                parent = dirname(d) or '.'
-                if parent == d: break
-                d = parent
-                n -= 1
-            if m.group(2):
-                while not exists(d + rest):
-                    if d == '.': d = os.getcwd()
-                    parent = dirname(d) or '.'
-                    if parent == d:
-                        raise ValueError("%s: not found." % filepath)
-                    d = parent
-            filepath = d + rest
-    return filepath
+        module_name = m.group(1)
+        try:
+            mod = __import__(module_name)
+        except ImportError:
+            raise ValueError("%s: module '%s' not found." % (filepath, module_name))
+        rest = filepath[1+len(module_name):]
+        return dirname(mod.__file__) + rest
+    else:
+        return filepath
 
 
 class CommandOptionError(Exception):   # StandardError is not available in Python 3.0
