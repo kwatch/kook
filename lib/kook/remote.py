@@ -7,7 +7,7 @@
 ###
 
 import sys, os, re, time
-getpass = None         # on-demand import
+import getpass
 
 from kook import KookCommandError
 import kook.utils
@@ -130,9 +130,13 @@ class Session(object):
     def _open(self):
         ssh = paramiko.SSHClient()
         ssh.load_system_host_keys()
-        ssh.connect(hostname=self.host, port=self.port,
-                    username=self.user, password=self.password,
-                    pkey=self.privatekey)
+        if self.password:
+            ssh.connect(hostname=self.host, port=self.port,
+                        username=self.user, password=self.password)
+        else:
+            self.privatekey = self._get_privatekey()
+            ssh.connect(hostname=self.host, port=self.port,
+                        username=self.user, pkey=self.privatekey)
         self._ssh = ssh
         self._sftp = ssh.open_sftp()
         return self
@@ -147,6 +151,31 @@ class Session(object):
 
     def _echoback(self, command):
         sys.stdout.write("[%s@%s]$ %s\n" % (self.user, self.host, command))
+
+    def _get_privatekey(self):
+        for fname in ('~/.ssh/id_rsa', '~/.ssh/id_dsa'):
+            fpath = os.path.expanduser(fname)
+            if os.path.exists(fpath):
+                break
+        else:
+            raise ValueError("private key file ('~/.ssh/id_rsa' or '~/.ssh/id_dsa') not found.")
+        try:
+            #pkey = paramiko.RSAKey.from_private_key_file(fpath, self.passphrase)
+            pkey = paramiko.RSAKey(filename=fpath, password=self.passphrase)
+        except paramiko.PasswordRequiredException:  # 'Private key file is encrypted'
+            if self.passphrase:
+                raise
+            self.passphrase = getpass.getpass("Enter passphrase for key '%s': " % fname)
+            if self._remote and not self._remote.passphrase:
+                self._remote.passphrase = self.passphrase
+            try:
+                #pkey = paramiko.RSAKey.from_private_key_file(fpath, self.passphrase)
+                pkey = paramiko.RSAKey(filename=fpath, password=self.passphrase)
+            except paramiko.SSHException, ex:  # 'Unable to parse key file'
+                if ex.message == 'Unable to parse key file':
+                    ex.args = (ex.args[0] + " (%s): passphrase may be wrong." % fname, )
+                raise
+        return pkey
 
 
     ##
@@ -297,8 +326,6 @@ class Session(object):
 
     def _get_sudo_password(self):
         if self._sudo_password is None:
-            global getpass
-            if not getpass: import getpass
             prompt = "[sudo] password for %s@%s: " % (self.user, self.host)
             self._sudo_password = getpass.getpass(prompt)
         return self._sudo_password
