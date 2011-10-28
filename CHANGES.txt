@@ -2,7 +2,7 @@
 releases:
 
   - release:  0.6.0
-    date:     ????
+    date:     2011-10-27
     enhances:
 
       - 'kookbook' variable is available in your cookbook.
