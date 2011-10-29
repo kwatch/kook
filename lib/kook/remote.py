@@ -61,7 +61,7 @@ class Remote(object):
                  privatekey=self.privatekey, passphrase=self.passphrase,
                  sudo_password=self.sudo_password)
         if isinstance(host, dict):
-            d.update(dict)
+            d.update(host)
         else:
             d['host'] = host
         m = re.match(r'^(.+?@)?(.+?)(:\d+)?$', d['host'] or '')
