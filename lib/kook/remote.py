@@ -176,7 +176,8 @@ class Session(object):
             try:
                 #pkey = paramiko.RSAKey.from_private_key_file(fpath, self.passphrase)
                 pkey = paramiko.RSAKey(filename=fpath, password=self.passphrase)
-            except paramiko.SSHException, ex:  # 'Unable to parse key file'
+            except paramiko.SSHException:  # 'Unable to parse key file'
+                ex = sys.exc_info()[1]
                 if ex.message == 'Unable to parse key file':
                     _print_at_exit("*** ERROR: passphrase for '%s' may be wrong." % fname)
                 elif ex.message == 'Not a valid RSA private key file (bad ber encoding)':
