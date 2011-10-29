@@ -118,6 +118,7 @@ class Session(object):
         #
         self._remote = None
         self._transport = None
+        self._ssh = None
         self._sftp = None
         self._paths = []
         self._moved = False
