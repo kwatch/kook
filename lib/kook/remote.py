@@ -42,26 +42,28 @@ class Remote(object):
     _session = None
     SESSION  = None    # set later
 
-    def __init__(self, hosts=None, port=22, user=None, password=None, privatekey=None, passphrase=None):
+    def __init__(self, hosts=None, port=22, user=None, password=None, privatekey=None, passphrase=None, sudo_password=None):
         if hosts is None:
             hosts = []
         elif isinstance(hosts, str):
             hosts = [hosts]
         if user is None: user = os.environ.get('LOGNAME')
         setattrs(self, hosts=hosts, port=port, user=user, password=password,
-                       privatekey=privatekey, passphrase=passphrase)
+                       privatekey=privatekey, passphrase=passphrase, sudo_password=sudo_password)
         #self.hosts = hosts
         #self.port  = port
         #self.user  = user or os.environ.get('LOGNAME')
         #self.password    = password
         #self.privatekey  = privatekey
         #self.passphrase  = passphrase
+        #self.sudo_password = sudo_password
 
     def new_session(self, host=None):
         if host is None: host = self.hosts and self.hosts[0] or None
         d = dict(host=host, port=self.port,
                  user=self.user, password=self.password,
-                 privatekey=self.privatekey, passphrase=self.passphrase)
+                 privatekey=self.privatekey, passphrase=self.passphrase,
+                 sudo_password=self.sudo_password)
         if isinstance(host, dict):
             d.update(dict)
         else:
@@ -109,13 +111,14 @@ class Remote(object):
 
 class Session(object):
 
-    def __init__(self, host, port=22, user=None, password=None, privatekey=None, passphrase=None):
+    def __init__(self, host, port=22, user=None, password=None, privatekey=None, passphrase=None, sudo_password=None):
         self.host = host
         self.port = port
         self.user = user
         self.password   = password
         self.privatekey = privatekey
         self.passphrase = passphrase
+        self.sudo_password = sudo_password
         #
         self._remote = None
         self._transport = None
@@ -123,7 +126,6 @@ class Session(object):
         self._paths = []
         self._moved = False
         self._pwd = None
-        self._sudo_password = None
 
     def __enter__(self):
         self._open()
@@ -299,11 +301,11 @@ class Session(object):
             if error:  sys.stderr.write(error)
         return (output, error, status)
 
-    def ssh_sudo_v(self, password=None):
+    def ssh_sudo_v(self, sudo_password=None):
         self._echoback("sudo -v")
-        if password: self._sudo_password = password
+        if sudo_password: self.sudo_password = sudo_password
         self._check_sudo_password()    # set self._sudo_password
-        return self._sudo_password
+        return self.sudo_password
 
     sudo   = ssh_sudo
     sudo_f = ssh_sudo_f
@@ -316,9 +318,10 @@ class Session(object):
         if status == 0:
             return
         ## enter passowrd for sudo command
-        password = self.password or self._get_sudo_password()
+        if not self.sudo_password:
+            self.sudo_password = self.password or self._get_sudo_password()
         sin, sout, serr = self._ssh.exec_command("sudo -v")   # validate
-        sin.write(password + "\n")
+        sin.write(self.sudo_password + "\n")
         sin.flush()  #sin.close()
         ## command will be timeout when password is wrong
         channel = sout.channel
@@ -333,10 +336,8 @@ class Session(object):
             raise KookCommandError(self._add_hint_about_sudo_settings(errmsg))
 
     def _get_sudo_password(self):
-        if self._sudo_password is None:
-            prompt = "[sudo] password for %s@%s: " % (self.user, self.host)
-            self._sudo_password = getpass.getpass(prompt)
-        return self._sudo_password
+        prompt = "[sudo] password for %s@%s: " % (self.user, self.host)
+        return getpass.getpass(prompt)
 
     def _wait_for_status_ready(self, channel, sec=1.0):
         max = int(sec * 10)   # 10 == 1/0.1
