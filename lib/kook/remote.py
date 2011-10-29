@@ -5,6 +5,7 @@
 ### $Copyright$
 ### $License$
 ###
+from __future__ import with_statement
 
 import sys, os, re, time
 import getpass
