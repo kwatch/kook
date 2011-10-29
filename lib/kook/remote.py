@@ -278,12 +278,14 @@ class Session(object):
     ##
 
     def ssh_sudo(self, command, show_output=True):
+        """run gracefully; throws exception when commaind is failed"""
         output, error, status = self.ssh_sudo_f(command, show_output)
         if status != 0:
             raise KookCommandError("remote command failed (status=%s)." % status)
         return (output, error, status)
 
     def ssh_sudo_f(self, command, show_output=True):
+        """run forcedly; ignores status code of command"""
         command = "sudo " + command
         self._echoback(command)
         self._check_sudo_password()
@@ -299,6 +301,7 @@ class Session(object):
         return (output, error, status)
 
     def ssh_sudo_v(self, sudo_password=None):
+        """do 'sudo -v'"""
         self._echoback("sudo -v")
         if sudo_password: self.sudo_password = sudo_password
         self._check_sudo_password()    # set self._sudo_password
