@@ -12,6 +12,7 @@ import atexit
 
 from kook import KookCommandError
 import kook.utils
+from kook.utils import setattrs
 
 try:
     import paramiko
@@ -29,12 +30,6 @@ python3 = sys.version_info[0] == 3
 
 def _print_at_exit(message):
     atexit.register(lambda: sys.stderr.write(message + "\n"))
-
-
-def setattrs(obj, **kwargs):
-    for k in kwargs:
-        setattr(obj, k, kwargs[k])
-    return obj
 
 
 class Remote(object):
