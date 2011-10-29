@@ -8,6 +8,7 @@
 
 import sys, os, re, time
 import getpass
+import atexit
 
 from kook import KookCommandError
 import kook.utils
@@ -24,6 +25,10 @@ __all__ = ('Remote', )
 
 python2 = sys.version_info[0] == 2
 python3 = sys.version_info[0] == 3
+
+
+def _print_at_exit(message):
+    atexit.register(lambda: sys.stderr.write(message + "\n"))
 
 
 def setattrs(obj, **kwargs):
@@ -173,7 +178,9 @@ class Session(object):
                 pkey = paramiko.RSAKey(filename=fpath, password=self.passphrase)
             except paramiko.SSHException, ex:  # 'Unable to parse key file'
                 if ex.message == 'Unable to parse key file':
-                    ex.args = (ex.args[0] + " (%s): passphrase may be wrong." % fname, )
+                    _print_at_exit("*** ERROR: passphrase for '%s' may be wrong." % fname)
+                elif ex.message == 'Not a valid RSA private key file (bad ber encoding)':
+                    _print_at_exit("*** ERROR: passphrase for '%s' may be not entered." % fname)
                 raise
         return pkey
 
