@@ -88,17 +88,17 @@ class Remote(object):
 
     def __call__(self, func):
         def deco(c, *args, **kwargs):
-            ssh = getattr(c, 'remote_session', None)
+            ssh = getattr(c, 'ssh', None)
             if ssh:
                 func(c, *args, **kwargs)
             else:
                 for ssh in self:
-                    c.remote_session = ssh
+                    c.ssh = ssh
                     try:
                         with ssh:
                             func(c, *args, **kwargs)
                     finally:
-                        c.remote_session = None
+                        c.ssh = None
         return setattrs(deco, __name__=func.__name__, __doc__=func.__doc__)
         #deco.__name__ = func.__name__
         #deco.__doc__ = func.__doc__
