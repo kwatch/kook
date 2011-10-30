@@ -196,6 +196,13 @@ class Session(object):
     def _chdir(self, path):
         self._sftp.chdir(path)
 
+    def cd(self, path):
+        back_to = self.getcwd()
+        self._moved = True
+        self._echoback("cd %s" % (path))
+        self._chdir(path)
+        return Chdir(back_to, self)
+
     def getcwd(self):
         return self._sftp.getcwd() or self._sftp.normalize('.')
 
@@ -357,6 +364,20 @@ class Session(object):
 
 
 Remote.SESSION = Session
+
+
+class Chdir(object):
+
+    def __init__(self, back_to, session):
+        self.back_to = back_to
+        self.session = session
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.session._chdir(self.back_to)
+        self.session._echoback("cd -    # pwd=%s" % (self.back_to, ))
 
 
 class PushDir(object):
