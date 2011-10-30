@@ -218,15 +218,15 @@ class SshSession(object):
     ## sftp
     ##
 
-    def sftp_get(self, remote_path, local_path=None):
+    def get(self, remote_path, local_path=None):
         self._echoback("sftp get %s %s" % (remote_path, local_path or ""))
         self._sftp.get(remote_path, local_path or os.path.basename(remote_path))
 
-    def sftp_put(self, local_path, remote_path=None):
+    def put(self, local_path, remote_path=None):
         self._echoback("sftp put %s %s" % (local_path, remote_path or ""))
         self._sftp.put(local_path, remote_path or os.path.basename(local_path))
 
-    def sftp_mget(self, *remote_patterns):
+    def mget(self, *remote_patterns):
         remote_patterns = kook.utils.flatten(remote_patterns)
         self._echoback("sftp mget %s" % " ".join(remote_patterns))
         for pattern in remote_patterns:
@@ -239,7 +239,7 @@ class SshSession(object):
                     local_path = fname
                     self._sftp.get(remote_path, local_path)
 
-    def sftp_mput(self, *local_patterns):
+    def mput(self, *local_patterns):
         local_patterns = kook.utils.flatten(local_patterns)
         self._echoback("sftp mput %s" % " ".join(local_patterns))
         for pattern in local_patterns:
@@ -247,23 +247,18 @@ class SshSession(object):
                 remote_path = os.path.basename(local_path)
                 self._sftp.put(local_path, remote_path)
 
-    get  = sftp_get
-    put  = sftp_put
-    mget = sftp_mget
-    mput = sftp_mput
-
 
     ##
     ## ssh
     ##
 
-    def ssh_run(self, command, show_output=True):
-        output, error, status = self.ssh_run_f(command, show_output)
+    def run(self, command, show_output=True):
+        output, error, status = self.run_f(command, show_output)
         if status != 0:
             raise KookCommandError("remote command failed (status=%s)." % status)
         return (output, error, status)
 
-    def ssh_run_f(self, command, show_output=True):
+    def run_f(self, command, show_output=True):
         self._echoback(command)
         if self._moved:
             command = "cd %s; %s" % (self.getcwd(), command)
@@ -276,22 +271,19 @@ class SshSession(object):
             if error:  sys.stderr.write(error)
         return (output, error, status)
 
-    run   = ssh_run
-    run_f = ssh_run_f
-
 
     ##
     ## sudo
     ##
 
-    def ssh_sudo(self, command, show_output=True):
+    def sudo(self, command, show_output=True):
         """run gracefully; throws exception when commaind is failed"""
-        output, error, status = self.ssh_sudo_f(command, show_output)
+        output, error, status = self.sudo_f(command, show_output)
         if status != 0:
             raise KookCommandError("remote command failed (status=%s)." % status)
         return (output, error, status)
 
-    def ssh_sudo_f(self, command, show_output=True):
+    def sudo_f(self, command, show_output=True):
         """run forcedly; ignores status code of command"""
         command = "sudo " + command
         self._echoback(command)
@@ -307,16 +299,12 @@ class SshSession(object):
             if error:  sys.stderr.write(error)
         return (output, error, status)
 
-    def ssh_sudo_v(self, sudo_password=None):
+    def sudo_v(self, sudo_password=None):
         """do 'sudo -v'"""
         self._echoback("sudo -v")
         if sudo_password: self.sudo_password = sudo_password
         self._check_sudo_password()    # set self._sudo_password
         return self.sudo_password
-
-    sudo   = ssh_sudo
-    sudo_f = ssh_sudo_f
-    sudo_v = ssh_sudo_v
 
     def _check_sudo_password(self):
         ## run dummy command in non-interactive mode
