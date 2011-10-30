@@ -66,11 +66,11 @@ class KookRemoteTest(object):
         r.user = os.environ.get('LOGNAME')
 
 
-    @test("#new_session(): returns Session object.")
+    @test("#new_session(): returns session object.")
     @skip.when(import_failed, reason)
     def _(self):
         sess = Remote().new_session('host1')
-        ok (sess).is_a(kook.remote.Session)
+        ok (sess).is_a(kook.remote.SshSession)
 
     @test("#new_session(): accepts host.")
     @skip.when(import_failed, reason)
@@ -99,7 +99,7 @@ class KookRemoteTest(object):
     def _(self):
         r = Remote(hosts=['host1', 'host2'])
         sess = r.__enter__()
-        ok (sess).is_a(kook.remote.Session)
+        ok (sess).is_a(kook.remote.SshSession)
         ok (sess.host) == 'host1'
 
     @test("#__enter__(): (internal) sets session object to ivar '_session'.")
@@ -108,10 +108,10 @@ class KookRemoteTest(object):
         r = Remote(hosts=['host1', 'host2'])
         sess = r.__enter__()
         ok (r).has_attr('_session')
-        ok (r._session).is_a(kook.remote.Session)
+        ok (r._session).is_a(kook.remote.SshSession)
 
 
-    @test("#__exit__(): (internal) calls Session#_close().")
+    @test("#__exit__(): (internal) calls SshSession#_close().")
     @skip.when(import_failed, reason)
     def _(self):
         r = Remote(hosts=['host1', 'host2'])
@@ -129,7 +129,7 @@ class KookRemoteTest(object):
         i = 0
         for sess in r:
             i += 1
-            ok (sess).is_a(kook.remote.Session)
+            ok (sess).is_a(kook.remote.SshSession)
             ok (sess.host) == 'host%d' % i
 
 
@@ -153,7 +153,7 @@ class KookRemoteTest(object):
 
 
 
-class KookSessionTest(object):
+class KookSshSessionTest(object):
 
 
     @test("#__call__(): accepts arguments.")

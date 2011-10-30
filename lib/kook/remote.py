@@ -105,7 +105,7 @@ class Remote(object):
         #return deco
 
 
-class Session(object):
+class SshSession(object):
 
     def __init__(self, host, port=22, user=None, password=None, privatekey=None, passphrase=None, sudo_password=None):
         self.host = host
@@ -363,7 +363,7 @@ class Session(object):
         return errmsg
 
 
-Remote.SESSION = Session
+Remote.SESSION = SshSession
 
 
 class Chdir(object):
