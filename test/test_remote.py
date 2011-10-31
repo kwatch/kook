@@ -6,23 +6,70 @@
 
 from __future__ import with_statement
 
-import sys, os
+import sys, os, re
+import getpass
 import oktest
 from oktest import ok, NG, test, skip
 import oktest.tracer
+from oktest.dummy import dummy_io
 
 import_failed = False
 reason = None
 try:
     import kook.remote
-    from kook.remote import *
-except ImportError:
+    from kook.remote import Remote, Password, SshSession, Chdir, PushDir
+except ImportError, ex:
     import_failed = True
     reason = sys.exc_info()[1].message
+from kook.cookbook import Cookbook
+from kook.kitchen import Kitchen
+
+
+
+class DummySession(Remote.SESSION):
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+
+def dummy_getpass(prompt, stream):
+    stream.write(prompt)
+    stream.write("\n")
+    line = sys.stdin.readline()
+    return re.sub(r'\r?\n$', '', line)
+
+
+_orig_session_class = Remote.SESSION
+
+def provide_dummy_session_class(self):
+    Remote.SESSION = DummySession
+
+def release_dummy_session_class(*arg):
+    Remote.SESSION = _orig_session_class
+
+
+_orig_getpass = getpass.getpass
+
+def provide_dummy_getpass(self):
+    getpass.getpass = dummy_getpass
+
+def release_dummy_getpass(*args):
+    getpass.getpass = _orig_getpass
 
 
 
 class KookRemoteTest(object):
+
+
+    def before(self):
+        self.at_end = None
+
+    def after(self):
+        if self.at_end:
+            self.at_end()
 
 
     @test("#__init__(): accepts arguments.")
@@ -93,6 +140,46 @@ class KookRemoteTest(object):
         ok (sess.user) == 'user2'
         ok (sess.port) == 1234
 
+    @test("#new_session(): asks to user password when password value is Password object.")
+    @skip.when(import_failed, reason)
+    def _(self, dummy_session_class, dummy_getpass):
+        input = r"""
+from kook.remote import Remote, Password
+remote = Remote(
+    hosts = ['localhost:22'],
+    password      = Password('login'),
+    passphrase    = Password('~/.ssh/id_rsa'),
+    sudo_password = Password('sudo')
+)
+#
+@recipe
+@remote
+def remote_test(c):
+    ssh = c.ssh
+    print('ssh.password=%r' % (ssh.password,))
+    print('ssh.passphrase=%r' % (ssh.passphrase,))
+    print('ssh.sudo_password=%r' % (ssh.sudo_password,))
+"""
+        expected = r"""
+### * remote_test (recipe=remote_test)
+Password for login: 
+Password for ~/.ssh/id_rsa: 
+Password for sudo: 
+ssh.password='AAA'
+ssh.passphrase='BBB'
+ssh.sudo_password='CCC'
+"""[1:]
+        stdin = "AAA\nBBB\nCCC\n" # password, passphrase, sudo password
+        with dummy_io(stdin) as dio:
+            kook.config.stdout = sys.stdout
+            kook.config.stderr = sys.stderr
+            kookbook = Cookbook().load(input)
+            kitchen = Kitchen(kookbook)
+            kitchen.start_cooking('remote_test')
+        sout, serr = dio
+        ok (sout) == expected
+        ok (serr) == ''
+
 
     @test("#__enter__(): returns session object.")
     @skip.when(import_failed, reason)
@@ -150,6 +237,49 @@ class KookRemoteTest(object):
     def _(self):
         ## TODO:
         pass
+
+
+
+class KookPasswordTest(object):
+
+
+    @test("#__init__(): takes 'target' and 'prompt' arguments.")
+    @skip.when(import_failed, reason)
+    def _(self):
+        password = Password('target1', 'prompt1')
+        ok (password.target) == 'target1'
+        ok (password.prompt) == 'prompt1'
+
+    @test("#__init__(): sets 'prompt' from 'target' when 'prompt' is not specified.")
+    @skip.when(import_failed, reason)
+    def _(self):
+        password = Password('target1')
+        ok (password.target) == 'target1'
+        ok (password.prompt) == 'Password for target1: '
+
+    @test("#__init__(): sets default prompt when neigther 'target' nor 'prompt' specified.")
+    @skip.when(import_failed, reason)
+    def _(self):
+        password = Password()
+        ok (password.target) == None
+        ok (password.prompt) == 'Password: '
+
+
+    @test("#get(): asks password to user and keeps it.")
+    @skip.when(import_failed, reason)
+    def _(self, dummy_getpass):
+        stdin = "AAA\nBBB\n"
+        with dummy_io(stdin) as dio:
+            password = Password()
+            ok (password.value) == None
+            val = password.get()
+            ok (val) == "AAA"
+            ok (password.value) == "AAA"
+            val = password.get()
+            ok (password.value) == "AAA"
+        sout, serr = dio
+        ok (sout) == "Password: \n"
+        ok (serr) == ""
 
 
 

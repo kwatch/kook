@@ -22,7 +22,7 @@ except ImportError:
     sys.exit(1)
 
 
-__all__ = ('Remote', )
+__all__ = ('Remote', 'Password')
 
 
 python2 = sys.version_info[0] == 2
@@ -64,6 +64,10 @@ class Remote(object):
             d.update(host)
         else:
             d['host'] = host
+        for k in ('password', 'passphrase', 'sudo_password'):
+            v = d[k]
+            if isinstance(v, Password):
+                d[k] = v.get()
         m = re.match(r'^(.+?@)?(.+?)(:\d+)?$', d['host'] or '')
         if m:
             m1, m2, m3 = m.groups()
@@ -103,6 +107,23 @@ class Remote(object):
         #deco.__name__ = func.__name__
         #deco.__doc__ = func.__doc__
         #return deco
+
+
+class Password(object):
+
+    def __init__(self, target=None, prompt=None):
+        self.target = target
+        self.prompt = prompt
+        if prompt:    self.prompt = prompt
+        elif target:  self.prompt = 'Password for %s: ' % (target, )
+        else:         self.prompt = 'Password: '
+        self.value = None
+
+    def get(self, prompt=None):
+        if self.value is None:
+            if not prompt: prompt = self.prompt
+            self.value = getpass.getpass(prompt, sys.stdout)
+        return self.value
 
 
 class SshSession(object):
