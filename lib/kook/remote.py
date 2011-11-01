@@ -106,10 +106,9 @@ class Remote(object):
         setattrs(deco, __name__=func.__name__, __doc__=func.__doc__)
         #deco.__name__ = func.__name__
         #deco.__doc__ = func.__doc__
-        attrs = ('_kook_recipe', '_kook_product', '_kook_ingreds', '_kook_byprods', '_kook_coprods', '_kook_priority', '_kook_spices')
-        for attr in attrs:
-            if hasattr(func, attr):
-                setattr(deco, attr, getattr(func, attr))
+        for k in func.__dict__:
+            if k.startswith('_kook_'):
+                setattr(deco, k, func.__dict__[k])
         return deco
 
 
