@@ -36,74 +36,6 @@ class Kitchen(object):
             cookbook = Cookbook.new(cookbook)
         return cls(cookbook, **properties)
 
-    def create_cooking_tree(self, target_product, cookables=None):
-        """create tree of Cooking and Material. raises error if recipe or material not found."""
-        if cookables is None: cookables = {}  # key: product name, value: cookable object
-        cookbook = self.cookbook
-        def _create(target, parent_product):
-            exists = os.path.exists
-            if target in cookables:
-                return cookables[target]
-            cookable = None
-            if cookbook.material_p(target):
-                if not exists(target):
-                    raise KookRecipeError("%s: material not found." % target)
-                cookable = Material.new(target)
-            else:
-                recipe = cookbook.find_recipe(target)
-                if   recipe:          cookable = Cooking.new(target, recipe)
-                elif exists(target):  cookable = Material.new(target)
-                else:
-                    if parent_product:
-                        raise KookRecipeError("%s: no such recipe nor material (required for %s)." % (target, repr(parent_product)))
-                    else:
-                        raise KookRecipeError("%s: no such recipe nor material." % target)
-            assert cookable is not None
-            cookables[target] = cookable
-            if cookable.ingreds:
-                assert isinstance(cookable, Cooking)
-                for ingred in cookable.ingreds:
-                    if isinstance(ingred, ConditionalFile):
-                        filename = ingred()
-                        if not filename: continue
-                        ingred = filename
-                    #if isinstance(ingred, IfExists):
-                    #    if not exists(ingred.filename): continue
-                    child_cookable = _create(ingred, target)
-                    cookable.children.append(child_cookable)
-            return cookable
-        _create(target_product, None)
-        root = cookables[target_product]
-        return root   # cookable object
-
-    def check_cooking_tree(self, root):
-        """raise KookRecipeError if tree has a loop."""
-        def _traverse(cooking, route, visited):
-            route.append(cooking.product)
-            visited[cooking.product] = True
-            for child in cooking.children:
-                # assert isinstance(child, (Material, Cooking))
-                if child.product in visited:
-                    pos = route.index(child.product)
-                    loop = "->".join(route[pos:] + [child.product])
-                    raise KookRecipeError("%s: recipe is looped (%s)." % (child.product, loop))
-                elif child.children:
-                    # assert isinstance(child, Cooking)
-                    _traverse(child, route, visited)
-            assert len(route) > 0
-            prod = route.pop()
-            assert prod == cooking.product
-            assert prod in visited
-            visited.pop(prod)
-        #
-        if not root.children:
-            return
-        route = []
-        visited = {}
-        _traverse(root, route, visited)
-        assert len(route) == 0
-        assert len(visited) == 0
-
     def start_cooking(self, *argv):
         ## target
         if argv:
@@ -113,20 +45,99 @@ class Kitchen(object):
             target = self.cookbook.context.get('kook_default_product')
             if not target:
                 raise KookError('Kitchen#start_cooking(): no argv nor no kook_default_product.')
-        ## create tree of cookable object
-        root = self.create_cooking_tree(target)
-        self.check_cooking_tree(root)
-        assert isinstance(root, Cookable)
-        assert root.product == target
-        _trace("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(root.product), repr(root.ingreds), ))
-        if isinstance(root, Material):
-            raise KookError("%s: is a material (= a file to which no recipe matched)." % target)
-        ## start cooking
-        root.cook(argv=argv, depth=1)
+        ## create tree of cooking object
+        tree = CookingTree(self.cookbook).build(target)
+        tree.verify()
+        root = tree.root
+        assert tree.root.product == target
+        tree.start_cooking(argv)
 
 
-class Cookable(object):
-    """abstract class for Cooking and Material."""
+class CookingTree(object):
+    """tree of cooking objects"""
+
+    def __init__(self, cookbook):
+        self.cookbook = cookbook
+        self.root = None
+
+    def build(self, target_product, cookings=None):
+        """create tree of RecipeCooking and MaterialCooking. raises error if recipe or material not found."""
+        if cookings is None: cookings = {}  # key: product name, value: cooking object
+        cookbook = self.cookbook
+        def _create(target, parent_product):
+            exists = os.path.exists
+            if target in cookings:
+                return cookings[target]
+            cooking = None
+            if cookbook.material_p(target):
+                if not exists(target):
+                    raise KookRecipeError("%s: material not found." % target)
+                cooking = MaterialCooking.new(target)
+            else:
+                recipe = cookbook.find_recipe(target)
+                if   recipe:          cooking = RecipeCooking.new(target, recipe)
+                elif exists(target):  cooking = MaterialCooking.new(target)
+                else:
+                    if parent_product:
+                        raise KookRecipeError("%s: no such recipe nor material (required for %s)." % (target, repr(parent_product)))
+                    else:
+                        raise KookRecipeError("%s: no such recipe nor material." % target)
+            assert cooking is not None
+            cookings[target] = cooking
+            if cooking.ingreds:
+                assert isinstance(cooking, RecipeCooking)
+                for ingred in cooking.ingreds:
+                    if isinstance(ingred, ConditionalFile):
+                        filename = ingred()
+                        if not filename: continue
+                        ingred = filename
+                    #if isinstance(ingred, IfExists):
+                    #    if not exists(ingred.filename): continue
+                    child_cooking = _create(ingred, target)
+                    cooking.children.append(child_cooking)
+            return cooking
+        _create(target_product, None)
+        self.root = cookings[target_product]
+        assert self.root.product == target_product
+        return self
+
+    def verify(self):
+        """raise KookRecipeError if tree has a loop."""
+        def _traverse(cooking, route, visited):
+            route.append(cooking.product)
+            visited[cooking.product] = True
+            for child in cooking.children:
+                # assert isinstance(child, (MaterialCooking, RecipeCooking))
+                if child.product in visited:
+                    pos = route.index(child.product)
+                    loop = "->".join(route[pos:] + [child.product])
+                    raise KookRecipeError("%s: recipe is looped (%s)." % (child.product, loop))
+                elif child.children:
+                    # assert isinstance(child, RecipeCooking)
+                    _traverse(child, route, visited)
+            assert len(route) > 0
+            prod = route.pop()
+            assert prod == cooking.product
+            assert prod in visited
+            visited.pop(prod)
+        #
+        if not self.root.children:
+            return
+        route = []
+        visited = {}
+        _traverse(self.root, route, visited)
+        assert len(route) == 0
+        assert len(visited) == 0
+
+    def start_cooking(self, argv=()):
+        _trace("start_cooking(): root.product=%s, root.ingreds=%s" % (repr(self.root.product), repr(self.root.ingreds), ))
+        if isinstance(self.root, MaterialCooking):
+            raise KookError("%s: is a material (= a file to which no recipe matched)." % self.root.product)
+        self.root.cook(argv=argv, depth=1)
+
+
+class Cooking(object):
+    """abstract class for RecipeCooking and MaterialCooking."""
 
     product = None
     ingreds = ()
@@ -144,7 +155,7 @@ TOUCHED = 2     # file content of product is not changed (recipe may be invoked 
 SKIPPED = 1     # recipe is not invoked (= skipped), for example product is newer than all ingredients
 
 
-class Material(Cookable):
+class MaterialCooking(Cooking):
     """represents material file."""
 
     def __init__(self, filename):
@@ -163,8 +174,8 @@ class Material(Cookable):
         return True
 
 
-class Cooking(Cookable):
-    """represens recipe invocation. in other words, Recipe is 'definition', Cooking is 'execution'."""
+class RecipeCooking(Cooking):
+    """represens recipe invocation. in other words, Recipe is 'definition', RecipeCooking is 'execution'."""
 
     def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None, matched=None, m=None):
         if product is None: product = recipe.product
@@ -179,7 +190,7 @@ class Cooking(Cookable):
         self.byprod  = byprods and byprods[0] or None
         self.matched = matched
         self.m       = m
-        self.children = []       # child cookables
+        self.children = []       # child cookings
         self.spices  = spices
         self.cooked  = None
         self.argv = ()
@@ -220,30 +231,41 @@ class Cooking(Cookable):
     ##     return SKIPPED
     ##
     def cook(self, depth=1, argv=()):
-        """invoke recipe function."""
-        is_file_recipe = self.recipe.kind == 'file'
+        """invoke recipe method."""
         ## return if already cooked
         if self.cooked:
             _debug("pass %s (already cooked)" % self.product, depth)
             return self.cooked
-        ## get mtime of product file if it exists
-        _debug("begin %s" % self.product, depth)
-        if is_file_recipe and os.path.exists(self.product):
-            product_mtime = os.path.getmtime(self.product)  # exist
+        ##
+        if self.recipe.kind == 'task':
+            return self._cook_task_recipe(depth, argv)
         else:
-            product_mtime = 0    # product doesn't exist
+            return self._cook_file_recipe(depth, argv)
+
+    def _cook_task_recipe(self, depth, argv):
+        product = self.product
+        _debug("begin %s" % product, depth)
         ## invoke ingredients' recipes
-        child_status = SKIPPED
         if self.children:
             for child in self.children:
-                ret = child.cook(depth+1, ())
-                assert ret is not None
-                if ret > child_status:  child_status = ret
-                if product_mtime and ret == SKIPPED and child.has_product_file():
-                    assert os.path.exists(child.product)
-                    if os.path.getmtime(child.product) > product_mtime:
-                        _trace("child file '%s' is newer than product '%s'." % (child.product, self.product), depth)
-                        child_status = CHANGED
+                child.cook(depth+1, ())
+        ## invoke recipe
+        _trace("cannot skip: task recipe should be invoked in any case.", depth)
+        assert self.recipe.method is not None
+        _debug("perform %s (%s)" % (product, self._r), depth)
+        _report_msg("%s (%s)" % (product, self._r), depth)
+        self._invoke_recipe_with(argv)
+        _debug("end %s (content changed)" % product, depth)
+        self.cooked = CHANGED
+        return self.cooked
+
+    def _cook_file_recipe(self, depth, argv):
+        product = self.product
+        _debug("begin %s" % product, depth)
+        ## get mtime of product file if it exists
+        product_mtime = os.path.exists(product) and os.path.getmtime(product) or 0
+        ## invoke ingredients' recipes
+        child_status = self._cook_children(product_mtime, depth)
         assert child_status in (CHANGED, TOUCHED, SKIPPED)
         ## there are some cases to skip recipe invocation (ex. product is newer than ingredients)
         if self._can_skip(child_status, depth):
@@ -257,69 +279,84 @@ class Cooking(Cookable):
             try:
                 ## if product file exists, rename it to temporary filename
                 if product_mtime:
-                    tmp_filename = self._tmp_filename(self.product)
-                    os.rename(self.product, tmp_filename)
+                    tmp_filename = self._tmp_filename(product)
+                    os.rename(product, tmp_filename)
                 ## invoke recipe
-                s = is_file_recipe and 'create' or 'perform'
-                _debug("%s %s (%s)" % (s, self.product, self._r), depth)
-                _report_msg("%s (%s)" % (self.product, self._r), depth)
+                _debug("create %s (%s)" % (product, self._r), depth)
+                _report_msg("%s (%s)" % (product, self._r), depth)
                 self._invoke_recipe_with(argv)
                 ## check whether product file created or not
-                if is_file_recipe and not config.noexec and not os.path.exists(self.product):
-                    raise KookRecipeError("%s: product not created (in %s())." % (self.product, self.recipe.name, ))
+                if not config.noexec and not os.path.exists(product):
+                    raise KookRecipeError("%s: product not created (in %s())." % (product, self.recipe.name, ))
                 ## if new product file is same as old one, return TOUCHED, else return CHANGED
-                if config.compare_contents and product_mtime and kook.utils.has_same_content(self.product, tmp_filename):
-                    _debug("end %s (content not changed, mtime updated)" % self.product, depth)
+                if product_mtime and self._same_content(product, tmp_filename):
+                    _debug("end %s (content not changed, mtime updated)" % product, depth)
                     self.cooked = TOUCHED
                 else:
-                    _debug("end %s (content changed)" % self.product, depth)
+                    _debug("end %s (content changed)" % product, depth)
                     self.cooked = CHANGED
                 return self.cooked
             except Exception:
                 ## if product file exists, remove it when error raised
                 if product_mtime:
-                    _report_msg("(remove %s because unexpected error raised (%s))" % (self.product, self._r), depth)
-                    if os.path.isfile(self.product): os.unlink(self.product)
+                    _report_msg("(remove %s because unexpected error raised (%s))" % (product, self._r), depth)
+                    if os.path.isfile(product): os.unlink(product)
                 raise
         finally:
             ## remove temporary file
             if product_mtime: os.unlink(tmp_filename)
 
+    def _cook_children(self, product_mtime, depth):
+        flag_changed = flag_touched = False
+        if self.children:
+            for child in self.children:
+                status = child.cook(depth+1, ())
+                assert status in (CHANGED, TOUCHED, SKIPPED)
+                if   status == CHANGED: flag_changed = True
+                elif status == TOUCHED: flag_touched = True
+                if product_mtime and status == SKIPPED and child.has_product_file():
+                    assert os.path.exists(child.product)
+                    if os.path.getmtime(child.product) > product_mtime:
+                        _trace("child file '%s' is newer than product '%s'." % (child.product, self.product), depth)
+                        flag_changed = True
+        if flag_changed: return CHANGED
+        if flag_touched: return TOUCHED
+        return SKIPPED
+
     def _can_skip(self, child_status, depth):
+        product = self.product
         if config.forced:
             #_trace("cannot skip: invoked forcedly.", depth)
             return False
-        if self.recipe.kind == 'task':
-            _trace("cannot skip: task recipe should be invoked in any case.", depth)
-            return False
         if not self.children:
-            _trace("cannot skip: no children for product '%s'." % self.product, depth)
+            _trace("cannot skip: no children for product '%s'." % product, depth)
             return False
-        if not os.path.exists(self.product):
-            _trace("cannot skip: product '%s' not found." % self.product, depth)
+        if not os.path.exists(product):
+            _trace("cannot skip: product '%s' not found." % product, depth)
             return False
         ##
         if child_status == CHANGED:
-            _trace("cannot skip: there is newer file in children than product '%s'." % self.product, depth)
+            _trace("cannot skip: there is newer file in children than product '%s'." % product, depth)
             return False
         #if child_status == SKIPPED:
-        #    timestamp = os.path.getmtime(self.product)
+        #    timestamp = os.path.getmtime(product)
         #    for child in self.children:
         #        if child.has_product_file() and os.path.getmtime(child.product) > timestamp:
-        #            _trace("cannot skip: child '%s' is newer than product '%s'." % (child.product, self.product), depth)
+        #            _trace("cannot skip: child '%s' is newer than product '%s'." % (child.product, product), depth)
         #            return False
         ##
         return True
 
     def _skip(self, child_status, depth):
+        product = self.product
         if child_status == TOUCHED:
-            assert os.path.exists(self.product)
-            _report_msg("%s (%s)" % (self.product, self._r), depth)
-            _debug("touch and skip %s (%s)" % (self.product, self._r), depth)
-            _report_cmd("touch %s   # skipped" % self.product)
-            os.utime(self.product, None)    # update mtime of product file to current timestamp
+            assert os.path.exists(product)
+            _report_msg("%s (%s)" % (product, self._r), depth)
+            _debug("touch and skip %s (%s)" % (product, self._r), depth)
+            _report_cmd("touch %s   # skipped" % product)
+            os.utime(product, None)    # update mtime of product file to current timestamp
         elif child_status == SKIPPED:
-            _debug("skip %s (%s)" % (self.product, self._r), depth)
+            _debug("skip %s (%s)" % (product, self._r), depth)
         else:
             assert 'unreachable'
 
@@ -334,6 +371,9 @@ class Cooking(Cookable):
             self.recipe.method(self, *rests, **opts)
         else:
             self.recipe.method(self, *argv)
+
+    def _same_content(self, product, tmp_filename):
+        return config.compare_contents and kook.utils.has_same_content(product, tmp_filename)
 
     ## utility method for convenience
     def __mod__(self, string):

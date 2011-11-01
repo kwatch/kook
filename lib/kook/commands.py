@@ -8,6 +8,7 @@
 
 import sys, os, re
 import shutil
+import subprocess
 #from glob import glob as _glob
 import kook
 from kook import KookCommandError
@@ -33,14 +34,16 @@ def system_f(command):
     _report_cmd(command)
     if config.noexec:
         return
-    return os.system(command)
+    #return os.system(command)
+    return subprocess.call(command, shell=True)
 
 
 def system(command):
     _report_cmd(command)
     if config.noexec:
         return
-    status = os.system(command)
+    #status = os.system(command)
+    status = subprocess.call(command, shell=True)
     if status != 0:
         #status = status % 255
         raise KookCommandError("command failed (status=%s)." % status)
