@@ -26,6 +26,12 @@ def str2int(s):
         return None
 
 
+def setattrs(obj, **kwargs):
+    for k in kwargs:
+        setattr(obj, k, kwargs[k])
+    return obj
+
+
 if python2:
 
     def read_file(filename, encoding=None):

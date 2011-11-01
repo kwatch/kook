@@ -1,6 +1,116 @@
 
 releases:
 
+  - release:  0.7.0
+    date:     ????
+    enhances:
+
+      - (EXPERIMENTAL!!) Remote command execution (ssh and sftp) is available.
+        This is very useful to deploy your application into servers.
+
+        Ex (Kookbook.py)::
+
+	    from kook.remote import Remote
+	    remote = Remote(
+	        hosts    = ['www1', 'www2', 'user3@www3:10022'],
+	        port     = 22,
+	        user     = 'user1',
+	        #password = None,      # for login, '~/.ssh/id_rsa' and sudo
+	        passphrase = None,     # only for '~/.ssh/id_rsa'
+	        sudo_password = 'xxx', # only for sudo command
+	    )
+
+	    @recipe
+	    @remote
+	    def hostinfo(c):
+	        """show hostname"""
+	        ssh = c.ssh
+	        ssh.run('hostname')    # run command with ssh
+	        ssh.run('whomai')      # run command with ssh
+	        ssh.sudo('whoami')     # run command with sudo
+
+	    @recipe
+	    @remote
+	    def exchange(c):
+	        """upload and download files"""
+	        ssh = c.ssh
+	        with ssh.pushd('work/apps'):
+	            ssh.get('file.remote')    # download a file
+	            ssh.put('file.local')     # upload a file
+	            ssh.mget('remote.*')      # download files
+	            ssh.mput('local.*')       # upload files
+
+        Notice that you must configure ssh at first and confirm that
+        you can log into servers without typing password::
+
+	    bash> ssh user1@www1
+	    bash> ssh user1@www2
+	    bash> ssh -p 10022 user3@www3
+	    bash> kk hostinfo
+	    ### * showinfo (recipe=showinfo)
+	    [user1@www1]$ hostame
+	    www1
+	    [user1@www1]$ whoami
+	    user1
+	    [user1@www1]$ sudo whoami
+	    root
+	    [user2@www2]$ hostame
+	    www2
+	    [user2@www2]$ whoami
+	    user2
+	    [user2@www2]$ sudo whoami
+	    root
+	    [user3@www3]$ hostame
+	    www3
+	    [user3@www3]$ whami
+	    user3
+	    [user3@www3]$ sudo whoami
+	    root
+
+        Currently commands are executed sequencially (not in parallel).
+
+      - (EXPERIMENTAL!!) Password object supported.
+        Password object asks you to enter password in prompt when necessary.
+
+        Ex (Kookbook.py)::
+
+	    from kook.remote import Remote, Password
+	    remote = Remote(
+	        hosts         = ['user1@www1:22'],
+	        #password     = Password('login'),
+	        passphrase    = Password('~/.ssh/id_rsa'),
+	        sudo_password = Password('sudo command')
+	    )
+	    #
+	    @recipe
+	    @remote
+	    def remote_test(c):
+	        ssh = c.ssh
+	        ssh.sudo('whoami')
+
+        Output example::
+
+	    bash> kk remote_test
+	    ### * remote_test (recipe=remote_test)
+	    Password for ~/.ssh/id_rsa: 
+	    Password for sudo command: 
+	    [user1@www1]$ sudo whoami
+	    root
+
+        It is easy to share password object.
+
+        Ex (Kookbook.py)::
+
+	    from kook.remote import Remote, Password
+	    _pass = Password()
+	    remote = Remote(
+	        hosts         = ['user1@www1:22'],
+	        password      = _pass,
+	        passphrase    = _pass,
+	        sudo_password = _pass
+	    )
+
+
   - release:  0.6.0
     date:     2011-10-27
     enhances:
