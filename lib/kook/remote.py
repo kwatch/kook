@@ -238,6 +238,12 @@ class SshSession(object):
     def listdir(self, path='.'):
         return self._sftp.listdir(path)
 
+    def listdir_f(self, path='.'):
+        try:
+            return self._sftp.listdir(path)
+        except IOError:
+            return []
+
 
     ##
     ## sftp

@@ -417,6 +417,13 @@ class KookSshSessionTest(object):
         pass
 
 
+    @test("#listdir_f(): TODO")
+    @skip.when(import_failed, reason)
+    def _(self):
+        ## TODO:
+        pass
+
+
     @test("#get(): TODO")
     @skip.when(import_failed, reason)
     def _(self):
