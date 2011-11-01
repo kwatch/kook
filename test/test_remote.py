@@ -18,7 +18,7 @@ reason = None
 try:
     import kook.remote
     from kook.remote import Remote, Password, SshSession, Chdir, PushDir
-except ImportError, ex:
+except ImportError:
     import_failed = True
     reason = sys.exc_info()[1].message
 from kook.cookbook import Cookbook
