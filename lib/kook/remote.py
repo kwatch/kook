@@ -154,6 +154,7 @@ class SshSession(object):
 
     def _open(self):
         ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
         if self.password:
             ssh.connect(hostname=self.host, port=self.port,
