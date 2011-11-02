@@ -1142,7 +1142,13 @@ from kook.utils import CommandOptionError
       system("git stash pop")
 .--------------------
 
-Nested category names are joined with ":".
+Points:
+.* Define a subclass of '{{,Category,}}' class.
+.* Define methods with '{{,@recipe,}}', and {{*don't use {{,self,}}!*}}
+   These methods are regarded as just functions, not instance methods of defined class.
+.* Only task recipe is available in category.
+   In other words, don't define file recipe in category.
+.* Nested category names are joined with ":".
 
 .? Result
 .==================== topic-category/base.result
@@ -1166,8 +1172,42 @@ File recipes:
 
 .+NOTE:
 
-Notice that only task recipe is available in category.
-In other words, don't define file recipe in catetory.
+Instance methods in category class are converted into staticmethods when loading cookbook.
+
+.--------------------
+class git(Category):
+  @recipe
+  def default(c):
+    system("git status")
+
+## methods in category are instance methods BEFORE loading cookbook
+from types import MethodType
+{{*assert type(git.default) == MethodType*}}
+
+## methods in category are converted into staticmethods AFTER loading cookbook
+@recipe
+def _check(c):
+  {{*assert type(git.default) == staticmethod*}}
+.--------------------
+
+Therefore, you can call other recipe functions by {{,{{/category/}}.{{/method/}}(),}}, for example:
+
+.--------------------
+class apache(Category):
+
+  @recipe
+  def start(c):
+    system("apachectl start")
+
+  @recipe
+  def stop(c):
+    system("apachectl stop")
+
+  @recipe
+  def restart(c):
+    {{*apache.stop(c)*}}
+    {{*apache.start(c)*}}
+.--------------------
 
 .-NOTE:
 
@@ -1984,6 +2024,399 @@ bash> ./yourscript -h        # 'yourscrit' can be an alternative of pykook comma
 .#Other command-line options (and target products) are not returned because they are not necessary to invoke pykook recursively.
 .#
 .#
+
+
+
+.$ Remote Task Recipe		| remote
+
+pyKook allows you to define task recipes which runs commands on remote machine by ssh.
+This is very useful when you want to deploy your application to servers.
+
+Before using remote task recipe, you must install {{<pycrypto|https://www.dlitz.net/software/pycrypto/>}} and {{<paramiko|http://www.lag.net/paramiko/>}}.
+
+.? Install pycrypto and paramiko
+.====================
+## install
+bash> sudo pip install pycrypto
+bash> sudo pip install paramiko
+.====================
+
+.+NOTE:
+
+{{<You may got error when installing pycrypto by easy_install.|http://stackoverflow.com/questions/7896541/trying-to-install-pycrypto-on-ubuntu-via-buildout-src-config-h-no-such-file-or>}}
+
+.====================
+bash> easy_install pycrypto
+Searching for pycrypto
+Reading http://pypi.python.org/simple/pycrypto/
+Reading http://www.pycrypto.org/
+Reading http://pycrypto.sourceforge.net
+Reading http://www.amk.ca/python/code/crypto
+Best match: pycrypto 2.4
+Downloading https://ftp.dlitz.net/pub/dlitz/crypto/pycrypto/pycrypto-2.4.tar.gz
+Processing pycrypto-2.4.tar.gz
+Running pycrypto-2.4/setup.py -q bdist_egg --dist-dir /var/folders/FD/FDjI6Ce4H7eSxs5w+QNj+k+++TI/-Tmp-/easy_install-zEh6X7/pycrypto-2.4/egg-dist-tmp-qqBby0
+{{*error: Setup script exited with error: src/config.h: No such file or directory*}}
+.====================
+
+To avoid it, I recommend you to install pycrypto by {{<pip|http://pypi.python.org/pypi/pip>}}.
+
+.====================
+bash> easy_install pip
+bash> pip install pycrypto
+.====================
+
+.-NOTE:
+
+
+.$$ Ssh Configuration		| remote-ssh
+
+You must finish ssh configuration before using pyKook's remote task recipe.
+If you already finished it, go to {{<next section|#remote-object>}}.
+
+.? Ssh configuration example
+.====================
+### generate public/private RSA keys.
+bash> ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/yourname/.ssh/id_rsa): {{/Enter/}}
+Enter passphrase (empty for no passphrase): {{/Enter/}}
+Enter same passphrase again: {{/Enter/}}
+Your identification has been saved in /home/yourname/.ssh/id_rsa.
+Your public key has been saved in /home/yourname/.ssh/id_rsa.pub.
+The key fingerprint is:
+ab:cd:ef:12:34:56:78:90:ab:cd:ef:12:34:56:78:90 yourname@localhost
+bash> ls ~/.ssh/id_rsa.pub
+id_rsa.pub
+
+### copy public key to server
+bash> scp ~/.ssh/id_rsa.pub user1@server1:id_rsa.pub
+Password: ********
+
+### register public key
+bash> ssh user1@server1
+Password: ********
+[server1]> ls id_rsa.pub
+id_rsa.pub
+[server1]> mkdir -p ~/.ssh
+[server1]> cat id_rsa.pub >> ~/.ssh/authorized_keys
+[server1]> rm id_rsa.pub
+[server1]> chmod 600 ~/.ssh/authorized_keys
+[server1]> chmod 700 ~/.ssh
+
+### confirm that you can log-in to server without entering password
+[server1]> exit
+bash> ssh user1@server1
+[server1]>
+.====================
+
+
+.$$ {{,Remote,}} object		| remote-object
+
+Using {{,kook.remote.Remote,}} object, you can define remote task recipe.
+
+.? Kookbook.py: basic example to define remote object
+.-------------------- remote-class/Kookbook.py
+{{*from kook.remote import Remote*}}
+
+{{*remote = Remote(*}}
+  {{*hosts = ['dev.example.org'],*}}
+  {{*port  = 10022,*}}    # default 22
+  {{*user  = 'user1',*}}
+  #passphrase = 'XXXXXXXX',  # passphrase for ~/.ssh/id_rsa
+{{*)*}}
+
+## or
+#remote = Remote(
+#  hosts = ['{{*user1@dev.example.org:10022*}}'],
+#)
+
+class deploy(Category):
+
+  @recipe
+  {{*@remote*}}
+  def info(c):
+    """show remote host information"""
+    {{*ssh = c.ssh*}}
+    {{*ssh.run(*}}'hostname'{{*)*}}
+    {{*ssh.run(*}}'whoami'{{*)*}}
+.--------------------
+
+The following methods are available:
+
+.[ ssh.run({{/OS-command/}}) ]
+	Runs {{/OS-command/}} on remote machine.
+
+.[ ssh.run_f({{/OS-command/}}) ]
+	Runs {{/OS-command/}} on remote machine, and ignore status.
+
+.[ ssh.sudo({{/OS-command/}}) ]
+	Runs {{/OS-command/}} by sudo on remote machine.
+
+.[ ssh.listdir({{/path/}}) ]
+	Returns list of filenames of {{/path/}} on remote machine.
+	If {{/path/}} doesn't exist on remote machine then throws exception.
+
+.[ ssh.listdir_f({{/path/}}) ]
+	Returns list of filenames of {{/path/}} on remote machine.
+	Returns an empty list even when {{/path/}} doesn't exist.
+
+
+.? Output Exampl
+.====================
+bash> kk deploy:info
+### * deploy:info (recipe=info)
+[user1@dev.example.org]$ hostname
+dev
+[user1@dev.example.org]$ whoami
+user1
+.====================
+
+Of course you can define local and remote task recipes in a cookbook.
+In addition you can mix local remote command in a recipe.
+
+
+.$$ {{,sudo,}} command		| remote-command
+
+
+.? Kookbook.py: basic example to define remote object
+.-------------------- remote-class/Kookbook.py
+from kook.remote import Remote
+
+remote = Remote(
+  hosts = ['dev.example.org'],
+  port  = 10022,    # default 22
+  user  = 'user1',
+  password      = 'XXXXXXXX',   # for login, ~/.ssh/id_rsa, and sudo command
+  #passphrase    = 'XXXXXXXX',  # only for ~/.ssh/id_rsa
+  #sudo_password = 'XXXXXXXX',  # only for sudo command
+)
+
+class deploy(Category):
+
+  @recipe
+  @remote
+  def info(c):
+    """show remote host information"""
+    ssh = c.ssh
+    ssh.run('hostname')
+    ssh.run('whoami')
+    {{*ssh.sudo(*}}'whoami'{{*)*}}
+.--------------------
+
+.? Output Exampl
+.====================
+bash> kk deploy:info
+### * deploy:info (recipe=info)
+[user1@dev.example.org]$ hostname
+dev
+[user1@dev.example.org]$ whoami
+user1
+[user1@dev.example.org]$ sudo whoami
+root
+.====================
+
+.+NOTE:
+
+If you got the following error, {{<add 'Defaults visiblepw' into '/etc/sudoers' on remote server|http://fossplanet.com/f10/sudo-no-tty-present-no-askpass-program-specified-12472/#post40547>}}.
+
+.====================
+[user1@dev.example.org]$ sudo whoami
+*** ERROR
+{{*pykook: sudo: no tty present and no askpass program specified*}}
+{{* (Hint: add 'Defaults visiblepw' into '/etc/sudoers' with 'visudo' command)*}}
+  File "/usr/local/lib/python2.7/site-packages/kook/main.py", line 202, in main
+    status = self.invoke()
+...(snip)...
+  File "/usr/local/lib/python2.7/site-packages/kook/remote.py", line 362, in _check_sudo_password
+    raise KookCommandError(self._add_hint_about_sudo_settings(errmsg))
+.====================
+
+.-NOTE:
+
+
+.$$ {{,Password,}} object	| remote-password
+
+If you don't want to embed password into cookbook, use {{,kook.remote.Password,}} object.
+
+.? Kookbook.py: Password object example
+.-------------------- remote-class/Kookbook.py
+from kook.remote import Remote, Password
+
+remote = Remote(
+  hosts = ['dev.example.org'],
+  port  = 10022,    # default 22
+  user  = 'user1',
+  password      = Password('login'),
+  #passphrase    = Passowrd('~/.ssh/id_rsa'),
+  #sudo_password = Passowrd('sudo command'),
+)
+
+class deploy(Category):
+
+  @recipe
+  @remote
+  def info(c):
+    """show remote host information"""
+    ssh = c.ssh
+    ssh.run('hostname')
+    ssh.run('whoami')
+    {{*ssh.sudo(*}}'whoami'{{*)*}}
+.--------------------
+
+.? Output Exampl
+.====================
+bash> kk deploy:info
+### * deploy:info (recipe=info)
+{{*Password: *********}}
+[user1@dev.example.org]$ hostname
+dev
+[user1@dev.example.org]$ whoami
+user1
+[user1@dev.example.org]$ sudo whoami
+root
+.====================
+
+Using password object, it is easy to share a password. For example:
+
+.? Share password object
+.--------------------
+{{*passwd = Password()*}}
+
+app_servers = Remote(
+  hosts = ['www1.example.org', 'www2.example.org']
+  user  = 'user1',
+  password      = {{*passwd*}},
+  #passphrase    = {{*passwd*}},
+  #sudo_password = {{*passwd*}},
+)
+
+db_servers = Remote(
+  hosts = ['db1.example.com']
+  user  = 'user2',
+  password      = {{*passwd*}},
+  #passphrase    = {{*passwd*}},
+  #sudo_password = {{*passwd*}},
+)
+.--------------------
+
+In above example, you will asked password only once, because a password object is shared between remote objects.
+
+
+.$$ Switching Remote Hosts	| remote-switch
+
+If you want to switch hosts between production and staging environment, property will help you.
+
+.? Kookbook.py: Switching production and staging servers
+.-------------------- remote-class/Kookbook.py
+from kook.remote import Remote, Password
+
+{{*production = prop('production', False)*}}
+{{*if production:*}}
+  {{*hosts = ['www.example.com']*}}     ## production server
+{{*else:*}}
+  {{*hosts = ['dev.example.com']*}}     ## staging server
+
+remote = Remote(
+  hosts = hosts,
+  port  = 10022,    # default 22
+  user  = 'user1',
+  password = Password('login'),
+)
+
+class deploy(Category):
+
+  @recipe
+  @remote
+  def info(c):
+    """show remote host information"""
+    ssh = c.ssh
+    ssh.run('hostname')
+.--------------------
+
+.? Output Example
+.====================
+bash> kk {{*--production*}} deploy:info
+### * deploy:info (recipe=info)
+[user1@www.example.org]$ hostname
+{{*www.example.org*}}
+.====================
+
+
+.$$ Deployment Example		| remote-deploy
+
+Here is an example of remote task recipe for deployment.
+
+.--------------------
+from __future__ import with_statement
+from kook.remote import Remote, Password
+
+## repository url
+repository_url = "git@bitbucket.org:yourname/myapp1.git"
+
+## production or staging servers
+production = prop('production', False)
+if production:
+    hosts = ['www.example.com']     ## production server
+else:
+    hosts = ['dev.example.com']     ## staging server
+
+app_server = Remote(
+    hosts = hosts,
+    port  = 10022,    # default 22
+    user  = 'user1',
+    password = Password(),
+)
+
+## recipe definitions
+class deploy(Category):
+
+    @recipe
+    @app_server
+    @spices('-t tag: tag name to checkout')
+    def default(c, *args, **kwargs):
+        """deploy to remote server"""
+        tagname = kwargs.get('t')
+        ssh = c.ssh
+        if "repo" not in ssh.listdir_f("app"):
+            ssh.run("mkdir -p app/repo")
+        ## call other recipe to check-out source code
+        deploy.checkout(c, *args, **kwargs)
+        ## deploy
+        target = tagname or 'master'
+        ssh.run(c%"mkdir -p app/releases/$(target)")
+        with ssh.cd(c%"app/releases/$(target)"):
+            ## copy source files
+            ssh.run("cp -pr ../../repo/* .")
+            ## migrate database by 'migrate'
+            #ssh.run("python db_repository/manage.py upgrade")
+        ## recreate symbolic link
+        with ssh.cd("app/releases"):
+            ssh.run(c%"rm -f current")
+            ssh.run(c%"ln -s $(tagname) current")
+
+    @recipe
+    @app_server
+    @spices('-t tag: tag name to checkout')
+    def checkout(c, *args, **kwargs):
+        """checkout source code from git repository"""
+        tagname = kwargs.get('t')
+        ssh = c.ssh
+        if "repo" not in ssh.listdir_f("app"):
+            ssh.run("mkdir -p app/repo")
+        ## checkout git repository
+        with ssh.cd("app/repo"):
+            files = ssh.listdir(".")
+            if '.git' not in files:
+                ssh.run(c%"git clone $(repository_url) .")
+            else:
+                ssh.run(c%"git fetch")
+            if tagname:
+                ssh.run(c%"git checkout -q refs/tags/$(tagname)")
+            else:
+                ssh.run(c%"git checkout master")
+.--------------------
+
 
 
 .$ Trouble Shooting		| trouble
