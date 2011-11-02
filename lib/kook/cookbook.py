@@ -7,13 +7,14 @@
 ###
 
 import sys, os, re, types
+from types import FunctionType
 from kook import KookRecipeError
 from kook.decorators import RecipeDecorator
 from kook.misc import Category, _debug, _trace
 import kook.utils
 from kook.utils import _is_str, to_list, read_file, resolve_filepath, ArgumentError, has_metachars
 import kook.config as config
-from kook.misc import ConditionalFile
+from kook.misc import ConditionalFile, Category
 
 __all__ = ('Cookbook', 'Recipe', )
 
@@ -219,6 +220,18 @@ class Cookbook(ICookbook):
             if '__export__' in context:
                 for k in context['__export__']:
                     self.context[k] = context[k]
+        ## convert instance methods in Category class into static methods
+        def fn(cls):
+            for k in cls.__dict__:
+                v = cls.__dict__[k]
+                if isinstance(v, FunctionType):
+                    setattr(cls, k, staticmethod(v))
+                elif isinstance(v, type) and k != '_outer' and issubclass(v, Category):
+                    fn(v)
+        for k in context:
+            v = context[k]
+            if isinstance(v, type) and issubclass(v, Category):
+                fn(v)
 
     def __get_default(self):
         return self.context.get('kook_default_product')

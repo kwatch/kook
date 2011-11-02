@@ -264,6 +264,12 @@ class stash(Category):
         ok (recipes[0].category.__name__) == 'stash'
         ok (recipes[1].category).is_a(type)
         ok (recipes[1].category.__name__) == 'stash'
+        #
+        from types import FunctionType
+        cat = book.context['stash']
+        ok (cat.save).is_a(FunctionType)
+        ok (cat.pop).is_a(FunctionType)
+        ok (cat.abort).is_a(FunctionType)
 
     def test_load__category_recursively(self):
         input = r"""
@@ -301,6 +307,12 @@ class db(Category):
         ok (recipes[1].category.__name__) == "migration"
         ok (recipes[2].category.__name__) == "migration"
         ok (recipes[3].category.__name__) == "db"
+        #
+        from types import FunctionType
+        cat = book.context['db'].schema.migration
+        ok (cat.up).is_a(FunctionType)
+        ok (cat.down).is_a(FunctionType)
+        ok (cat.reset).is_a(FunctionType)
 
     def test_material_p(self):
         input = r"""
