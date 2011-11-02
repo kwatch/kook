@@ -204,17 +204,21 @@ class Cookbook(ICookbook):
         code_obj = compile(content, filepath or "(kook)", "exec")
         exec(code_obj, context, context)
         #
-        if context is not self.context:
-            #context['__file__'] = filepath
-            if '__export__' in context:
-                for k in context['__export__']:
-                    self.context[k] = context[k]
+        self._hook_context(context)
         #
         _trace("specific task recipes: %s" % repr(self.specific_task_recipes))
         _trace("generic  task recipes: %s" % repr(self.generic_task_recipes))
         _trace("specific file recipes: %s" % repr(self.specific_file_recipes))
         _trace("generic  file recipes: %s" % repr(self.generic_file_recipes))
         return context
+
+    def _hook_context(self, context):
+        ## copy exported values
+        if context is not self.context:
+            #context['__file__'] = filepath
+            if '__export__' in context:
+                for k in context['__export__']:
+                    self.context[k] = context[k]
 
     def __get_default(self):
         return self.context.get('kook_default_product')
