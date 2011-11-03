@@ -9,6 +9,9 @@ from oktest import *
 
 import kook.misc
 from kook.misc import *
+from kook.decorators import RecipeDecorator
+_d = RecipeDecorator().to_dict()
+recipe  = _d['recipe']
 
 
 class KookMiscTest(object):
@@ -21,6 +24,37 @@ class KookMiscTest(object):
         ok (ret[1]).is_a(kook.misc.IfExists)
         ok (ret[0].filename) == 'foo.h'
         ok (ret[1].filename) == '*.h'
+
+
+class _git(Category):
+
+    @recipe
+    def status(c, *args, **kwargs):
+        pass
+    def stash(c, *args, **kwargs):
+        pass
+
+    class branch(Category):
+        @recipe
+        def new(c):
+            pass
+        def rm(c):
+            pass
+
+
+class KookCategoryTest(object):
+
+    @test("converts all instance methods into staticmethods.")
+    def _(self):
+        ok (_git.__dict__['status']).is_a(staticmethod)   # recipe
+        ok (_git.__dict__['stash']).is_a(staticmethod)    # not recipe
+        ok (_git.branch.__dict__['new']).is_a(staticmethod)   # recipe
+        ok (_git.branch.__dict__['rm']).is_a(staticmethod)    # not recipe
+        from types import FunctionType
+        ok (_git.status).is_a(FunctionType)   # recipe
+        ok (_git.stash).is_a(FunctionType)    # not recipe
+        ok (_git.branch.new).is_a(FunctionType)   # recipe
+        ok (_git.branch.rm).is_a(FunctionType)    # not recipe
 
 
 if __name__ == '__main__':

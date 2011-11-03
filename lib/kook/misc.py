@@ -44,14 +44,24 @@ Category = None
 
 class _CategoryMetaClass(type):
 
+    def __new__(cls, name, bases, dct):
+        ## convert all instance methods into staticmethods
+        for k in dct.keys():
+            v = dct[k]
+            if isinstance(v, FunctionType):
+                dct[k] = staticmethod(v)
+        return type.__new__(cls, name, bases, dct)
+
     def __init__(cls, name, bases, dct):
         type.__init__(cls, name, bases, dct)
         def modify(prefix, outer_cls, d, depth):
             for k in d:
                 v = d[k]
-                if isinstance(v, FunctionType):
-                    if hasattr(v, '_kook_recipe'):
-                        r = v._kook_recipe
+                #if isinstance(v, FunctionType):
+                if isinstance(v, staticmethod):
+                    fn = v.__get__(0)
+                    if hasattr(fn, '_kook_recipe'):
+                        r = fn._kook_recipe
                         if r.kind == 'task':
                             if r.product == 'default' or r.product == '__index__':
                                 r.product = prefix[:-1]

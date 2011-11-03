@@ -220,18 +220,6 @@ class Cookbook(ICookbook):
             if '__export__' in context:
                 for k in context['__export__']:
                     self.context[k] = context[k]
-        ## convert instance methods in Category class into static methods
-        def fn(cls):
-            for k in cls.__dict__:
-                v = cls.__dict__[k]
-                if isinstance(v, FunctionType):
-                    setattr(cls, k, staticmethod(v))
-                elif isinstance(v, type) and k != '_outer' and issubclass(v, Category):
-                    fn(v)
-        for k in context:
-            v = context[k]
-            if isinstance(v, type) and issubclass(v, Category):
-                fn(v)
 
     def __get_default(self):
         return self.context.get('kook_default_product')
