@@ -49,7 +49,7 @@ def task_package(c):
         run(c%"tar xzf $(pkg)")
         dir = c%"$(package)-$(release)"
         #echo("*** debug: pkg=%s, dir=%s" % (pkg, dir))
-        edit(c%"$(dir)/**/*", exclude="*.png", by=repl)
+        edit(c%"$(dir)/**/*", exclude="*.png", by=replacer)
         #with chdir(dir) as d2:
         #    run("python setup.py egg_info --egg-base .")
         #    rm("*.pyc")
