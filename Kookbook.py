@@ -148,7 +148,7 @@ python_versions = [ '2.5.5', '2.6.7', '2.7.2', '3.0.1', '3.1.4', '3.2.1' ]
 def test(c, *args, **kwargs):
     from glob import glob
     pwd = os.getcwd()
-    os.environ['PYTHONPATH'] = "%s:%s/lib" % (pwd, pwd)
+    #os.environ['PYTHONPATH'] = "%s:%s/lib" % (pwd, pwd)
     oktest_opt = ''
     if 's' in kwargs:
         oktest_opt = '-s ' + kwargs['s']
