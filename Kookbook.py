@@ -14,6 +14,14 @@ script_file     = ["pykook", "kk"]
 library_files   = [ "lib/*.py" ]
 
 
+replacer = (
+    (r'\$Release\$', release),
+    (r'\$Release:.*?\$', '$Release: %s $' % release),
+    (r'\$Copyright\$', copyright),
+    (r'\$Package\$', package),
+    (r'\$License\$', license),
+)
+
 @recipe
 #@ingreds('doc')
 def task_package(c):
@@ -24,15 +32,8 @@ def task_package(c):
     #    rm_rf(pattern)
     rm_rf('dist')
     ## edit files
-    repl = (
-        (r'\$Release\$', release),
-        (r'\$Release:.*?\$', '$Release: %s $' % release),
-        (r'\$Copyright\$', copyright),
-        (r'\$Package\$', package),
-        (r'\$License\$', license),
-    )
     cp('setup.py.txt', 'setup.py')
-    edit('setup.py', by=repl)
+    edit('setup.py', by=replacer)
     ## setup
     #rm_f('MANIFEST')
     run('python setup.py sdist')
@@ -70,15 +71,15 @@ def task_package(c):
         rm_rf(dir)
         run(c%"tar -xzf $(dir).tar.gz")
 
-
-replacer = (
-    (r'\$Release\$', release),
-    (r'\$Release:.*?\$', '$Release: %s $' % release),
-    (r'\$Copyright\$', copyright),
-    (r'\$Package\$', package),
-    (r'\$License\$', license),
-)
-
+@recipe
+def update_headers(c):
+    """update headers of lib, test, and bin files"""
+    replacer = (
+        (r'# \$Release.*?\$',   '# $Release: %s $' % release),
+        (r'# \$Copyright.*?\$', '# $Copyright: %s $' % copyright),
+        (r'# \$License.*?\$',   '# $License: %s $' % license),
+        )
+    edit("lib/**/*.py", "test/*.py", "bin/*", by=replacer)
 
 @recipe('setup.py', ['setup.py.txt'])
 def file_setup_py(c):
