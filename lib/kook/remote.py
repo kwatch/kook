@@ -302,6 +302,9 @@ class SshSession(object):
             if error:  sys.stderr.write(error)
         return (output, error, status)
 
+    def __call__(self, *args, **kwargs):
+        return self.run(*args, **kwargs)
+
 
     ##
     ## sudo

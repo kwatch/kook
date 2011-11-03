@@ -468,6 +468,13 @@ class KookSshSessionTest(object):
         pass
 
 
+    @test("#__call__(): TODO")
+    @skip.when(import_failed, reason)
+    def _(self):
+        ## TODO:
+        pass
+
+
     @test("#sudo(): TODO")
     @skip.when(import_failed, reason)
     def _(self):
