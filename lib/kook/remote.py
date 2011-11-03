@@ -15,11 +15,15 @@ from kook import KookCommandError
 import kook.utils
 from kook.utils import setattrs
 
+def _print_at_exit(message):
+    stderr = sys.stderr
+    atexit.register(lambda: stderr.write(message + "\n"))
+
 try:
     import paramiko
 except ImportError:
-    sys.stderr.write("*** ERROR: you must install 'paramiko' to use kook.remote module.")
-    sys.exit(1)
+    _print_at_exit("*** ERROR: you must install 'paramiko' to use kook.remote module.")
+    raise
 
 
 __all__ = ('Remote', 'Password')
@@ -27,10 +31,6 @@ __all__ = ('Remote', 'Password')
 
 python2 = sys.version_info[0] == 2
 python3 = sys.version_info[0] == 3
-
-
-def _print_at_exit(message):
-    atexit.register(lambda: sys.stderr.write(message + "\n"))
 
 
 class Remote(object):

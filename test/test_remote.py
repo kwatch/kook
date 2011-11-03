@@ -20,7 +20,9 @@ try:
     from kook.remote import Remote, Password, SshSession, Chdir, PushDir
 except ImportError:
     import_failed = True
-    reason = sys.exc_info()[1].message
+    reason = str(sys.exc_info()[1])
+    class Remote(object):
+        SESSION = object
 from kook.cookbook import Cookbook
 from kook.kitchen import Kitchen
 
