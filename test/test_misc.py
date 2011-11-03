@@ -56,6 +56,11 @@ class KookCategoryTest(object):
         ok (_git.branch.new).is_a(FunctionType)   # recipe
         ok (_git.branch.rm).is_a(FunctionType)    # not recipe
 
+    @test("add category name into recipe's product name as prefix.")
+    def _(self):
+        ok (_git.status._kook_recipe.product) == "_git:status"
+        ok (_git.branch.new._kook_recipe.product) == "_git:branch:new"
+
 
 if __name__ == '__main__':
     oktest.run('.*Test$')
