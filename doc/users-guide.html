@@ -117,7 +117,9 @@
 
             <li><a href="#remote-object"><code>Remote</code> object</a></li>
 
-            <li><a href="#remote-command"><code>sudo</code> command</a></li>
+            <li><a href="#remote-commands">Available Commands</a></li>
+
+            <li><a href="#remote-sudo"><code>sudo</code> command</a></li>
 
             <li><a href="#remote-password"><code>Password</code> object</a></li>
 
@@ -1758,7 +1760,7 @@ bash&gt; ssh user1@server1
   <strong>hosts = ['dev.example.org'],</strong>
   <strong>port  = 10022,</strong>    # default 22
   <strong>user  = 'user1',</strong>
-  #passphrase = 'XXXXXXXX',  # passphrase for ~/.ssh/id_rsa
+  <strong>#passphrase = 'XXXXXXXX',</strong>  # passphrase for ~/.ssh/id_rsa (if necessary)
 <strong>)</strong>
 
 ## or
@@ -1773,41 +1775,9 @@ class deploy(Category):
   def info(c):
     """show remote host information"""
     <strong>ssh = c.ssh</strong>
-    <strong>ssh.run(</strong>'hostname'<strong>)</strong>
-    <strong>ssh.run(</strong>'whoami'<strong>)</strong>
+    <strong>ssh(</strong>'hostname'<strong>)</strong>
+    <strong>ssh(</strong>'whoami'<strong>)</strong>
 </pre>
-
-      <p>The following methods are available:</p>
-
-      <dl class="dl3">
-        <dt class="dt3"><b>ssh.run(<em>OS-command</em>)</b></dt>
-
-        <dd class="dd3">Runs <em>OS-command</em> on remote machine.</dd>
-      </dl>
-
-      <dl class="dl3">
-        <dt class="dt3"><b>ssh.run_f(<em>OS-command</em>)</b></dt>
-
-        <dd class="dd3">Runs <em>OS-command</em> on remote machine, and ignore status.</dd>
-      </dl>
-
-      <dl class="dl3">
-        <dt class="dt3"><b>ssh.sudo(<em>OS-command</em>)</b></dt>
-
-        <dd class="dd3">Runs <em>OS-command</em> by sudo on remote machine.</dd>
-      </dl>
-
-      <dl class="dl3">
-        <dt class="dt3"><b>ssh.listdir(<em>path</em>)</b></dt>
-
-        <dd class="dd3">Returns list of filenames of <em>path</em> on remote machine. If <em>path</em> doesn't exist on remote machine then throws exception.</dd>
-      </dl>
-
-      <dl class="dl3">
-        <dt class="dt3"><b>ssh.listdir_f(<em>path</em>)</b></dt>
-
-        <dd class="dd3">Returns list of filenames of <em>path</em> on remote machine. Returns an empty list even when <em>path</em> doesn't exist.</dd>
-      </dl>
 
       <div class="terminal_caption">
         Output Exampl
@@ -1822,7 +1792,164 @@ user1
 </pre>
 
       <p>Of course you can define local and remote task recipes in a cookbook. In addition you can mix local remote command in a recipe.</p><br>
-      <a name="remote-command" id="remote-command"></a>
+      <a name="remote-commands" id="remote-commands"></a>
+
+      <h3 class="section2">Available Commands</h3>
+
+      <p>The following methods are available:</p>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh(<em>OS-command</em>)</b></dt>
+
+        <dd class="dd3">
+          Same as <code>ssh.run(<em>OS-command</em>)</code>.
+          <pre class="program">
+## run 'pwd' command on remote machne
+ssh('pwd')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.run(<em>OS-command</em>)</b></dt>
+
+        <dd class="dd3">
+          Runs <em>OS-command</em> on remote machine. Raises exception when command failed.
+          <pre class="program">
+## run 'pwd' command on remote machne
+ssh.run('pwd')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.run_f(<em>OS-command</em>)</b></dt>
+
+        <dd class="dd3">
+          Runs <em>OS-command</em> on remote machine, and ignore status.
+          <pre class="program">
+## run 'cat' command with non-exist file
+ssh.run('cat not-exist.txt')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.sudo(<em>OS-command</em>)</b></dt>
+
+        <dd class="dd3">
+          Runs <em>OS-command</em> by sudo on remote machine.
+          <pre class="program">
+## run 'sudo make install' command
+ssh.sudo('make install')
+</pre>See the <a href="#remote-sudo">next section</a>.
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.cd(<em>remote-directory</em>)</b></dt>
+
+        <dd class="dd3">
+          Change remote directory.
+          <pre class="program">
+## change directory on remote machine
+ssh.cd('app/repo')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.pushd(<em>remote-directory</em>)</b></dt>
+
+        <dd class="dd3">
+          Using '<code>with</code>' statement, enter and exit remote directory.
+          <pre class="program">
+ssh("pwd")        #=&gt; ex. /home/admin
+with ssh.pushd("app/repo"):
+    ssh("pwd")    #=&gt; ex. /home/admin/app/repo
+ssh("pwd")        #=&gt; ex. /home/admin
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.listdir(<em>path</em>)</b></dt>
+
+        <dd class="dd3">
+          Returns list of filenames of <em>path</em> on remote machine. If <em>path</em> doesn't exist on remote machine then throws exception.
+          <pre class="program">
+## lists filenames of current directory
+filenames = ssh.listdir('.')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.listdir_f(<em>path</em>)</b></dt>
+
+        <dd class="dd3">
+          Returns list of filenames of <em>path</em> on remote machine. Returns an empty list even when <em>path</em> doesn't exist.
+          <pre class="program">
+## create log directory only when not exist
+filenames = ssh.listdir_f('var/log')
+if not filenames:
+    ssh('mkdir -p var/log')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.get(<em>remote-filename</em> <em>[, local-filename]</em>)</b></dt>
+
+        <dd class="dd3">
+          Downloads remote file to local machine.
+          <pre class="program">
+## download 'logo.png'
+ssh.get('logo.png')
+## download 'logo.png' as 'logo_20110101.png'
+ssh.get('logo.png', 'logo_20110101.png')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.put(<em>local-filename</em> <em>[, remote-filename]</em>)</b></dt>
+
+        <dd class="dd3">
+          Uploads local file to remote machine.
+          <pre class="program">
+## upload 'logo.png'
+ssh.put('logo.png')
+## upload 'logo_20110101.png' as 'logo.png'
+ssh.get('logo_20110101.png', 'logo.png')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.mget(<em>remote-filename1</em>, <em>remote-filename2</em>, ...)</b></dt>
+
+        <dd class="dd3">
+          Downloads remote files to local machine. Glob pattern (such as '*.html') is available.
+          <pre class="program">
+## download image files
+ssh.mget('*.jpg', '*.png', '*.gif')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>ssh.mput(<em>local-filename1</em>, <em>local-filename2</em>, ...)</b></dt>
+
+        <dd class="dd3">
+          Upload local files to remote machine. Glob pattern (such as '*.html') is available.
+          <pre class="program">
+## upload image files
+ssh.mput('*.jpg', '*.png', '*.gif')
+</pre>
+        </dd>
+      </dl><br>
+      <a name="remote-sudo" id="remote-sudo"></a>
 
       <h3 class="section2"><code>sudo</code> command</h3><a name="remote-class/Kookbook.py"></a>
 
@@ -1836,9 +1963,9 @@ remote = Remote(
   hosts = ['dev.example.org'],
   port  = 10022,    # default 22
   user  = 'user1',
-  password      = 'XXXXXXXX',   # for login, ~/.ssh/id_rsa, and sudo command
+  <strong>password      = 'XXXXXXXX',</strong>   # for login, ~/.ssh/id_rsa, and sudo command
   #passphrase    = 'XXXXXXXX',  # only for ~/.ssh/id_rsa
-  #sudo_password = 'XXXXXXXX',  # only for sudo command
+  <strong>#sudo_password = 'XXXXXXXX',</strong>  # only for sudo command
 )
 
 class deploy(Category):
@@ -1848,8 +1975,8 @@ class deploy(Category):
   def info(c):
     """show remote host information"""
     ssh = c.ssh
-    ssh.run('hostname')
-    ssh.run('whoami')
+    ssh('hostname')
+    ssh('whoami')
     <strong>ssh.sudo(</strong>'whoami'<strong>)</strong>
 </pre>
 
@@ -1863,8 +1990,8 @@ bash&gt; kk deploy:info
 dev
 [user1@dev.example.org]$ whoami
 user1
-[user1@dev.example.org]$ sudo whoami
-root
+[user1@dev.example.org]$ <strong>sudo whoami</strong>
+<strong>root</strong>
 </pre>
 
       <div class="note"><span class="caption">NOTE:</span>
@@ -1899,7 +2026,7 @@ remote = Remote(
   hosts = ['dev.example.org'],
   port  = 10022,    # default 22
   user  = 'user1',
-  password      = Password('login'),
+  password      = <strong>Password('login'),</strong>
   #passphrase    = Passowrd('~/.ssh/id_rsa'),
   #sudo_password = Passowrd('sudo command'),
 )
@@ -1911,8 +2038,8 @@ class deploy(Category):
   def info(c):
     """show remote host information"""
     ssh = c.ssh
-    ssh.run('hostname')
-    ssh.run('whoami')
+    ssh('hostname')
+    ssh('whoami')
     <strong>ssh.sudo(</strong>'whoami'<strong>)</strong>
 </pre>
 
@@ -1989,7 +2116,7 @@ class deploy(Category):
   def info(c):
     """show remote host information"""
     ssh = c.ssh
-    ssh.run('hostname')
+    ssh('hostname')
 </pre>
 
       <div class="terminal_caption">
@@ -2038,21 +2165,21 @@ class deploy(Category):
         tagname = kwargs.get('t')
         ssh = c.ssh
         if "repo" not in ssh.listdir_f("app"):
-            ssh.run("mkdir -p app/repo")
+            ssh("mkdir -p app/repo")
         ## call other recipe to check-out source code
         deploy.checkout(c, *args, **kwargs)
         ## deploy
         target = tagname or 'master'
-        ssh.run(c%"mkdir -p app/releases/$(target)")
+        ssh(c%"mkdir -p app/releases/$(target)")
         with ssh.cd(c%"app/releases/$(target)"):
             ## copy source files
-            ssh.run("cp -pr ../../repo/* .")
+            ssh("cp -pr ../../repo/* .")
             ## migrate database by 'migrate'
-            #ssh.run("python db_repository/manage.py upgrade")
+            #ssh("python db_repository/manage.py upgrade")
         ## recreate symbolic link
         with ssh.cd("app/releases"):
-            ssh.run(c%"rm -f current")
-            ssh.run(c%"ln -s $(tagname) current")
+            ssh(c%"rm -f current")
+            ssh(c%"ln -s $(tagname) current")
 
     @recipe
     @app_server
@@ -2062,18 +2189,18 @@ class deploy(Category):
         tagname = kwargs.get('t')
         ssh = c.ssh
         if "repo" not in ssh.listdir_f("app"):
-            ssh.run("mkdir -p app/repo")
+            ssh("mkdir -p app/repo")
         ## checkout git repository
         with ssh.cd("app/repo"):
             files = ssh.listdir(".")
             if '.git' not in files:
-                ssh.run(c%"git clone $(repository_url) .")
+                ssh(c%"git clone $(repository_url) .")
             else:
-                ssh.run(c%"git fetch")
+                ssh(c%"git fetch")
             if tagname:
-                ssh.run(c%"git checkout -q refs/tags/$(tagname)")
+                ssh(c%"git checkout -q refs/tags/$(tagname)")
             else:
-                ssh.run(c%"git checkout master")
+                ssh(c%"git checkout master")
 </pre><br>
       <br>
       <a name="trouble" id="trouble"></a>
