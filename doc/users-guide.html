@@ -1230,21 +1230,17 @@ File recipes:
 
       <div class="note"><span class="caption">NOTE:</span>
 
-      <p>Instance methods in category class are converted into staticmethods when loading cookbook.</p>
+      <p>Instance methods in category class are converted into staticmethods automatically.</p>
       <pre class="program">
 class git(Category):
   @recipe
   def default(c):
     system("git status")
 
-## methods in category are instance methods BEFORE loading cookbook
-from types import MethodType
-<strong>assert type(git.default) == MethodType</strong>
-
-## methods in category are converted into staticmethods AFTER loading cookbook
-@recipe
-def _check(c):
-  <strong>assert type(git.default) == staticmethod</strong>
+## methods in category are converted into staticmethods
+<strong>assert type(git.__dict__['default']) == staticmethod</strong>
+from types import FunctionType
+<strong>assert type(git.default) == FunctionType</strong>
 </pre>
 
       <p>Therefore, you can call other recipe functions by <code><em>category</em>.<em>method</em>()</code>, for example:</p>

@@ -1172,7 +1172,7 @@ File recipes:
 
 .+NOTE:
 
-Instance methods in category class are converted into staticmethods when loading cookbook.
+Instance methods in category class are converted into staticmethods automatically.
 
 .--------------------
 class git(Category):
@@ -1180,14 +1180,10 @@ class git(Category):
   def default(c):
     system("git status")
 
-## methods in category are instance methods BEFORE loading cookbook
-from types import MethodType
-{{*assert type(git.default) == MethodType*}}
-
-## methods in category are converted into staticmethods AFTER loading cookbook
-@recipe
-def _check(c):
-  {{*assert type(git.default) == staticmethod*}}
+## methods in category are converted into staticmethods
+{{*assert type(git.__dict__['default']) == staticmethod*}}
+from types import FunctionType
+{{*assert type(git.default) == FunctionType*}}
 .--------------------
 
 Therefore, you can call other recipe functions by {{,{{/category/}}.{{/method/}}(),}}, for example:
