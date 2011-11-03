@@ -69,7 +69,7 @@ Other Example of Kookbook.py::
 
     ## or
     kookbook.load('@kook/books/clean.py')   # load 'clean' and 'sweep' recipes
-    kook_clean_files.append("**/*.o")
+    CLEAN.append("**/*.o")
 
 See `User's Guide`_ for details.
 
