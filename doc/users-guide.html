@@ -115,13 +115,13 @@
           <ul>
             <li><a href="#remote-ssh">Ssh Configuration</a></li>
 
-            <li><a href="#remote-object"><code>Remote</code> object</a></li>
+            <li><a href="#remote-object">Remote Object</a></li>
 
             <li><a href="#remote-commands">Available Commands</a></li>
 
-            <li><a href="#remote-sudo"><code>sudo</code> command</a></li>
+            <li><a href="#remote-sudo">Sudo Command</a></li>
 
-            <li><a href="#remote-password"><code>Password</code> object</a></li>
+            <li><a href="#remote-password">Password Object</a></li>
 
             <li><a href="#remote-switch">Switching Remote Hosts</a></li>
 
@@ -1746,7 +1746,7 @@ bash&gt; ssh user1@server1
 </pre><br>
       <a name="remote-object" id="remote-object"></a>
 
-      <h3 class="section2"><code>Remote</code> object</h3>
+      <h3 class="section2">Remote Object</h3>
 
       <p>Using <code>kook.remote.Remote</code> object, you can define remote task recipe.</p><a name="remote-class/Kookbook.py"></a>
 
@@ -1791,7 +1791,47 @@ dev
 user1
 </pre>
 
-      <p>Of course you can define local and remote task recipes in a cookbook. In addition you can mix local remote command in a recipe.</p><br>
+      <p>Of course you can define local and remote task recipes in a cookbook. In addition you can mix local and remote command in a recipe.</p>
+
+      <div class="program_caption">
+        Mix local and remote command in a recipe
+      </div>
+      <pre class="program">
+@recipe
+@rempte
+def info(c):
+  ssh = c.ssh
+  ssh('hostname')      # on remote
+  system('hostname')   # on local
+</pre>
+
+      <p>If you want to define some roles of remote hosts, create remote objects for each role.</p>
+
+      <div class="program_caption">
+        Create remote objects for each role
+      </div>
+      <pre class="program">
+<strong>remote_web = Remote(</strong>
+  hosts = ['www1.example.org', 'www2.example.org'],
+  user  = 'wwwadmin',
+<strong>)</strong>
+<strong>remote_db = Remote(</strong>
+  hosts = ['db.example.com'],
+  user  = 'dbadmin',
+<strong>)</strong>
+
+class web(Category):
+  @recipe
+  <strong>@remote_web</strong>
+  def restart(c):
+    ...
+
+class db(Category):
+  @recipe
+  <strong>@remote_db</strong>
+  def restart(c):
+    ...
+</pre><br>
       <a name="remote-commands" id="remote-commands"></a>
 
       <h3 class="section2">Available Commands</h3>
@@ -1951,7 +1991,7 @@ ssh.mput('*.jpg', '*.png', '*.gif')
       </dl><br>
       <a name="remote-sudo" id="remote-sudo"></a>
 
-      <h3 class="section2"><code>sudo</code> command</h3><a name="remote-class/Kookbook.py"></a>
+      <h3 class="section2">Sudo Command</h3><a name="remote-class/Kookbook.py"></a>
 
       <div class="program_caption">
         Kookbook.py: basic example to define remote object
@@ -2012,7 +2052,7 @@ user1
       </div><br>
       <a name="remote-password" id="remote-password"></a>
 
-      <h3 class="section2"><code>Password</code> object</h3>
+      <h3 class="section2">Password Object</h3>
 
       <p>If you don't want to embed password into cookbook, use <code>kook.remote.Password</code> object.</p><a name="remote-class/Kookbook.py"></a>
 

@@ -2109,7 +2109,7 @@ bash> ssh user1@server1
 
 
 
-.$$ {{,Remote,}} object		| remote-object
+.$$ Remote Object		| remote-object
 
 Using {{,kook.remote.Remote,}} object, you can define remote task recipe.
 
@@ -2151,8 +2151,43 @@ user1
 .====================
 
 Of course you can define local and remote task recipes in a cookbook.
-In addition you can mix local remote command in a recipe.
+In addition you can mix local and remote command in a recipe.
 
+.? Mix local and remote command in a recipe
+.--------------------
+@recipe
+@rempte
+def info(c):
+  ssh = c.ssh
+  ssh('hostname')      # on remote
+  system('hostname')   # on local
+.--------------------
+
+If you want to define some roles of remote hosts, create remote objects for each role.
+
+.? Create remote objects for each role
+.--------------------
+{{*remote_web = Remote(*}}
+  hosts = ['www1.example.org', 'www2.example.org'],
+  user  = 'wwwadmin',
+{{*)*}}
+{{*remote_db = Remote(*}}
+  hosts = ['db.example.com'],
+  user  = 'dbadmin',
+{{*)*}}
+
+class web(Category):
+  @recipe
+  {{*@remote_web*}}
+  def restart(c):
+    ...
+
+class db(Category):
+  @recipe
+  {{*@remote_db*}}
+  def restart(c):
+    ...
+.--------------------
 
 
 .$$ Available Commands		| remote-commands
@@ -2259,7 +2294,7 @@ The following methods are available:
 
 
 
-.$$ {{,sudo,}} command		| remote-sudo
+.$$ Sudo Command		| remote-sudo
 
 
 .? Kookbook.py: basic example to define remote object
@@ -2318,7 +2353,7 @@ If you got the following error, {{<add 'Defaults visiblepw' into '/etc/sudoers' 
 .-NOTE:
 
 
-.$$ {{,Password,}} object	| remote-password
+.$$ Password Object	| remote-password
 
 If you don't want to embed password into cookbook, use {{,kook.remote.Password,}} object.
 
