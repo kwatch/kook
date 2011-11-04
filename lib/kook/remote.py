@@ -245,16 +245,7 @@ class Commands(object):
 
     def __init__(self, session):
         self._session = session
-        self._echoback = session._echoback
         self.sudo_password = session.sudo_password
-
-    @property
-    def _ssh(self):
-        return self._session._ssh
-
-    @property
-    def _sftp(self):
-        return self._session._sftp
 
 
     ##
@@ -279,42 +270,52 @@ class Commands(object):
     ##
 
     def listdir(self, path='.'):
-        return self._sftp.listdir(path)
+        sftp = self._session._sftp
+        return sftp.listdir(path)
 
     def listdir_f(self, path='.'):
+        sftp = self._session._sftp
         try:
-            return self._sftp.listdir(path)
+            return sftp.listdir(path)
         except IOError:
             return []
 
     def get(self, remote_path, local_path=None):
-        self._echoback("sftp get %s %s" % (remote_path, local_path or ""))
-        self._sftp.get(remote_path, local_path or os.path.basename(remote_path))
+        echo = self._session._echoback
+        sftp = self._session._sftp
+        echo("sftp get %s %s" % (remote_path, local_path or ""))
+        sftp.get(remote_path, local_path or os.path.basename(remote_path))
 
     def put(self, local_path, remote_path=None):
-        self._echoback("sftp put %s %s" % (local_path, remote_path or ""))
-        self._sftp.put(local_path, remote_path or os.path.basename(local_path))
+        echo = self._session._echoback
+        sftp = self._session._sftp
+        echo("sftp put %s %s" % (local_path, remote_path or ""))
+        sftp.put(local_path, remote_path or os.path.basename(local_path))
 
     def mget(self, *remote_patterns):
+        echo = self._session._echoback
+        sftp = self._session._sftp
         remote_patterns = kook.utils.flatten(remote_patterns)
-        self._echoback("sftp mget %s" % " ".join(remote_patterns))
+        echo("sftp mget %s" % " ".join(remote_patterns))
         for pattern in remote_patterns:
             pat_dirname, pat_basename = os.path.split(pattern)
-            remote_filenames = self._sftp.listdir(pat_dirname or '.')
+            remote_filenames = sftp.listdir(pat_dirname or '.')
             rexp = re.compile(kook.utils.meta2rexp(pat_basename))
             for fname in remote_filenames:
                 if rexp.match(fname):
                     remote_path = pat_dirname and pat_dirname + '/' + fname or fname
                     local_path = fname
-                    self._sftp.get(remote_path, local_path)
+                    sftp.get(remote_path, local_path)
 
     def mput(self, *local_patterns):
+        echo = self._session._echoback
+        sftp = self._session._sftp
         local_patterns = kook.utils.flatten(local_patterns)
-        self._echoback("sftp mput %s" % " ".join(local_patterns))
+        echo("sftp mput %s" % " ".join(local_patterns))
         for pattern in local_patterns:
             for local_path in kook.utils.glob2(pattern):
                 remote_path = os.path.basename(local_path)
-                self._sftp.put(local_path, remote_path)
+                sftp.put(local_path, remote_path)
 
 
     ##
@@ -328,10 +329,12 @@ class Commands(object):
         return (output, error, status)
 
     def run_f(self, command, show_output=True):
-        self._echoback(command)
+        echo = self._session._echoback
+        ssh  = self._session._ssh
+        echo(command)
         if self._session._moved:
             command = "cd %s; %s" % (self.getcwd(), command)
-        sin, sout, serr = self._ssh.exec_command(command)
+        sin, sout, serr = ssh.exec_command(command)
         status = sout.channel.recv_exit_status()
         output = sout.read()
         error  = serr.read()
@@ -357,12 +360,14 @@ class Commands(object):
 
     def sudo_f(self, command, show_output=True):
         """run forcedly; ignores status code of command"""
+        echo = self._session._echoback
+        ssh  = self._session._ssh
         command = "sudo " + command
-        self._echoback(command)
+        echo(command)
         self._check_sudo_password()
         if self._session._moved:
             command = "cd %s; %s" % (self.getcwd(), command)
-        sin, sout, serr = self._ssh.exec_command(command)
+        sin, sout, serr = ssh.exec_command(command)
         output = sout.read()
         error  = serr.read()
         status = sout.channel.recv_exit_status()
@@ -373,21 +378,25 @@ class Commands(object):
 
     def sudo_v(self, sudo_password=None):
         """do 'sudo -v'"""
-        self._echoback("sudo -v")
+        echo = self._session._echoback
+        ssh  = self._session._ssh
+        echo("sudo -v")
         if sudo_password: self.sudo_password = sudo_password
         self._check_sudo_password()    # set self._sudo_password
         return self.sudo_password
 
     def _check_sudo_password(self):
+        echo = self._session._echoback
+        ssh  = self._session._ssh
         ## run dummy command in non-interactive mode
-        sin, sout, serr = self._ssh.exec_command("sudo -n echo OK")  # non-interactive
+        sin, sout, serr = ssh.exec_command("sudo -n echo OK")  # non-interactive
         status = sout.channel.recv_exit_status()
         if status == 0:
             return
         ## enter passowrd for sudo command
         if not self.sudo_password:
             self.sudo_password = self._session.password or self._get_sudo_password()
-        sin, sout, serr = self._ssh.exec_command("sudo -v")   # validate
+        sin, sout, serr = ssh.exec_command("sudo -v")   # validate
         sin.write(self.sudo_password + "\n")
         sin.flush()  #sin.close()
         ## command will be timeout when password is wrong
