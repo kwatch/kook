@@ -23,18 +23,33 @@ except ImportError, ex:
     reason = str(sys.exc_info()[1])
     class Remote(object):
         SESSION = object
-from kook.cookbook import Cookbook
-from kook.kitchen import Kitchen
+from kook.cookbook import Cookbook, Recipe
+from kook.kitchen import Kitchen, RecipeCooking
 
+
+def _invoke_kookbook(input, start_task='remote_test', stdin=''):
+    _sout, _serr = kook.config.stdout, kook.config.stderr
+    try:
+        with dummy_io(stdin) as dio:
+            kook.config.stdout = sys.stdout
+            kook.config.stderr = sys.stderr
+            kookbook = Cookbook().load(input)
+            kitchen = Kitchen(kookbook)
+            kitchen.start_cooking(start_task)
+        return dio
+    finally:
+        kook.config.stdout, kook.config.stderr = _sout, _serr
 
 
 class DummySession(Remote.SESSION):
 
-    def __enter__(self):
-        return self
+    def open(self):
+        self._ssh_client = True
+        self._sftp_client = True
 
-    def __exit__(self, *args):
-        pass
+    def close(self, *args):
+        self._ssh_client = True
+        self._sftp_client = True
 
 
 def dummy_getpass(prompt, stream):
@@ -67,9 +82,11 @@ class KookRemoteTest(object):
 
 
     def before(self):
+        Remote.SESSION = DummySession
         self.at_end = None
 
     def after(self):
+        Remote.SESSION = Session
         if self.at_end:
             self.at_end()
 
@@ -155,7 +172,7 @@ remote = Remote(
 )
 #
 @recipe
-@remote
+@remotes(remote)
 def remote_test(c):
     sess = c.session
     ssh = c.ssh
@@ -173,14 +190,7 @@ ssh.passphrase='BBB'
 ssh.sudo_password='CCC'
 """[1:]
         stdin = "AAA\nBBB\nCCC\n" # password, passphrase, sudo password
-        @dummy_io(stdin)
-        def d_io():
-            kook.config.stdout = sys.stdout
-            kook.config.stderr = sys.stderr
-            kookbook = Cookbook().load(input)
-            kitchen = Kitchen(kookbook)
-            kitchen.start_cooking('remote_test')
-        sout, serr = d_io
+        sout, serr = _invoke_kookbook(input, 'remote_test', stdin=stdin)
         ok (sout) == expected
         ok (serr) == ''
 
@@ -231,42 +241,145 @@ ssh.sudo_password='CCC'
         def foo(c):
             """doc"""
             pass
-        ok (r(foo)).is_a(type(lambda: None))
-        ok (r(foo)).is_not(foo)
-        ok (r(foo).__name__) == 'foo'
-        ok (r(foo).__doc__)  == 'doc'
+        ok (r(foo)).is_(foo)
 
-    @test("#__call__(): copies kook attributes into decorator.")
+    @test("#__call__(): sets '_kook_recipes'.")
     @skip.when(import_failed, reason)
     def _(self):
-        input = r"""from __future__ import with_statement
-@recipe
-@product('sos.html')
-@ingreds('sos.txt')
-@byprods('sos.tmp')
-@coprods('sos.toc')
-@spices('-p: keep timestamp')
-@priority(123)
-def file_sos_html(c, *args, **kwargs):
-     return args, kwargs
-"""
-        kookbook = Cookbook().load(input)
-        recipe = kookbook.find_recipe('sos.html')
-        func = recipe.method
+        r1 = Remote(hosts=['host1'])
+        r2 = Remote(hosts=['host2'])
+        @r1
+        @r2
+        def foo(c):
+            pass
+        ok (foo._kook_remotes) == [r1, r2]
+
+
+    @test("#_invoke(): invokes recipe function with sesion object.")
+    def _(self):
         remote = Remote(hosts=['host1'])
-        deco = remote(func)
-        ok (deco).attr('_kook_recipe', recipe)
-        ok (deco).attr('_kook_ingreds', ['sos.txt'])
-        ok (deco).attr('_kook_byprods', ['sos.tmp'])
-        ok (deco).attr('_kook_coprods', ['sos.toc'])
-        ok (deco).attr('_kook_spices', ['-p: keep timestamp'])
-        ok (deco).attr('_kook_priority', 123)
+        session_list = []
+        @remote
+        def foo(c, *args, **kwargs):
+            session_list.append(c.session)
+        recipe = Recipe(kind='task')
+        c = RecipeCooking(recipe)
+        #
+        remote._invoke(foo, c, (), {})
+        #
+        ok (session_list).length(1)
+        ok (session_list[0]).is_a(Session)
+        ok (session_list[0].host) == 'host1'
 
-    @test("#__call__(): connects to hosts.")
-    @skip.when(import_failed, reason)
+    @test("#_invoke(): invokes recipe function for each host.")
     def _(self):
-        ## TODO:
-        pass
+        remote = Remote(hosts=['host1', 'host2', 'host3'])
+        args_, kwargs_ = (1,2), {'x':10}
+        ctr = [0]
+        host_list = []
+        @remote
+        def foo(c, *args, **kwargs):
+            ctr[0] += 1
+            host_list.append(c.session.host)
+            ok (args) == args_
+            ok (kwargs) == kwargs_
+        recipe = Recipe(kind='task')
+        c = RecipeCooking(recipe)
+        #
+        remote._invoke(foo, c, args_, kwargs_)
+        #
+        ok (ctr[0]) == 3
+        ok (host_list) == ['host1', 'host2', 'host3']
+
+
+    @test("several remote objects can decoreate a recipe.")
+    def _(self):
+        input = r"""
+from kook.remote import Remote
+remote_web = Remote(hosts = ['www1', 'www2'])
+remote_db  = Remote(hosts = ['db1', 'db2'])
+#
+@recipe
+@remotes(remote_web, remote_db)
+def remote_task(c):
+    print(c.session.host)
+"""
+        expected = r"""
+### * remote_task (recipe=remote_task)
+www1
+www2
+db1
+db2
+"""[1:]
+        sout, serr = _invoke_kookbook(input, "remote_task")
+        ok (sout) == expected
+        ok (serr) == ""
+
+    @test("dependencies between remote recipe and normal recipe are solved correctly.")
+    def _(self):
+        input = r"""
+from kook.remote import Remote
+remote = Remote(hosts = ['host1', 'host2', 'host3'])
+#
+@recipe
+@ingreds('remote_task')
+def task_all(c):
+    print("all: hasattr(c, 'session') = %r" % hasattr(c, 'session'))
+#
+@recipe
+@remotes(remote)
+@ingreds('prepare')
+def remote_task(c):
+    print('remote_task: ' + c.session.host)
+#
+@recipe
+def prepare(c):
+    print("prepare: hasattr(c, 'session') = %r" % hasattr(c, 'session'))
+"""
+        expected = r"""
+### *** prepare (recipe=prepare)
+prepare: hasattr(c, 'session') = False
+### ** remote_task (recipe=remote_task)
+remote_task: host1
+remote_task: host2
+remote_task: host3
+### * all (recipe=task_all)
+all: hasattr(c, 'session') = False
+"""[1:]
+        sout, serr = _invoke_kookbook(input, "all")
+        ok (sout) == expected
+        ok (serr) == ""
+
+    @test("dependencies between remote recipes are not solved correctly yet.")
+    def _(self):
+        input = r"""
+from kook.remote import Remote
+remote = Remote(hosts = ['host1', 'host2', 'host3'])
+#
+@recipe
+@remotes(remote)
+@ingreds('remote_pre')
+def remote_task(c):
+    print('remote_task: ' + c.session.host)
+
+@recipe
+@remotes(remote)
+def remote_pre(c):
+    print('remote_pre: ' + c.session.host)
+"""
+        expected = r"""
+### ** remote_pre (recipe=remote_pre)
+remote_pre: host1
+remote_pre: host2
+remote_pre: host3
+### * remote_task (recipe=remote_task)
+remote_task: host1
+remote_task: host2
+remote_task: host3
+"""[1:]
+        sout, serr = _invoke_kookbook(input, "remote_task")
+        ok (sout) == expected
+        ok (serr) == ""
 
 
 
@@ -316,6 +429,9 @@ class KookPasswordTest(object):
 
 class KookSessionTest(object):
 
+    def provide_tr(self):
+        return oktest.tracer.Tracer()
+
 
     @test("#__call__(): accepts arguments.")
     @skip.when(import_failed, reason)
@@ -326,10 +442,11 @@ class KookSessionTest(object):
 
     @test("#__enter__(): (internal) calls 'open()'.")
     @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
-
+    def _(self, tr):
+        sess = Session('host1')
+        tr.fake_method(sess, open="OPEN")
+        sess.__enter__()
+        ok (tr.calls[0]) == (sess, 'open', (), {}, "OPEN")
 
     @test("#__enter__(): returns self.")
     @skip.when(import_failed, reason)
@@ -340,9 +457,11 @@ class KookSessionTest(object):
 
     @test("#__exit__(): (internal) calls 'close()'.")
     @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
+    def _(self, tr):
+        sess = Session('host1')
+        tr.fake_method(sess, close="CLOSE")
+        sess.__exit__()
+        ok (tr.calls[0]) == (sess, 'close', (), {}, "CLOSE")
 
 
     @test("#open(): connects to host.")

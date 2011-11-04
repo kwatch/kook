@@ -7,11 +7,18 @@
 import sys, os, re, time
 import oktest
 from oktest import *
+from oktest import skip
 from oktest.tracer import Tracer
 
 from kook.decorators import RecipeDecorator
 from kook.cookbook import Recipe
 from kook.utils import ArgumentError
+try:
+    import kook.remote
+    from kook.remote import Remote
+    remote_available = True
+except ImportError:
+    remote_available = False
 
 globals().update(RecipeDecorator().to_dict())
 
@@ -147,6 +154,26 @@ class KookDecoratorsTest(object):
             pass
         ok (hasattr(f, '_kook_spices')) == True
         ok (f._kook_spices) == ['-h: help', '-v: verbose']
+
+    @test("@remotes(): takes Remote objects.")
+    @skip.when(not remote_available, "kook.remote is not available")
+    def test_remotes(self):
+        r1 = Remote(hots=['host1'])
+        r2 = Remote(hots=['host2'])
+        @remotes(r1, r2)
+        def f(c):
+            pass
+        ok (hasattr(f, '_kook_remotes')) == True
+        ok (f._kook_remotes) == [r1, r2]
+
+    @test("@remotes(): raises TypeError when argument is not a Remote object.")
+    @skip.when(not remote_available, "kook.remote is not available")
+    def test_remotes(self):
+        def fn():
+            @remotes("remote")
+            def f(c):
+                pass
+        ok (fn).raises(TypeError, "@remotes(): Remote object expected but got 'remote'.")
 
     def test_cmdopts(self):
         pass

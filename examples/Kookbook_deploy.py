@@ -36,54 +36,54 @@ kookbook.default = 'deploy:info'
 class deploy(Category):
 
     @recipe
-    @app_server
+    @remotes(app_server)
     def info(c):
         ssh = c.ssh
-        ssh.run("hostname")
-        ssh.run("whoami")
+        ssh("hostname")
+        ssh("whoami")
         #ssh.sudo("whoami")
 
     @recipe
-    @app_server
+    @remotes(app_server)
     @spices("-t tag: tag name to checkout")
     def default(c, *args, **kwargs):
         """deploy to remote server"""
         tagname = kwargs.get('t')
         ssh = c.ssh
         if "repo" not in ssh.listdir_f("app"):
-            ssh.run("mkdir -p app/repo")
+            ssh("mkdir -p app/repo")
         ## call other recipe to check-out source code
         deploy.checkout(c, *args, **kwargs)
         ## deploy
         target = tagname or 'master'
-        ssh.run(c%"mkdir -p app/releases/$(target)")
+        ssh(c%"mkdir -p app/releases/$(target)")
         with ssh.cd(c%"app/releases/$(target)"):
             ## copy source files
-            ssh.run("cp -pr ../../repo/* .")
+            ssh("cp -pr ../../repo/* .")
             ## migrate database by 'migrate'
-            #ssh.run("python db_repository/manage.py upgrade")
+            #ssh("python db_repository/manage.py upgrade")
         ## recreate symbolic link
         with ssh.cd("app/releases"):
-            ssh.run(c%"rm -f current")
-            ssh.run(c%"ln -s $(tagname) current")
+            ssh(c%"rm -f current")
+            ssh(c%"ln -s $(tagname) current")
 
     @recipe
-    @app_server
+    @remotes(app_server)
     @spices("-t tag: tag name to checkout")
     def checkout(c, *args, **kwargs):
         """checkout source code from git repository"""
         tagname = kwargs.get('t')
         ssh = c.ssh
         if "repo" not in ssh.listdir_f("app"):
-            ssh.run("mkdir -p app/repo")
+            ssh("mkdir -p app/repo")
         ## checkout git repository
         with ssh.cd("app/repo"):
             files = ssh.listdir(".")
             if '.git' not in files:
-                ssh.run(c%"git clone $(repository_url) .")
+                ssh(c%"git clone $(repository_url) .")
             else:
-                ssh.run(c%"git fetch")
+                ssh(c%"git fetch")
             if tagname:
-                ssh.run(c%"git checkout -q refs/tags/$(tagname)")
+                ssh(c%"git checkout -q refs/tags/$(tagname)")
             else:
-                ssh.run(c%"git checkout master")
+                ssh(c%"git checkout master")

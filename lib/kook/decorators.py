@@ -13,6 +13,7 @@ from kook import KookRecipeError
 from kook.utils import flatten, _is_str, ArgumentError, get_funcname
 #from kook.cookbook import Recipe
 Recipe = None         # lazy import to avoid mutual import
+Remote = None         # lazy import
 
 __all__ = ('RecipeDecorator', )
 
@@ -26,7 +27,8 @@ class RecipeDecorator(object):
         return { "recipe":  self.recipe,  "product":  self.product,
                  "ingreds": self.ingreds, "byprods":  self.byprods,
                  "coprods": self.coprods, "priority": self.priority,
-                 "spices":  self.spices,  "cmdopts":  self.cmdopts, }
+                 "spices":  self.spices,  "remotes":  self.remotes,
+                 "cmdopts":  self.cmdopts, }
 
     def recipe(self, product=None, ingreds=None):
         """decorator to mark function as a recipe.
@@ -110,6 +112,19 @@ class RecipeDecorator(object):
     def spices(self, *names):
         def deco(f):
             f._kook_spices = flatten(names)
+            return f
+        return deco
+
+
+    def remotes(self, *remote_objects):
+        global Remote
+        if not Remote: from kook.remote import Remote
+        remote_objects = flatten(remote_objects)
+        for obj in remote_objects:
+            if not isinstance(obj, Remote):
+                raise TypeError("@remotes(): Remote object expected but got %r." % (obj,))
+        def deco(f):
+            f._kook_remotes = flatten(remote_objects)
             return f
         return deco
 

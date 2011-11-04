@@ -297,7 +297,7 @@ class Recipe(object):
 
     __category = None
 
-    def __init__(self, kind=None, product=None, ingreds=None, byprods=None, method=None, desc=None, spices=None):
+    def __init__(self, kind=None, product=None, ingreds=None, byprods=None, method=None, desc=None, spices=None, remotes=None):
         self.kind    = kind
         self.product = product
         self.ingreds = ingreds
@@ -305,6 +305,7 @@ class Recipe(object):
         self.method  = method
         self.desc    = desc
         self.spices  = spices
+        self.remotes = remotes
 
     def __get_kind(self):
         return self.__kind
@@ -361,6 +362,12 @@ class Recipe(object):
         self.__spices = to_list(spices)
     spices = property(__get_spices, __set_spices)
 
+    def __get_remotes(self):
+        return self.__remotes
+    def __set_remotes(self, remotes):
+        self.__remotes = to_list(remotes)
+    remotes = property(__get_remotes, __set_remotes)
+
     def __get_pattern(self):
         return self.__pattern
     pattern = property(__get_pattern)
@@ -401,9 +408,10 @@ class Recipe(object):
                 raise ArgumentError("%r: recipe ingredients should be a list or tuple." % (ingreds,))
         byprods = getattr(method, '_kook_byprods', [])
         spices  = getattr(method, '_kook_spices', [])
+        remotes = getattr(method, '_kook_remotes', [])
         desc    = method.__doc__  ## can be empty string
         if desc is None: desc = _default_descs.get(product)
-        return cls(kind=kind, product=product, ingreds=ingreds, byprods=byprods, method=method, desc=desc, spices=spices)
+        return cls(kind=kind, product=product, ingreds=ingreds, byprods=byprods, method=method, desc=desc, spices=spices, remotes=remotes)
 
     def is_generic(self):
         return self.__pattern is not None
