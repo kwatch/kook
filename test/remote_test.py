@@ -27,6 +27,19 @@ from kook.cookbook import Cookbook, Recipe
 from kook.kitchen import Kitchen, RecipeCooking
 
 
+def _invoke_kookbook(input, start_task='remote_test', stdin=''):
+    _sout, _serr = kook.config.stdout, kook.config.stderr
+    try:
+        with dummy_io(stdin) as dio:
+            kook.config.stdout = sys.stdout
+            kook.config.stderr = sys.stderr
+            kookbook = Cookbook().load(input)
+            kitchen = Kitchen(kookbook)
+            kitchen.start_cooking(start_task)
+        return dio
+    finally:
+        kook.config.stdout, kook.config.stderr = _sout, _serr
+
 
 class DummySession(Remote.SESSION):
 
@@ -177,14 +190,7 @@ ssh.passphrase='BBB'
 ssh.sudo_password='CCC'
 """[1:]
         stdin = "AAA\nBBB\nCCC\n" # password, passphrase, sudo password
-        @dummy_io(stdin)
-        def d_io():
-            kook.config.stdout = sys.stdout
-            kook.config.stderr = sys.stderr
-            kookbook = Cookbook().load(input)
-            kitchen = Kitchen(kookbook)
-            kitchen.start_cooking('remote_test')
-        sout, serr = d_io
+        sout, serr = _invoke_kookbook(input, 'remote_test', stdin=stdin)
         ok (sout) == expected
         ok (serr) == ''
 
