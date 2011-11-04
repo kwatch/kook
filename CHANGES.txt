@@ -3,7 +3,7 @@ releases:
 
   - release:  0.7.0
     date:     ????
-    enhances:
+    enhancements:
 
       - (EXPERIMENTAL!!) Remote command execution (ssh and sftp) is available.
         This is very useful to deploy your application into servers.
@@ -25,8 +25,8 @@ releases:
 	    def hostinfo(c):
 	        """show hostname"""
 	        ssh = c.ssh
-	        ssh.run('hostname')    # run command with ssh
-	        ssh.run('whomai')      # run command with ssh
+	        ssh('hostname')        # run command with ssh
+	        ssh('whomai')          # run command with ssh
 	        ssh.sudo('whoami')     # run command with sudo
 
 	    @recipe
@@ -102,13 +102,43 @@ releases:
         Ex (Kookbook.py)::
 
 	    from kook.remote import Remote, Password
-	    _pass = Password()
+	    passwd = Password()
 	    remote = Remote(
 	        hosts         = ['user1@www1:22'],
-	        password      = _pass,
-	        passphrase    = _pass,
-	        sudo_password = _pass
+	        password      = passwd,
+	        passphrase    = passwd,
+	        sudo_password = passwd,
 	    )
+
+    changes:
+
+      - Category class is changed to convers all instance methods into staticmethods.
+
+        Ex (Kookbook.py):
+
+	  class apache(Category):
+	      @recipe
+	      def start(c):
+	         system('apachectl start')
+
+	  ## start() is converted into staticmethod
+	  assert type(apache.__dict__['start']) == staticmethod
+	  from types import FunctionType
+	  assert type(apache.start) == FuntionType
+
+	This makes execution of other recipes in category easier.
+
+	  class apache(Category):
+	      @recipe
+	      def start(c):
+	         ...
+	      @recipe
+	      def stop(c):
+	         ...
+	      @recipe
+	      def restart(c):
+	         apache.start(c)    # execute other recipe
+		 apache.stop(c)     # execute other recipe
 
 
   - release:  0.6.0
