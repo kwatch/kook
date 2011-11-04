@@ -240,31 +240,13 @@ class Session(object):
         sys.stdout.write(self.getcwd() + "\n")
 
 
-class Commands(object):
+Remote.SESSION = Session
 
-    def __init__(self, session):
-        self._session = session
-        self.sudo_password = session.sudo_password
 
-    ##
-    ## cd, pushd, ...
-    ##
+class SftpCommands(object):
 
-    def cd(self, path):
-        return self._session.cd(path)
-
-    def pushd(self, path):
-        return self._session.pushd(path)
-
-    def getcwd(self):
-        return self._session.getcwd()
-
-    def pwd(self):
-        return self._session.pwd()
-
-    ##
-    ## sftp
-    ##
+    def _init_sftp(self):
+        pass
 
     def listdir(self, path='.'):
         sftp = self._session._sftp_client
@@ -314,9 +296,11 @@ class Commands(object):
                 remote_path = os.path.basename(local_path)
                 sftp.put(local_path, remote_path)
 
-    ##
-    ## ssh
-    ##
+
+class SshCommands(object):
+
+    def _init_ssh(self):
+        self.sudo_password = self._session.sudo_password
 
     def run(self, command, show_output=True):
         output, error, status = self.run_f(command, show_output)
@@ -341,10 +325,6 @@ class Commands(object):
 
     def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
-
-    ##
-    ## sudo
-    ##
 
     def sudo(self, command, show_output=True):
         """run gracefully; throws exception when commaind is failed"""
@@ -427,7 +407,25 @@ class Commands(object):
         return errmsg
 
 
-Remote.SESSION = Session
+class Commands(SshCommands, SftpCommands):
+
+    def __init__(self, session):
+        self._session = session
+        self._init_ssh()
+        self._init_sftp()
+
+    def cd(self, path):
+        return self._session.cd(path)
+
+    def pushd(self, path):
+        return self._session.pushd(path)
+
+    def getcwd(self):
+        return self._session.getcwd()
+
+    def pwd(self):
+        return self._session.pwd()
+
 
 
 #class Chdir(object):
