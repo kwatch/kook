@@ -292,6 +292,98 @@ ssh.sudo_password='CCC'
         ok (host_list) == ['host1', 'host2', 'host3']
 
 
+    @test("several remote objects can decoreate a recipe.")
+    def _(self):
+        input = r"""
+from kook.remote import Remote
+remote_web = Remote(hosts = ['www1', 'www2'])
+remote_db  = Remote(hosts = ['db1', 'db2'])
+#
+@recipe
+@remote_web
+@remote_db
+def remote_task(c):
+    print(c.session.host)
+"""
+        expected = r"""
+### * remote_task (recipe=remote_task)
+www1
+www2
+db1
+db2
+"""[1:]
+        sout, serr = _invoke_kookbook(input, "remote_task")
+        ok (sout) == expected
+        ok (serr) == ""
+
+    @test("dependencies between remote recipe and normal recipe are solved correctly.")
+    def _(self):
+        input = r"""
+from kook.remote import Remote
+remote = Remote(hosts = ['host1', 'host2', 'host3'])
+#
+@recipe
+@ingreds('remote_task')
+def task_all(c):
+    print("all: hasattr(c, 'session') = %r" % hasattr(c, 'session'))
+#
+@recipe
+@remote
+@ingreds('prepare')
+def remote_task(c):
+    print('remote_task: ' + c.session.host)
+#
+@recipe
+def prepare(c):
+    print("prepare: hasattr(c, 'session') = %r" % hasattr(c, 'session'))
+"""
+        expected = r"""
+### *** prepare (recipe=prepare)
+prepare: hasattr(c, 'session') = False
+### ** remote_task (recipe=remote_task)
+remote_task: host1
+remote_task: host2
+remote_task: host3
+### * all (recipe=task_all)
+all: hasattr(c, 'session') = False
+"""[1:]
+        sout, serr = _invoke_kookbook(input, "all")
+        ok (sout) == expected
+        ok (serr) == ""
+
+    @test("dependencies between remote recipes are not solved correctly yet.")
+    def _(self):
+        input = r"""
+from kook.remote import Remote
+remote = Remote(hosts = ['host1', 'host2', 'host3'])
+#
+@recipe
+@remote
+@ingreds('remote_pre')
+def remote_task(c):
+    print('remote_task: ' + c.session.host)
+
+@recipe
+@remote
+def remote_pre(c):
+    print('remote_pre: ' + c.session.host)
+"""
+        expected = r"""
+### ** remote_pre (recipe=remote_pre)
+remote_pre: host1
+remote_pre: host2
+remote_pre: host3
+### * remote_task (recipe=remote_task)
+remote_task: host1
+remote_task: host2
+remote_task: host3
+"""[1:]
+        sout, serr = _invoke_kookbook(input, "remote_task")
+        ok (sout) == expected
+        ok (serr) == ""
+
+
+
 class KookPasswordTest(object):
 
 
