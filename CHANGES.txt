@@ -21,7 +21,7 @@ releases:
 	    )
 
 	    @recipe
-	    @remote
+	    @remotes(remote)
 	    def hostinfo(c):
 	        """show hostname"""
 	        ssh = c.ssh
@@ -30,7 +30,7 @@ releases:
 	        ssh.sudo('whoami')     # run command with sudo
 
 	    @recipe
-	    @remote
+	    @remotes(remote)
 	    def exchange(c):
 	        """upload and download files"""
 	        ssh = c.ssh
@@ -83,7 +83,7 @@ releases:
 	    )
 	    #
 	    @recipe
-	    @remote
+	    @remotes(remote)
 	    def remote_test(c):
 	        ssh = c.ssh
 	        ssh.sudo('whoami')
