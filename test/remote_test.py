@@ -23,18 +23,20 @@ except ImportError, ex:
     reason = str(sys.exc_info()[1])
     class Remote(object):
         SESSION = object
-from kook.cookbook import Cookbook
-from kook.kitchen import Kitchen
+from kook.cookbook import Cookbook, Recipe
+from kook.kitchen import Kitchen, RecipeCooking
 
 
 
 class DummySession(Remote.SESSION):
 
-    def __enter__(self):
-        return self
+    def open(self):
+        self._ssh_client = True
+        self._sftp_client = True
 
-    def __exit__(self, *args):
-        pass
+    def close(self, *args):
+        self._ssh_client = True
+        self._sftp_client = True
 
 
 def dummy_getpass(prompt, stream):
@@ -67,9 +69,11 @@ class KookRemoteTest(object):
 
 
     def before(self):
+        Remote.SESSION = DummySession
         self.at_end = None
 
     def after(self):
+        Remote.SESSION = Session
         if self.at_end:
             self.at_end()
 
@@ -244,6 +248,42 @@ ssh.sudo_password='CCC'
             pass
         ok (foo._kook_remotes) == [r1, r2]
 
+
+    @test("#_invoke(): invokes recipe function with sesion object.")
+    def _(self):
+        remote = Remote(hosts=['host1'])
+        session_list = []
+        @remote
+        def foo(c, *args, **kwargs):
+            session_list.append(c.session)
+        recipe = Recipe(kind='task')
+        c = RecipeCooking(recipe)
+        #
+        remote._invoke(foo, c, (), {})
+        #
+        ok (session_list).length(1)
+        ok (session_list[0]).is_a(Session)
+        ok (session_list[0].host) == 'host1'
+
+    @test("#_invoke(): invokes recipe function for each host.")
+    def _(self):
+        remote = Remote(hosts=['host1', 'host2', 'host3'])
+        args_, kwargs_ = (1,2), {'x':10}
+        ctr = [0]
+        host_list = []
+        @remote
+        def foo(c, *args, **kwargs):
+            ctr[0] += 1
+            host_list.append(c.session.host)
+            ok (args) == args_
+            ok (kwargs) == kwargs_
+        recipe = Recipe(kind='task')
+        c = RecipeCooking(recipe)
+        #
+        remote._invoke(foo, c, args_, kwargs_)
+        #
+        ok (ctr[0]) == 3
+        ok (host_list) == ['host1', 'host2', 'host3']
 
 
 class KookPasswordTest(object):
