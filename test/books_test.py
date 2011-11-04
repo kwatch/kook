@@ -21,35 +21,7 @@ from kook.kitchen import Kitchen
 from kook.utils import write_file
 from kook import config
 
-
-
-class dummy_sio(object):
-
-    def __init__(self, content=None):
-        self.stdin_content = content
-
-    def __enter__(self):
-        self.stdout, config.stdout = config.stdout, StringIO()
-        self.stderr, config.stderr = config.stderr, StringIO()
-        self.stdin,  sys.stdin     = sys.stdin,     StringIO(self.stdin_content or "")
-        return self
-
-    def __exit__(self, *args):
-        #sout, serr = config.stdout.getvalue(), config.stderr.getvalue()
-        config.stdout, self.stdout = self.stdout, config.stdout.getvalue()
-        config.stderr, self.stderr = self.stderr, config.stderr.getvalue()
-        sys.stdin,     self.stdin  = self.stdin,  self.stdin_content
-
-    def run(self, func, *args, **kwargs):
-        try:
-            self.__enter__()
-            func(*args, **kwargs)
-            return self
-        finally:
-            self.__exit__(*sys.exc_info())
-
-    def __call__(self, func):
-        return self.run(func)
+from _testhelper import dummy_sio
 
 
 

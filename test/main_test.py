@@ -17,14 +17,7 @@ from kook.main import MainCommand, MainApplication
 import kook.config as config
 from kook.utils import write_file
 
-
-def _setup_stdio():
-    config.stdout = StringIO()
-    config.stderr = StringIO()
-
-def _teardown_stdio():
-    config.stdout = sys.stdout
-    config.stderr = sys.stderr
+from _testhelper import _setup_stdio, _teardown_stdio
 
 def _stdout():
     return config.stdout.getvalue()

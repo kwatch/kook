@@ -21,14 +21,7 @@ from kook.cookbook import Cookbook
 from kook.utils import read_file, write_file, CommandOptionError
 import kook.config as config
 
-
-def _setup_stdio():
-    config.stdout = StringIO()
-    config.stderr = StringIO()
-
-def _teardown_stdio():
-    config.stdout = sys.stdout
-    config.stderr = sys.stderr
+from _testhelper import _setup_stdio, _teardown_stdio
 
 def _stdout():
     val = config.stdout.getvalue()

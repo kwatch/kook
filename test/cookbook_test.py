@@ -14,35 +14,7 @@ from kook import KookRecipeError
 from kook.cookbook import Cookbook, Recipe
 from kook.utils import write_file
 
-
-def mkdir_p(path):
-    d = None
-    mkdir = os.mkdir
-    for item in os.path.split(path):
-        if d is None:
-            os.mkdir(item)
-            d = item
-        else:
-            d = d + '/' + item
-            os.mkdir(d)
-
-
-def rm_rf(path):
-    if os.path.exists(path):
-        shutil.rmtree(path)
-
-
-@classmethod
-def _before_all(cls):
-    cls._back_to = os.getcwd()
-    if not os.path.exists('_test_tmp.d'):
-        os.mkdir('_test_tmp.d')
-    os.chdir('_test_tmp.d')
-
-@classmethod
-def _after_all(cls):
-    os.chdir(cls._back_to)
-    rm_rf('_test_tmp.d')
+from _testhelper import mkdir_p, rm_rf, _before_all, _after_all
 
 
 bookname = 'Kookbook.py'
