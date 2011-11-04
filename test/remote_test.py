@@ -17,7 +17,7 @@ import_failed = False
 reason = None
 try:
     import kook.remote
-    from kook.remote import Remote, Password, SshSession, PushDir
+    from kook.remote import Remote, Password, Session, Commands, PushDir
 except ImportError, ex:
     import_failed = True
     reason = str(sys.exc_info()[1])
@@ -119,7 +119,7 @@ class KookRemoteTest(object):
     @skip.when(import_failed, reason)
     def _(self):
         sess = Remote().new_session('host1')
-        ok (sess).is_a(kook.remote.SshSession)
+        ok (sess).is_a(kook.remote.Session)
 
     @test("#new_session(): accepts host.")
     @skip.when(import_failed, reason)
@@ -157,10 +157,11 @@ remote = Remote(
 @recipe
 @remote
 def remote_test(c):
+    sess = c.session
     ssh = c.ssh
-    print('ssh.password=%r' % (ssh.password,))
-    print('ssh.passphrase=%r' % (ssh.passphrase,))
-    print('ssh.sudo_password=%r' % (ssh.sudo_password,))
+    print('ssh.password=%r' % (sess.password,))
+    print('ssh.passphrase=%r' % (sess.passphrase,))
+    print('ssh.sudo_password=%r' % (sess.sudo_password,))
 """
         expected = r"""
 ### * remote_test (recipe=remote_test)
@@ -172,13 +173,14 @@ ssh.passphrase='BBB'
 ssh.sudo_password='CCC'
 """[1:]
         stdin = "AAA\nBBB\nCCC\n" # password, passphrase, sudo password
-        with dummy_io(stdin) as dio:
+        @dummy_io(stdin)
+        def d_io():
             kook.config.stdout = sys.stdout
             kook.config.stderr = sys.stderr
             kookbook = Cookbook().load(input)
             kitchen = Kitchen(kookbook)
             kitchen.start_cooking('remote_test')
-        sout, serr = dio
+        sout, serr = d_io
         ok (sout) == expected
         ok (serr) == ''
 
@@ -188,7 +190,7 @@ ssh.sudo_password='CCC'
     def _(self):
         r = Remote(hosts=['host1', 'host2'])
         sess = r.__enter__()
-        ok (sess).is_a(kook.remote.SshSession)
+        ok (sess).is_a(kook.remote.Session)
         ok (sess.host) == 'host1'
 
     @test("#__enter__(): (internal) sets session object to ivar '_session'.")
@@ -197,18 +199,18 @@ ssh.sudo_password='CCC'
         r = Remote(hosts=['host1', 'host2'])
         sess = r.__enter__()
         ok (r).has_attr('_session')
-        ok (r._session).is_a(kook.remote.SshSession)
+        ok (r._session).is_a(kook.remote.Session)
 
 
-    @test("#__exit__(): (internal) calls SshSession#_close().")
+    @test("#__exit__(): (internal) calls Session#close().")
     @skip.when(import_failed, reason)
     def _(self):
         r = Remote(hosts=['host1', 'host2'])
         sess = r.__enter__()
         tr = oktest.tracer.Tracer()
-        tr.trace_method(sess, '_close')
+        tr.trace_method(sess, 'close')
         r.__exit__()
-        ok (tr.calls[0]) == (sess, '_close', (), {}, None)
+        ok (tr.calls[0]) == (sess, 'close', (), {}, None)
 
 
     @test("#__iter__(): iterates with new sessions.")
@@ -218,7 +220,7 @@ ssh.sudo_password='CCC'
         i = 0
         for sess in r:
             i += 1
-            ok (sess).is_a(kook.remote.SshSession)
+            ok (sess).is_a(kook.remote.Session)
             ok (sess.host) == 'host%d' % i
 
 
@@ -297,7 +299,8 @@ class KookPasswordTest(object):
     @skip.when(import_failed, reason)
     def _(self, dummy_getpass):
         stdin = "AAA\nBBB\n"
-        with dummy_io(stdin) as dio:
+        @dummy_io(stdin)
+        def d_io():
             password = Password()
             ok (password.value) == None
             val = password.get()
@@ -305,13 +308,13 @@ class KookPasswordTest(object):
             ok (password.value) == "AAA"
             val = password.get()
             ok (password.value) == "AAA"
-        sout, serr = dio
+        sout, serr = d_io
         ok (sout) == "Password: \n"
         ok (serr) == ""
 
 
 
-class KookSshSessionTest(object):
+class KookSessionTest(object):
 
 
     @test("#__call__(): accepts arguments.")
@@ -321,7 +324,7 @@ class KookSshSessionTest(object):
         pass
 
 
-    @test("#__enter__(): (internal) calls '_open()'.")
+    @test("#__enter__(): (internal) calls 'open()'.")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
@@ -335,21 +338,21 @@ class KookSshSessionTest(object):
         pass
 
 
-    @test("#__exit__(): (internal) calls '_close()'.")
+    @test("#__exit__(): (internal) calls 'close()'.")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
         pass
 
 
-    @test("#_open(): connects to host.")
+    @test("#open(): connects to host.")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
         pass
 
 
-    @test("#_close(): close connection.")
+    @test("#close(): close connection.")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
@@ -410,6 +413,60 @@ class KookSshSessionTest(object):
     def _(self):
         ## TODO:
         pass
+
+
+
+class KookCommandsTest(object):
+
+
+    def provide_session(self):
+        return Session(host='host1')
+
+    def provide_tracer(self):
+        return oktest.tracer.Tracer()
+
+
+    @test("#__init__(): takes session object.")
+    @skip.when(import_failed, reason)
+    def _(self, session):
+        c = Commands(session)
+        ok (c._session).is_(session)
+
+
+    @test("#pushd(): calls Session#pushd().")
+    @skip.when(import_failed, reason)
+    def _(self, session, tracer):
+        tracer.fake_method(session, pushd='PUSHD')
+        c = Commands(session)
+        ret = c.pushd('PATH1')
+        ok (tracer.calls[0]) == (session, 'pushd', ('PATH1',), {}, 'PUSHD')
+
+
+    @test("#cd(): calls Session#cd()")
+    @skip.when(import_failed, reason)
+    def _(self, session, tracer):
+        tracer.fake_method(session, cd='CD')
+        c = Commands(session)
+        ret = c.cd('PATH1')
+        ok (tracer.calls[0]) == (session, 'cd', ('PATH1',), {}, 'CD')
+
+
+    @test("#getcwd(): calls Session#getcwd()")
+    @skip.when(import_failed, reason)
+    def _(self, session, tracer):
+        tracer.fake_method(session, getcwd='GETCWD')
+        c = Commands(session)
+        ret = c.getcwd()
+        ok (tracer.calls[0]) == (session, 'getcwd', (), {}, 'GETCWD')
+
+
+    @test("#pwd(): calls Session#pwd()")
+    @skip.when(import_failed, reason)
+    def _(self, session, tracer):
+        tracer.fake_method(session, pwd='PWD')
+        c = Commands(session)
+        ret = c.pwd()
+        ok (tracer.calls[0]) == (session, 'pwd', (), {}, 'PWD')
 
 
     @test("#listdir(): TODO")
@@ -525,28 +582,28 @@ class KookSshSessionTest(object):
 
 
 
-class KookChdirTest(object):
-
-
-    @test("#__init__(): TODO")
-    @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
-
-
-    @test("#__enter__(): TODO")
-    @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
-
-
-    @test("#__exit__(): TODO")
-    @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
+#class KookChdirTest(object):
+#
+#
+#    @test("#__init__(): TODO")
+#    @skip.when(import_failed, reason)
+#    def _(self):
+#        ## TODO:
+#        pass
+#
+#
+#    @test("#__enter__(): TODO")
+#    @skip.when(import_failed, reason)
+#    def _(self):
+#        ## TODO:
+#        pass
+#
+#
+#    @test("#__exit__(): TODO")
+#    @skip.when(import_failed, reason)
+#    def _(self):
+#        ## TODO:
+#        pass
 
 
 
