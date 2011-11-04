@@ -17,7 +17,7 @@ import_failed = False
 reason = None
 try:
     import kook.remote
-    from kook.remote import Remote, Password, SshSession, PushDir
+    from kook.remote import Remote, Password, SshSession, Commands, PushDir
 except ImportError, ex:
     import_failed = True
     reason = str(sys.exc_info()[1])
@@ -157,10 +157,11 @@ remote = Remote(
 @recipe
 @remote
 def remote_test(c):
+    sess = c.session
     ssh = c.ssh
-    print('ssh.password=%r' % (ssh.password,))
-    print('ssh.passphrase=%r' % (ssh.passphrase,))
-    print('ssh.sudo_password=%r' % (ssh.sudo_password,))
+    print('ssh.password=%r' % (sess.password,))
+    print('ssh.passphrase=%r' % (sess.passphrase,))
+    print('ssh.sudo_password=%r' % (sess.sudo_password,))
 """
         expected = r"""
 ### * remote_test (recipe=remote_test)
@@ -410,6 +411,60 @@ class KookSshSessionTest(object):
     def _(self):
         ## TODO:
         pass
+
+
+
+class KookCommandsTest(object):
+
+
+    def provide_session(self):
+        return SshSession(host='host1')
+
+    def provide_tracer(self):
+        return oktest.tracer.Tracer()
+
+
+    @test("#__init__(): takes session object.")
+    @skip.when(import_failed, reason)
+    def _(self, session):
+        c = Commands(session)
+        ok (c._session).is_(session)
+
+
+    @test("#pushd(): calls Session#pushd().")
+    @skip.when(import_failed, reason)
+    def _(self, session, tracer):
+        tracer.fake_method(session, pushd='PUSHD')
+        c = Commands(session)
+        ret = c.pushd('PATH1')
+        ok (tracer.calls[0]) == (session, 'pushd', ('PATH1',), {}, 'PUSHD')
+
+
+    @test("#cd(): calls Session#cd()")
+    @skip.when(import_failed, reason)
+    def _(self, session, tracer):
+        tracer.fake_method(session, cd='CD')
+        c = Commands(session)
+        ret = c.cd('PATH1')
+        ok (tracer.calls[0]) == (session, 'cd', ('PATH1',), {}, 'CD')
+
+
+    @test("#getcwd(): calls Session#getcwd()")
+    @skip.when(import_failed, reason)
+    def _(self, session, tracer):
+        tracer.fake_method(session, getcwd='GETCWD')
+        c = Commands(session)
+        ret = c.getcwd()
+        ok (tracer.calls[0]) == (session, 'getcwd', (), {}, 'GETCWD')
+
+
+    @test("#pwd(): calls Session#pwd()")
+    @skip.when(import_failed, reason)
+    def _(self, session, tracer):
+        tracer.fake_method(session, pwd='PWD')
+        c = Commands(session)
+        ret = c.pwd()
+        ok (tracer.calls[0]) == (session, 'pwd', (), {}, 'PWD')
 
 
     @test("#listdir(): TODO")

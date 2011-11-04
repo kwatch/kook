@@ -92,17 +92,19 @@ class Remote(object):
 
     def __call__(self, func):
         def deco(c, *args, **kwargs):
-            ssh = getattr(c, 'ssh', None)
-            if ssh:
+            session = getattr(c, 'session', None)
+            if session:
                 func(c, *args, **kwargs)
             else:
-                for ssh in self:
-                    c.ssh = ssh
+                for session in self:
+                    c.session = session
+                    c.ssh = c.sftp = Commands(session)
                     try:
-                        with ssh:
+                        with session:
                             func(c, *args, **kwargs)
                     finally:
-                        c.ssh = None
+                        c.session = None
+                        c.ssh = c.ftp = None
         setattrs(deco, __name__=func.__name__, __doc__=func.__doc__)
         #deco.__name__ = func.__name__
         #deco.__doc__ = func.__doc__
@@ -235,6 +237,44 @@ class SshSession(object):
         self._echoback("pwd")
         sys.stdout.write(self.getcwd() + "\n")
 
+
+class Commands(object):
+
+    def __init__(self, session):
+        self._session = session
+        self._echoback = session._echoback
+        self.sudo_password = session.sudo_password
+
+    @property
+    def _ssh(self):
+        return self._session._ssh
+
+    @property
+    def _sftp(self):
+        return self._session._sftp
+
+
+    ##
+    ## cd, pushd, ...
+    ##
+
+    def cd(self, path):
+        return self._session.cd(path)
+
+    def pushd(self, path):
+        return self._session.pushd(path)
+
+    def getcwd(self):
+        return self._session.getcwd()
+
+    def pwd(self):
+        return self._session.pwd()
+
+
+    ##
+    ## sftp
+    ##
+
     def listdir(self, path='.'):
         return self._sftp.listdir(path)
 
@@ -243,11 +283,6 @@ class SshSession(object):
             return self._sftp.listdir(path)
         except IOError:
             return []
-
-
-    ##
-    ## sftp
-    ##
 
     def get(self, remote_path, local_path=None):
         self._echoback("sftp get %s %s" % (remote_path, local_path or ""))
@@ -291,7 +326,7 @@ class SshSession(object):
 
     def run_f(self, command, show_output=True):
         self._echoback(command)
-        if self._moved:
+        if self._session._moved:
             command = "cd %s; %s" % (self.getcwd(), command)
         sin, sout, serr = self._ssh.exec_command(command)
         status = sout.channel.recv_exit_status()
@@ -322,7 +357,7 @@ class SshSession(object):
         command = "sudo " + command
         self._echoback(command)
         self._check_sudo_password()
-        if self._moved:
+        if self._session._moved:
             command = "cd %s; %s" % (self.getcwd(), command)
         sin, sout, serr = self._ssh.exec_command(command)
         output = sout.read()
@@ -348,7 +383,7 @@ class SshSession(object):
             return
         ## enter passowrd for sudo command
         if not self.sudo_password:
-            self.sudo_password = self.password or self._get_sudo_password()
+            self.sudo_password = self._session.password or self._get_sudo_password()
         sin, sout, serr = self._ssh.exec_command("sudo -v")   # validate
         sin.write(self.sudo_password + "\n")
         sin.flush()  #sin.close()
