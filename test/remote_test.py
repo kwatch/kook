@@ -172,7 +172,7 @@ remote = Remote(
 )
 #
 @recipe
-@remote
+@remotes(remote)
 def remote_test(c):
     sess = c.session
     ssh = c.ssh
@@ -300,8 +300,7 @@ remote_web = Remote(hosts = ['www1', 'www2'])
 remote_db  = Remote(hosts = ['db1', 'db2'])
 #
 @recipe
-@remote_web
-@remote_db
+@remotes(remote_web, remote_db)
 def remote_task(c):
     print(c.session.host)
 """
@@ -328,7 +327,7 @@ def task_all(c):
     print("all: hasattr(c, 'session') = %r" % hasattr(c, 'session'))
 #
 @recipe
-@remote
+@remotes(remote)
 @ingreds('prepare')
 def remote_task(c):
     print('remote_task: ' + c.session.host)
@@ -358,13 +357,13 @@ from kook.remote import Remote
 remote = Remote(hosts = ['host1', 'host2', 'host3'])
 #
 @recipe
-@remote
+@remotes(remote)
 @ingreds('remote_pre')
 def remote_task(c):
     print('remote_task: ' + c.session.host)
 
 @recipe
-@remote
+@remotes(remote)
 def remote_pre(c):
     print('remote_pre: ' + c.session.host)
 """
