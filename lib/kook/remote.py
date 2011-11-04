@@ -214,7 +214,6 @@ class Session(object):
                 raise
         return pkey
 
-
     ##
     ## pushd, getcwd, pwd, ...
     ##
@@ -247,7 +246,6 @@ class Commands(object):
         self._session = session
         self.sudo_password = session.sudo_password
 
-
     ##
     ## cd, pushd, ...
     ##
@@ -263,7 +261,6 @@ class Commands(object):
 
     def pwd(self):
         return self._session.pwd()
-
 
     ##
     ## sftp
@@ -317,7 +314,6 @@ class Commands(object):
                 remote_path = os.path.basename(local_path)
                 sftp.put(local_path, remote_path)
 
-
     ##
     ## ssh
     ##
@@ -345,7 +341,6 @@ class Commands(object):
 
     def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
-
 
     ##
     ## sudo
