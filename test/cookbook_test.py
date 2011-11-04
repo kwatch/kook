@@ -32,6 +32,19 @@ def rm_rf(path):
         shutil.rmtree(path)
 
 
+@classmethod
+def _before_all(cls):
+    cls._back_to = os.getcwd()
+    if not os.path.exists('_test_tmp.d'):
+        os.mkdir('_test_tmp.d')
+    os.chdir('_test_tmp.d')
+
+@classmethod
+def _after_all(cls):
+    os.chdir(cls._back_to)
+    rm_rf('_test_tmp.d')
+
+
 bookname = 'Kookbook.py'
 
 class KookCookbookTest(object):
@@ -43,6 +56,8 @@ class KookCookbookTest(object):
         if os.path.exists(bookname):
             os.unlink(bookname)
 
+    before_all = _before_all
+    after_all  = _after_all
 
     def test_new(self):
         input = r"""
@@ -423,6 +438,9 @@ class db(Category):
 
 
 class KookbookProxyTest(object):
+
+    before_all = _before_all
+    after_all  = _after_all
 
     def test_find_recipe(self):
 
