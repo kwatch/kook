@@ -375,6 +375,8 @@ class RecipeCooking(Cooking):
             args, kwargs = argv, {}
         if not self.remotes:
             self.recipe.method(self, *args, **kwargs)
+        #elif hasattr(self, 'session'):
+        #    self.recipe.method(self, *args, **kwargs)
         else:
             for remote in self.remotes:
                 remote._invoke(self.recipe.method, self, args, kwargs)

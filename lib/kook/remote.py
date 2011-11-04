@@ -93,9 +93,10 @@ class Remote(object):
     def _invoke(self, func, cooking, args, kwargs):  ## called from RecipeCooking#_invoke_recipe_with()
         assert isinstance(cooking, RecipeCooking)
         c = cooking
-        if hasattr(c, 'session'):
-            func(c, *args, **kwargs)
-        else:
+        #if hasattr(c, 'session'):
+        #    func(c, *args, **kwargs)
+        #else:
+        if True:
             for session in self:
                 c.session = session
                 c.ssh = c.sftp = Commands(session)
