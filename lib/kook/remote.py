@@ -131,7 +131,7 @@ class Password(object):
         return self.value
 
 
-class SshSession(object):
+class Session(object):
 
     def __init__(self, host, port=22, user=None, password=None, privatekey=None, passphrase=None, sudo_password=None):
         self.host = host
@@ -420,7 +420,7 @@ class Commands(object):
         return errmsg
 
 
-Remote.SESSION = SshSession
+Remote.SESSION = Session
 
 
 #class Chdir(object):

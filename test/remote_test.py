@@ -17,7 +17,7 @@ import_failed = False
 reason = None
 try:
     import kook.remote
-    from kook.remote import Remote, Password, SshSession, Commands, PushDir
+    from kook.remote import Remote, Password, Session, Commands, PushDir
 except ImportError, ex:
     import_failed = True
     reason = str(sys.exc_info()[1])
@@ -119,7 +119,7 @@ class KookRemoteTest(object):
     @skip.when(import_failed, reason)
     def _(self):
         sess = Remote().new_session('host1')
-        ok (sess).is_a(kook.remote.SshSession)
+        ok (sess).is_a(kook.remote.Session)
 
     @test("#new_session(): accepts host.")
     @skip.when(import_failed, reason)
@@ -189,7 +189,7 @@ ssh.sudo_password='CCC'
     def _(self):
         r = Remote(hosts=['host1', 'host2'])
         sess = r.__enter__()
-        ok (sess).is_a(kook.remote.SshSession)
+        ok (sess).is_a(kook.remote.Session)
         ok (sess.host) == 'host1'
 
     @test("#__enter__(): (internal) sets session object to ivar '_session'.")
@@ -198,10 +198,10 @@ ssh.sudo_password='CCC'
         r = Remote(hosts=['host1', 'host2'])
         sess = r.__enter__()
         ok (r).has_attr('_session')
-        ok (r._session).is_a(kook.remote.SshSession)
+        ok (r._session).is_a(kook.remote.Session)
 
 
-    @test("#__exit__(): (internal) calls SshSession#_close().")
+    @test("#__exit__(): (internal) calls Session#_close().")
     @skip.when(import_failed, reason)
     def _(self):
         r = Remote(hosts=['host1', 'host2'])
@@ -219,7 +219,7 @@ ssh.sudo_password='CCC'
         i = 0
         for sess in r:
             i += 1
-            ok (sess).is_a(kook.remote.SshSession)
+            ok (sess).is_a(kook.remote.Session)
             ok (sess.host) == 'host%d' % i
 
 
@@ -312,7 +312,7 @@ class KookPasswordTest(object):
 
 
 
-class KookSshSessionTest(object):
+class KookSessionTest(object):
 
 
     @test("#__call__(): accepts arguments.")
@@ -418,7 +418,7 @@ class KookCommandsTest(object):
 
 
     def provide_session(self):
-        return SshSession(host='host1')
+        return Session(host='host1')
 
     def provide_tracer(self):
         return oktest.tracer.Tracer()
