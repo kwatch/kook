@@ -1,7 +1,7 @@
 ###
 ### $Release: 0.0.0 $
-### copyright(c) 2008-2011 kuwata-lab.com all rights reserved.
-### MIT License
+### $Copyright: copyright(c) 2008-2011 kuwata-lab.com all rights reserved. $
+### $License: MIT License $
 ###
 
 
@@ -18,8 +18,8 @@ else:
 
 
 def _kwargs():
-    name             = 'Kook'
-    version          = '0.0.0'
+    name             = '$Package$'
+    version          = '$Release$'
     author           = 'makoto kuwata'
     author_email     = 'kwa@kuwata-lab.com'
     maintainer       = author
@@ -39,7 +39,7 @@ Simple Example of Kookbook.py::
 
 Output Result::
 
-    bash> kk hello
+    bash> kk hello     # or pykook hello
     ### * hello (recipe=hello)
     Hello
 
