@@ -1,4 +1,4 @@
-#from __future__ import with_statement
+from __future__ import with_statement
 
 import os, sys, re
 #from glob import glob
@@ -16,60 +16,50 @@ library_files   = [ "lib/*.py" ]
 
 replacer = (
     (r'\$Release\$', release),
-    (r'\$Release:.*?\$', '$Release: %s $' % release),
     (r'\$Copyright\$', copyright),
     (r'\$Package\$', package),
     (r'\$License\$', license),
+    (r'\$Release:.*?\$',   '$Release: %s $' % release),
+    (r'\$Copyright:.*?\$', '$Copyright: %s $' % copyright),
+    (r'\$License:.*?\$',   '$License: %s $' % license),
 )
 
+python = sys.executable
+
 @recipe
-#@ingreds('doc')
-def task_package(c):
+@ingreds('dist')
+def package(c):
     """create package"""
-    ## remove files
-    #pattern = c%"dist/$(package)-$(release)*"
-    #if glob2(pattern):
-    #    rm_rf(pattern)
-    rm_rf('dist')
-    ## edit files
-    cp('setup.py.txt', 'setup.py')
-    edit('setup.py', by=replacer)
     ## setup
-    #rm_f('MANIFEST')
-    run('python setup.py sdist')
-    #run('python setup.py sdist --keep-temp')
-    #
-    @pushd('dist')
-    def do(d):
-        #pkgs = kook.utils.glob2(c%"$(package)-$(release).tar.gz");
-        #pkg = pkgs[0]
-        pkg = c%"$(package)-$(release).tar.gz"
-        echo(c%"pkg=$(pkg)")
-        #tar_xzf(pkg)
-        run(c%"tar xzf $(pkg)")
-        dir = c%"$(package)-$(release)"
-        #echo("*** debug: pkg=%s, dir=%s" % (pkg, dir))
-        edit(c%"$(dir)/**/*", exclude="*.png", by=replacer)
-        #with chdir(dir) as d2:
-        #    run("python setup.py egg_info --egg-base .")
-        #    rm("*.pyc")
-        mv(pkg, c%"$(pkg).bkup")
-        #tar_czf(c%"$(dir).tar.gz", dir)
-        run(c%"tar -cf $(dir).tar $(dir)")
-        run(c%"gzip -f9 $(dir).tar")
-        ## create *.egg file
-        #for python in ['python2.5', 'python2.6']:
-        for python in ['python']:
-            rm_rf(dir)
-            run(c%"tar xzf $(dir).tar.gz")
-            @pushd(dir)
-            def do():
-                _python = python
-                run(c%"$(_python) setup.py bdist_egg")
-                mv("dist/*.egg", "..")
-                #rm_rf("build", "dist")
-        rm_rf(dir)
-        run(c%"tar -xzf $(dir).tar.gz")
+    dir = c%"dist/Kook-$(release)"
+    @pushd(dir)
+    def do():
+        system(c%'$(python) setup.py sdist')
+        #system('python setup.py sdist --keep-temp')
+
+@recipe(None, ['doc'])
+def dist(c):
+    """create package"""
+    ## create base dir
+    dir = c%"dist/Kook-$(release)"
+    os.path.exists(dir) and rm_rf(dir)
+    mkdir_p(dir)
+    ## copy files
+    text_files = ['README.txt', 'CHANGES.txt', 'MIT-LICENSE',  #'MANIFEST'
+                  'Kookbook.py', 'setup.py', 'Properties.py', ]
+    store(text_files, dir)
+    store('lib/kook/**/*.py', 'bin/*', 'test/**/*.py', dir)
+    store('doc/users-guide.html', 'doc/docstyle.css', 'doc/fig001.png', dir)
+    ##
+    @pushd(dir)
+    def do():
+        ## edit files
+        edit("**/*", exclude=["*.png", "oktest.py", "Kookbook.py"], by=replacer)
+        ## create manifest file
+        system("find . -type f > MANIFEST")
+        rexp = re.compile(r'^\./', re.M)
+        edit("MANIFEST", by=lambda s: rexp.sub('', s))
+        cp("MANIFEST", "../..")
 
 @recipe
 def update_headers(c):
@@ -86,35 +76,6 @@ def file_setup_py(c):
     cp(c.ingred, c.product)
     edit(c.product, by=replacer)
 
-@recipe(None, ['doc'])
-def task_dist(c):
-    """create package"""
-    dir = 'dist-' + release
-    rm_rf(dir)
-    mkdir_p(dir)
-    ## copy files
-    text_files = ['README.txt', 'CHANGES.txt', 'MIT-LICENSE', 'MANIFEST.in',
-                  'setup.py', 'Kookbook.py', 'Properties.py', ]
-    store(text_files, dir)
-    store('lib/kook/**/*.py', 'bin/kk', 'bin/pykook', 'test/**/*.py', dir)
-    remote_py = dir + '/lib/kook/remote.py'
-    os.path.isfile(remote_py) and rm_f(remote_py)
-    store('doc/users-guide.html', 'doc/docstyle.css', 'doc/fig001.png', dir)
-    cp('setup.py.txt', dir + '/setup.py')    # copy setup.py.txt as setup.py
-    ##
-    @pushd(dir)
-    def do():
-        edit("**/*", exclude=["*.png", "oktest.py", "Kookbook.py"], by=replacer)
-    ##
-    @pushd(dir)
-    def do():
-        #run('python setup.py sdist --force-manifest')
-        run('python setup.py sdist --manifest-only')
-        run('python setup.py sdist')
-        #run('python setup.py sdist --keep-temp')
-    #
-
-
 @recipe
 def uninstall(c):
     site_packages_dir = None
@@ -124,7 +85,8 @@ def uninstall(c):
             break
     else:
         raise Exception("site-packages directory not found.")
-    script_files = ["/usr/local/bin/pykook", "/usr/local/bin/pyk"]
+    basedir = "/usr/local"
+    script_files = [basedir + "/bin/pykook", basedir + "/bin/kk"]
     library_files = c%"$(site_packages_dir)/$(package)*"
     rm(script_files, library_files)
     filename = c%"($site_packages_dir)/easy-install.pth"
@@ -138,7 +100,7 @@ def uninstall(c):
             #edit(filename, by=repl)
 
 
-vs_path = '/opt/lang/python'
+vs_path = '/opt/lang/python/%(version)s/bin/python'
 python_versions = [ '2.5.5', '2.6.7', '2.7.2', '3.0.1', '3.1.4', '3.2.1' ]
 
 
@@ -155,7 +117,7 @@ def test(c, *args, **kwargs):
         oktest_opt = '-s ' + kwargs['s']
     if kwargs.get('a'):
         for ver in python_versions:
-            python_bin = vs_path + '/' + ver + '/bin/python'
+            python_bin = vs_path % { 'version': version }
             print(c%"---------- python $(ver)")
             @pushd('test')
             def do(testdir, python_bin=python_bin, opt=oktest_opt):
@@ -178,7 +140,7 @@ def test(c, *args, **kwargs):
 
 kookbook.load("@kook/books/clean.py")
 CLEAN.extend(["**/*.pyc", "**/__pycache__", "dist", "doc/*.toc.html", "lib/Kook.egg-info"])
-SWEEP.extend(['dist-*'])
+SWEEP.extend(['dist'])
 
 kookbook.default = 'test'
 
@@ -242,24 +204,6 @@ def doctest(c):
     @pushd("doc")
     def do():
         run("python users_guide_test.py")
-
-
-@recipe('test/oktest.py', ['../../oktest/python/lib/oktest.py'])
-def file_test_oktest_py(c):
-    rm_f(c.product)
-    run(c%'ln $(ingred) $(product)')
-    #cp(c.ingred, c.product)
-    #def f(s):
-    #    s = re.sub(r'\$Release:.*?\$', '$Release: $', s)
-    #    return s
-    #edit(c.product, by=f)
-
-
-@recipe
-@ingreds('test/oktest.py')
-def update_oktest(c):
-    """update 'test/oktest.py'"""
-    pass
 
 
 kookbook.load("@kook/books/concatenate.py")
