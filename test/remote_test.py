@@ -292,6 +292,9 @@ class KookPasswordTest(object):
 
 class KookSessionTest(object):
 
+    def provide_tr(self):
+        return oktest.tracer.Tracer()
+
 
     @test("#__call__(): accepts arguments.")
     @skip.when(import_failed, reason)
@@ -302,10 +305,11 @@ class KookSessionTest(object):
 
     @test("#__enter__(): (internal) calls 'open()'.")
     @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
-
+    def _(self, tr):
+        sess = Session('host1')
+        tr.fake_method(sess, open="OPEN")
+        sess.__enter__()
+        ok (tr.calls[0]) == (sess, 'open', (), {}, "OPEN")
 
     @test("#__enter__(): returns self.")
     @skip.when(import_failed, reason)
@@ -316,9 +320,11 @@ class KookSessionTest(object):
 
     @test("#__exit__(): (internal) calls 'close()'.")
     @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
+    def _(self, tr):
+        sess = Session('host1')
+        tr.fake_method(sess, close="CLOSE")
+        sess.__exit__()
+        ok (tr.calls[0]) == (sess, 'close', (), {}, "CLOSE")
 
 
     @test("#open(): connects to host.")
