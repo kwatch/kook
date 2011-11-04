@@ -5,8 +5,6 @@
 ### $Copyright: copyright(c) 2008-2011 kuwata-lab.com all rights reserved. $
 ### $License: MIT License $
 ###
-from __future__ import with_statement
-
 import sys, os, re, time
 import getpass
 import atexit
@@ -100,8 +98,13 @@ class Remote(object):
                     c.session = session
                     c.ssh = c.sftp = Commands(session)
                     try:
-                        with session:
+                        #with session:
+                        #    func(c, *args, **kwargs)
+                        session.__enter__()
+                        try:
                             func(c, *args, **kwargs)
+                        finally:
+                            session.__exit__(*sys.exc_info())
                     finally:
                         c.session = None
                         c.ssh = c.ftp = None

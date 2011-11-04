@@ -173,13 +173,14 @@ ssh.passphrase='BBB'
 ssh.sudo_password='CCC'
 """[1:]
         stdin = "AAA\nBBB\nCCC\n" # password, passphrase, sudo password
-        with dummy_io(stdin) as dio:
+        @dummy_io(stdin)
+        def d_io():
             kook.config.stdout = sys.stdout
             kook.config.stderr = sys.stderr
             kookbook = Cookbook().load(input)
             kitchen = Kitchen(kookbook)
             kitchen.start_cooking('remote_test')
-        sout, serr = dio
+        sout, serr = d_io
         ok (sout) == expected
         ok (serr) == ''
 
@@ -298,7 +299,8 @@ class KookPasswordTest(object):
     @skip.when(import_failed, reason)
     def _(self, dummy_getpass):
         stdin = "AAA\nBBB\n"
-        with dummy_io(stdin) as dio:
+        @dummy_io(stdin)
+        def d_io():
             password = Password()
             ok (password.value) == None
             val = password.get()
@@ -306,7 +308,7 @@ class KookPasswordTest(object):
             ok (password.value) == "AAA"
             val = password.get()
             ok (password.value) == "AAA"
-        sout, serr = dio
+        sout, serr = d_io
         ok (sout) == "Password: \n"
         ok (serr) == ""
 
