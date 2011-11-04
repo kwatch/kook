@@ -44,13 +44,6 @@ class Remote(object):
         if user is None: user = os.environ.get('LOGNAME')
         setattrs(self, hosts=hosts, port=port, user=user, password=password,
                        privatekey=privatekey, passphrase=passphrase, sudo_password=sudo_password)
-        #self.hosts = hosts
-        #self.port  = port
-        #self.user  = user or os.environ.get('LOGNAME')
-        #self.password    = password
-        #self.privatekey  = privatekey
-        #self.passphrase  = passphrase
-        #self.sudo_password = sudo_password
 
     def new_session(self, host=None):
         if host is None: host = self.hosts and self.hosts[0] or None
