@@ -154,13 +154,13 @@ class Session(object):
         self._pwd = None
 
     def __enter__(self):
-        self._open()
+        self.open()
         return self
 
     def __exit__(self, *args):
-        self._close()
+        self.close()
 
-    def _open(self):
+    def open(self):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
@@ -175,7 +175,7 @@ class Session(object):
         self._sftp_client = ssh.open_sftp()
         return self
 
-    def _close(self):
+    def close(self):
         ssh, sftp = self._ssh_client, self._sftp_client
         self._ssh_client = self._sftp_client = None
         try:

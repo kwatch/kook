@@ -202,15 +202,15 @@ ssh.sudo_password='CCC'
         ok (r._session).is_a(kook.remote.Session)
 
 
-    @test("#__exit__(): (internal) calls Session#_close().")
+    @test("#__exit__(): (internal) calls Session#close().")
     @skip.when(import_failed, reason)
     def _(self):
         r = Remote(hosts=['host1', 'host2'])
         sess = r.__enter__()
         tr = oktest.tracer.Tracer()
-        tr.trace_method(sess, '_close')
+        tr.trace_method(sess, 'close')
         r.__exit__()
-        ok (tr.calls[0]) == (sess, '_close', (), {}, None)
+        ok (tr.calls[0]) == (sess, 'close', (), {}, None)
 
 
     @test("#__iter__(): iterates with new sessions.")
@@ -324,7 +324,7 @@ class KookSessionTest(object):
         pass
 
 
-    @test("#__enter__(): (internal) calls '_open()'.")
+    @test("#__enter__(): (internal) calls 'open()'.")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
@@ -338,21 +338,21 @@ class KookSessionTest(object):
         pass
 
 
-    @test("#__exit__(): (internal) calls '_close()'.")
+    @test("#__exit__(): (internal) calls 'close()'.")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
         pass
 
 
-    @test("#_open(): connects to host.")
+    @test("#open(): connects to host.")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
         pass
 
 
-    @test("#_close(): close connection.")
+    @test("#close(): close connection.")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
