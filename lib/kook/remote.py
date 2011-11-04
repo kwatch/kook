@@ -137,14 +137,8 @@ class Password(object):
 class Session(object):
 
     def __init__(self, host, port=22, user=None, password=None, privatekey=None, passphrase=None, sudo_password=None):
-        self.host = host
-        self.port = port
-        self.user = user
-        self.password   = password
-        self.privatekey = privatekey
-        self.passphrase = passphrase
-        self.sudo_password = sudo_password
-        #
+        setattrs(self, host=host, port=port, user=user, password=password,
+                 privatekey=privatekey, passphrase=passphrase, sudo_password=sudo_password)
         self._remote = None
         self._transport = None
         self._ssh_client = None
