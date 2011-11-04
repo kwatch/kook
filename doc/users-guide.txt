@@ -2132,7 +2132,7 @@ Using {{,kook.remote.Remote,}} object, you can define remote task recipe.
 class deploy(Category):
 
   @recipe
-  {{*@remote*}}
+  {{*@remotes(remote)*}}
   def info(c):
     """show remote host information"""
     {{*ssh = c.ssh*}}
@@ -2178,13 +2178,13 @@ If you want to define some roles of remote hosts, create remote objects for each
 
 class web(Category):
   @recipe
-  {{*@remote_web*}}
+  {{*@remotes(remote_web)*}}
   def restart(c):
     ...
 
 class db(Category):
   @recipe
-  {{*@remote_db*}}
+  {{*@remotes(remote_db)*}}
   def restart(c):
     ...
 .--------------------
@@ -2192,7 +2192,7 @@ class db(Category):
 
 .$$ Available Commands		| remote-commands
 
-The following methods are available:
+The following methods are available on {{,c.ssh,}} or {{,c.sftp,}}:
 
 .[ ssh({{/OS-command/}}) ]
 	Same as {{,ssh.run({{/OS-command/}}),}}.
@@ -2240,15 +2240,22 @@ The following methods are available:
 	ssh("pwd")        #=> ex. /home/admin
 	.--------------------
 
-.[ ssh.listdir({{/path/}}) ]
+.[ ssh.getcwd() ]
+	Returns current directory on remote machine.
+	.--------------------
+	## print current directory on remote machine
+	print(getcwd())
+	.--------------------
+
+.[ sftp.listdir({{/path/}}) ]
 	Returns list of filenames of {{/path/}} on remote machine.
 	If {{/path/}} doesn't exist on remote machine then throws exception.
 	.--------------------
 	## lists filenames of current directory
-	filenames = ssh.listdir('.')
+	filenames = sftp.listdir('.')
 	.--------------------
 
-.[ ssh.listdir_f({{/path/}}) ]
+.[ sftp.listdir_f({{/path/}}) ]
 	Returns list of filenames of {{/path/}} on remote machine.
 	Returns an empty list even when {{/path/}} doesn't exist.
 	.--------------------
@@ -2258,7 +2265,7 @@ The following methods are available:
 	    ssh('mkdir -p var/log')
 	.--------------------
 
-.[ ssh.get({{/remote-filename/}} {{/[, local-filename]/}}) ]
+.[ sftp.get({{/remote-filename/}} {{/[, local-filename]/}}) ]
 	Downloads remote file to local machine.
 	.--------------------
 	## download 'logo.png'
@@ -2267,7 +2274,7 @@ The following methods are available:
 	ssh.get('logo.png', 'logo_20110101.png')
 	.--------------------
 
-.[ ssh.put({{/local-filename/}} {{/[, remote-filename]/}}) ]
+.[ sftp.put({{/local-filename/}} {{/[, remote-filename]/}}) ]
 	Uploads local file to remote machine.
 	.--------------------
 	## upload 'logo.png'
@@ -2276,7 +2283,7 @@ The following methods are available:
 	ssh.get('logo_20110101.png', 'logo.png')
 	.--------------------
 
-.[ ssh.mget({{/remote-filename1/}}, {{/remote-filename2/}}, ...) ]
+.[ sftp.mget({{/remote-filename1/}}, {{/remote-filename2/}}, ...) ]
 	Downloads remote files to local machine.
 	Glob pattern (such as '*.html') is available.
 	.--------------------
@@ -2284,13 +2291,26 @@ The following methods are available:
 	ssh.mget('*.jpg', '*.png', '*.gif')
 	.--------------------
 
-.[ ssh.mput({{/local-filename1/}}, {{/local-filename2/}}, ...) ]
+.[ sftp.mput({{/local-filename1/}}, {{/local-filename2/}}, ...) ]
 	Upload local files to remote machine.
 	Glob pattern (such as '*.html') is available.
 	.--------------------
 	## upload image files
 	ssh.mput('*.jpg', '*.png', '*.gif')
 	.--------------------
+
+Current directory on remote machine is shared between {{,c.ssh,}} and {{,c.sftp,}}.
+
+.--------------------
+@recipe
+@remotes(remote)
+def upload(c):
+    ssh, sftp = c.ssh, c.sftp
+    cd("img")
+    ## upload image files to 'img/' on remote machine
+    with {{*ssh.pushd*}}("img"):
+        {{*sftp.mput*}}("*.png", "*.jpg", "*.gif")
+.--------------------
 
 
 
@@ -2313,7 +2333,7 @@ remote = Remote(
 class deploy(Category):
 
   @recipe
-  @remote
+  @remotes(remote)
   def info(c):
     """show remote host information"""
     ssh = c.ssh
@@ -2373,7 +2393,7 @@ remote = Remote(
 class deploy(Category):
 
   @recipe
-  @remote
+  @remotes(remote)
   def info(c):
     """show remote host information"""
     ssh = c.ssh
@@ -2445,7 +2465,7 @@ remote = Remote(
 class deploy(Category):
 
   @recipe
-  @remote
+  @remotes(remote)
   def info(c):
     """show remote host information"""
     ssh = c.ssh
@@ -2490,7 +2510,7 @@ app_server = Remote(
 class deploy(Category):
 
     @recipe
-    @app_server
+    @remotes(app_server)
     @spices('-t tag: tag name to checkout')
     def default(c, *args, **kwargs):
         """deploy to remote server"""
@@ -2514,7 +2534,7 @@ class deploy(Category):
             ssh(c%"ln -s $(tagname) current")
 
     @recipe
-    @app_server
+    @remotes(app_server)
     @spices('-t tag: tag name to checkout')
     def checkout(c, *args, **kwargs):
         """checkout source code from git repository"""
@@ -2534,6 +2554,47 @@ class deploy(Category):
             else:
                 ssh(c%"git checkout master")
 .--------------------
+
+
+.$$ Restrictions		| remote-restrictions
+
+There are some restrictions about remote task recipe.
+
+* Remote task recipes are not executed in parallel.
+  Therefore if you try to deploy your application into thousands remote machine,
+  pyKook will take alot of time.
+
+* Currently dependency between remote recipes is not solved what you probably want.
+
+    .? Kookbook.py
+    .--------------------
+    from kook.remote import Remote
+    remote = Remote(hosts = ['host1', 'host2', 'host3'])
+    #
+    @recipe
+    @remotes(remote)
+    def prepare(c):
+        print('prepare: ' + c.session.host)
+    #
+    @recipe
+    @remotes(remote)
+    @ingreds('prepare')
+    def maintask(c):
+        print('maintask: ' + c.session.host)
+    .--------------------
+
+    .? Output example
+    .====================
+    bash> kk maintask
+    ### ** prepare (recipe=prepare)
+    prepare: host1
+    prepare: host2
+    prepare: host3
+    ### * maintask (recipe=maintask)
+    maintask: host1
+    maintask: host2
+    maintask: host3
+    .--------------------
 
 
 
