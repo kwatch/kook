@@ -525,28 +525,28 @@ class KookSshSessionTest(object):
 
 
 
-class KookChdirTest(object):
-
-
-    @test("#__init__(): TODO")
-    @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
-
-
-    @test("#__enter__(): TODO")
-    @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
-
-
-    @test("#__exit__(): TODO")
-    @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
+#class KookChdirTest(object):
+#
+#
+#    @test("#__init__(): TODO")
+#    @skip.when(import_failed, reason)
+#    def _(self):
+#        ## TODO:
+#        pass
+#
+#
+#    @test("#__enter__(): TODO")
+#    @skip.when(import_failed, reason)
+#    def _(self):
+#        ## TODO:
+#        pass
+#
+#
+#    @test("#__exit__(): TODO")
+#    @skip.when(import_failed, reason)
+#    def _(self):
+#        ## TODO:
+#        pass
 
 
 
