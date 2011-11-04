@@ -10,6 +10,7 @@ import getpass
 import atexit
 
 from kook import KookCommandError
+from kook.kitchen import RecipeCooking
 import kook.utils
 from kook.utils import setattrs
 
@@ -82,32 +83,33 @@ class Remote(object):
             yield self.new_session(host)
 
     def __call__(self, func):
-        def deco(c, *args, **kwargs):
-            session = getattr(c, 'session', None)
-            if session:
-                func(c, *args, **kwargs)
-            else:
-                for session in self:
-                    c.session = session
-                    c.ssh = c.sftp = Commands(session)
+        remotes = getattr(func, '_kook_remotes', None)
+        if remotes is None:
+            remotes = []
+            setattr(func, '_kook_remotes', remotes)
+        remotes.insert(0, self)
+        return func
+
+    def _invoke(self, func, cooking, args, kwargs):  ## called from RecipeCooking#_invoke_recipe_with()
+        assert isinstance(cooking, RecipeCooking)
+        c = cooking
+        if hasattr(c, 'session'):
+            func(c, *args, **kwargs)
+        else:
+            for session in self:
+                c.session = session
+                c.ssh = c.sftp = Commands(session)
+                try:
+                    #with session:
+                    #    func(c, *args, **kwargs)
+                    session.__enter__()
                     try:
-                        #with session:
-                        #    func(c, *args, **kwargs)
-                        session.__enter__()
-                        try:
-                            func(c, *args, **kwargs)
-                        finally:
-                            session.__exit__(*sys.exc_info())
+                        func(c, *args, **kwargs)
                     finally:
-                        c.session = None
-                        c.ssh = c.ftp = None
-        setattrs(deco, __name__=func.__name__, __doc__=func.__doc__)
-        #deco.__name__ = func.__name__
-        #deco.__doc__ = func.__doc__
-        for k in func.__dict__:
-            if k.startswith('_kook_'):
-                setattr(deco, k, func.__dict__[k])
-        return deco
+                        session.__exit__(*sys.exc_info())
+                finally:
+                    c.session = None
+                    c.ssh = c.ftp = None
 
 
 class Password(object):

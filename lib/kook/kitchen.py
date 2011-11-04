@@ -177,11 +177,12 @@ class MaterialCooking(Cooking):
 class RecipeCooking(Cooking):
     """represens recipe invocation. in other words, Recipe is 'definition', RecipeCooking is 'execution'."""
 
-    def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None, matched=None, m=None):
+    def __init__(self, recipe, product=None, ingreds=None, byprods=None, spices=None, remotes=None, matched=None, m=None):
         if product is None: product = recipe.product
         if ingreds is None: ingreds = recipe.ingreds or ()
         if byprods is None: byprods = recipe.byprods or ()
         if spices  is None: spices  = recipe.spices  or ()
+        if remotes is None: remotes = recipe.remotes or ()
         self.recipe  = recipe
         self.product = product
         self.ingreds = ingreds
@@ -192,6 +193,7 @@ class RecipeCooking(Cooking):
         self.m       = m
         self.children = []       # child cookings
         self.spices  = spices
+        self.remotes = remotes
         self.cooked  = None
         self.argv = ()
         self._r = 'recipe=%s' % recipe.name
@@ -368,9 +370,14 @@ class RecipeCooking(Cooking):
     def _invoke_recipe_with(self, argv):
         if self.spices:
             opts, rests = self.parse_cmdopts(argv)
-            self.recipe.method(self, *rests, **opts)
+            args, kwargs = rests, opts
         else:
-            self.recipe.method(self, *argv)
+            args, kwargs = argv, {}
+        if not self.remotes:
+            self.recipe.method(self, *args, **kwargs)
+        else:
+            for remote in self.remotes:
+                remote._invoke(self.recipe.method, self, args, kwargs)
 
     def _same_content(self, product, tmp_filename):
         return config.compare_contents and kook.utils.has_same_content(product, tmp_filename)

@@ -126,6 +126,7 @@ def task_build_files(c):
   name='build',
   pattern=None,
   product='build',
+  remotes=[],
   spices=[]>
 """[1:-1]
         ok (recipes[0]._inspect()) == expected
@@ -139,6 +140,7 @@ def task_build_files(c):
   name='task_build',
   pattern=None,
   product='build',
+  remotes=[],
   spices=[]>
 """[1:-1]
         ok (recipes[1]._inspect()) == expected
@@ -152,6 +154,7 @@ def task_build_files(c):
   name='task_build_files',
   pattern=None,
   product='build',
+  remotes=[],
   spices=[]>
 """[1:-1]
         ok (recipes[2]._inspect()) == expected
@@ -181,6 +184,7 @@ def file_html(c):
   name='file_ext_html',
   pattern='^(.*?)\\.html$',
   product='*.html',
+  remotes=[],
   spices=[]>
 """[1:-1]
         ok (book.generic_file_recipes[0]._inspect()) == expected
@@ -197,6 +201,7 @@ def file_html(c):
   name='file_html',
   pattern=None,
   product='html',
+  remotes=[],
   spices=[]>
 """[1:-1]
         ok (book.specific_file_recipes[0]._inspect()) == expected

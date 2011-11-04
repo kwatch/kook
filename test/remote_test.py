@@ -231,42 +231,18 @@ ssh.sudo_password='CCC'
         def foo(c):
             """doc"""
             pass
-        ok (r(foo)).is_a(type(lambda: None))
-        ok (r(foo)).is_not(foo)
-        ok (r(foo).__name__) == 'foo'
-        ok (r(foo).__doc__)  == 'doc'
+        ok (r(foo)).is_(foo)
 
-    @test("#__call__(): copies kook attributes into decorator.")
+    @test("#__call__(): sets '_kook_recipes'.")
     @skip.when(import_failed, reason)
     def _(self):
-        input = r"""from __future__ import with_statement
-@recipe
-@product('sos.html')
-@ingreds('sos.txt')
-@byprods('sos.tmp')
-@coprods('sos.toc')
-@spices('-p: keep timestamp')
-@priority(123)
-def file_sos_html(c, *args, **kwargs):
-     return args, kwargs
-"""
-        kookbook = Cookbook().load(input)
-        recipe = kookbook.find_recipe('sos.html')
-        func = recipe.method
-        remote = Remote(hosts=['host1'])
-        deco = remote(func)
-        ok (deco).attr('_kook_recipe', recipe)
-        ok (deco).attr('_kook_ingreds', ['sos.txt'])
-        ok (deco).attr('_kook_byprods', ['sos.tmp'])
-        ok (deco).attr('_kook_coprods', ['sos.toc'])
-        ok (deco).attr('_kook_spices', ['-p: keep timestamp'])
-        ok (deco).attr('_kook_priority', 123)
-
-    @test("#__call__(): connects to hosts.")
-    @skip.when(import_failed, reason)
-    def _(self):
-        ## TODO:
-        pass
+        r1 = Remote(hosts=['host1'])
+        r2 = Remote(hosts=['host2'])
+        @r1
+        @r2
+        def foo(c):
+            pass
+        ok (foo._kook_remotes) == [r1, r2]
 
 
 
