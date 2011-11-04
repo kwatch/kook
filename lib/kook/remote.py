@@ -231,7 +231,7 @@ class SshSession(object):
     def getcwd(self):
         return self._sftp.getcwd() or self._sftp.normalize('.')
 
-    def pwd(self, forcedly=False):
+    def pwd(self):
         self._echoback("pwd")
         sys.stdout.write(self.getcwd() + "\n")
 
