@@ -18,7 +18,7 @@ reason = None
 try:
     import kook.remote
     from kook.remote import Remote, Password, Session, Commands, PushDir
-except ImportError, ex:
+except ImportError:
     import_failed = True
     reason = str(sys.exc_info()[1])
     class Remote(object):
