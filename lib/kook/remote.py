@@ -292,13 +292,17 @@ class SshCommands(object):
     def _init_ssh(self):
         self.sudo_password = self._session.sudo_password
 
-    def run(self, command, show_output=True):
-        output, error, status = self.run_f(command, show_output)
+    def system(self, command, show_output=True):
+        """run command gracefully; throws exception when commaind is failed"""
+        output, error, status = self.system_f(command, show_output)
         if status != 0:
             raise KookCommandError("remote command failed (status=%s)." % status)
         return (output, error, status)
 
-    def run_f(self, command, show_output=True):
+    run = system    # for backward compatibility
+
+    def system_f(self, command, show_output=True):
+        """run command forcedly; ignores status code of command"""
         echo = self._session._echoback
         ssh  = self._session._ssh_client
         echo(command)
@@ -313,18 +317,20 @@ class SshCommands(object):
             if error:  sys.stderr.write(error)
         return (output, error, status)
 
+    run_f = system_f    # for backward compatibility
+
     def __call__(self, *args, **kwargs):
-        return self.run(*args, **kwargs)
+        return self.system(*args, **kwargs)
 
     def sudo(self, command, show_output=True):
-        """run gracefully; throws exception when commaind is failed"""
+        """run sudo command gracefully; throws exception when commaind is failed"""
         output, error, status = self.sudo_f(command, show_output)
         if status != 0:
             raise KookCommandError("remote command failed (status=%s)." % status)
         return (output, error, status)
 
     def sudo_f(self, command, show_output=True):
-        """run forcedly; ignores status code of command"""
+        """run sudo command forcedly; ignores status code of command"""
         echo = self._session._echoback
         ssh  = self._session._ssh_client
         command = "sudo " + command

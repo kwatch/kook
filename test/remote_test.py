@@ -620,14 +620,14 @@ class KookCommandsTest(object):
         pass
 
 
-    @test("#run(): TODO")
+    @test("#system(): TODO")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
         pass
 
 
-    @test("#run_f(): TODO")
+    @test("#system_f(): TODO")
     @skip.when(import_failed, reason)
     def _(self):
         ## TODO:
