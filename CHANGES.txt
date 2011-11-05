@@ -116,29 +116,32 @@ releases:
 
         Ex (Kookbook.py):
 
-	  class apache(Category):
-	      @recipe
-	      def start(c):
-	         system('apachectl start')
+	    class apache(Category):
+	        @recipe
+	        def start(c):
+	           system('apachectl start')
 
-	  ## start() is converted into staticmethod
-	  assert type(apache.__dict__['start']) == staticmethod
-	  from types import FunctionType
-	  assert type(apache.start) == FuntionType
+	    ## start() is converted into staticmethod
+	    assert type(apache.__dict__['start']) == staticmethod
+	    from types import FunctionType
+	    assert type(apache.start) == FuntionType
 
 	This makes execution of other recipes in category easier.
 
-	  class apache(Category):
-	      @recipe
-	      def start(c):
-	         ...
-	      @recipe
-	      def stop(c):
-	         ...
-	      @recipe
-	      def restart(c):
-	         apache.start(c)    # execute other recipe
-		 apache.stop(c)     # execute other recipe
+	    class apache(Category):
+	        @recipe
+	        def start(c):
+	           ...
+	        @recipe
+	        def stop(c):
+	           ...
+	        @recipe
+	        def restart(c):
+	           apache.start(c)    # execute other recipe
+	           apache.stop(c)     # execute other recipe
+
+      - (Internal) kook.config.stdout and kook.config.stderr are removed.
+
 
 
   - release:  0.6.0
