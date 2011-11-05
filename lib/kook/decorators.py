@@ -30,7 +30,7 @@ class RecipeDecorator(object):
                  "spices":  self.spices,  "remotes":  self.remotes,
                  "cmdopts":  self.cmdopts, }
 
-    def recipe(self, product=None, ingreds=None):
+    def recipe(self, product=None, ingreds=None, remotes=None):
         """decorator to mark function as a recipe.
         ex1.
            @recipe
@@ -66,6 +66,7 @@ class RecipeDecorator(object):
         def deco(f):
             if product:  f._kook_product = product
             if ingreds:  f._kook_ingreds = ingreds
+            if remotes:  f._kook_remotes = list(remotes)
             self.recipe(f)
             return f
         return deco

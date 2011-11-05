@@ -106,6 +106,15 @@ class KookDecoratorsTest(object):
                 print("Hi")
             ok (len(tr)) == 2
             ok (tr[1].args) == (task_hi._kook_recipe, )
+        ##
+        if "'remotes' arugment specified":
+            if remote_available:
+                r1 = Remote(hosts=['host1'])
+                r2 = Remote(hosts=['host2'])
+                @recipe('*.o', ['$(1).c', '$(1).h'], remotes=[r1, r2])
+                def file_o(c): pass
+                ok (file_o._kook_remotes) == [r1, r2]
+
 
     def test_product(self):
         @product('hello')
@@ -160,8 +169,8 @@ class KookDecoratorsTest(object):
     @test("@remotes(): takes Remote objects.")
     @skip.when(not remote_available, "kook.remote is not available")
     def test_remotes(self):
-        r1 = Remote(hots=['host1'])
-        r2 = Remote(hots=['host2'])
+        r1 = Remote(hosts=['host1'])
+        r2 = Remote(hosts=['host2'])
         @remotes(r1, r2)
         def f(c):
             pass
