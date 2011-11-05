@@ -4,8 +4,6 @@
 ### $License: MIT License $
 ###
 
-from __future__ import with_statement
-
 import sys, os, re
 import getpass
 import oktest
