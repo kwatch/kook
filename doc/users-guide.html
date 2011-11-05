@@ -37,7 +37,9 @@
 
         <li>Cookbook's format is pure Python. You can write any Python code in kookbook.</li>
 
-        <li>Support command-line scripting framework.</li>
+        <li>Supports command-line scripting framework.</li>
+
+        <li>Supports <a href="#remote">command execution on remote machines</a>.</li>
       </ul>
 
       <p><span style="color:#FF0000">Caution! pyKook is currently under experimental. It means that the design and specification of pyKook may change without prior notice.</span></p><a name="toc" id="toc"></a>
@@ -1779,6 +1781,11 @@ class deploy(Category):
     <strong>ssh = c.ssh</strong>
     <strong>ssh(</strong>'hostname'<strong>)</strong>
     <strong>ssh(</strong>'whoami'<strong>)</strong>
+
+  ### or
+  #@recipe(<strong>remotes=[remote]</strong>)
+  #def info(c):
+  #  ....
 </pre>
 
       <div class="terminal_caption">
@@ -1844,7 +1851,7 @@ class db(Category):
         <dt class="dt3"><b>ssh(<em>OS-command</em>)</b></dt>
 
         <dd class="dd3">
-          Same as <code>ssh.run(<em>OS-command</em>)</code>.
+          Same as <code>ssh.system(<em>OS-command</em>)</code>.
           <pre class="program">
 ## run 'pwd' command on remote machne
 ssh('pwd')
@@ -1853,25 +1860,25 @@ ssh('pwd')
       </dl>
 
       <dl class="dl3">
-        <dt class="dt3"><b>ssh.run(<em>OS-command</em>)</b></dt>
+        <dt class="dt3"><b>ssh.system(<em>OS-command</em>)</b></dt>
 
         <dd class="dd3">
           Runs <em>OS-command</em> on remote machine. Raises exception when command failed.
           <pre class="program">
 ## run 'pwd' command on remote machne
-ssh.run('pwd')
+ssh.system('pwd')
 </pre>
         </dd>
       </dl>
 
       <dl class="dl3">
-        <dt class="dt3"><b>ssh.run_f(<em>OS-command</em>)</b></dt>
+        <dt class="dt3"><b>ssh.system_f(<em>OS-command</em>)</b></dt>
 
         <dd class="dd3">
           Runs <em>OS-command</em> on remote machine, and ignore status.
           <pre class="program">
 ## run 'cat' command with non-exist file
-ssh.run('cat not-exist.txt')
+ssh.system_f('cat not-exist.txt')
 </pre>
         </dd>
       </dl>
@@ -2272,18 +2279,47 @@ class deploy(Category):
 
       <h3 class="section2">Restrictions</h3>
 
+      <p><span style="color:#FF0000">(Experimental)</span></p>
+
       <p>There are some restrictions about remote task recipe.</p>
 
-      <p>* Remote task recipes are not executed in parallel. Therefore if you try to deploy your application into thousands remote machine, pyKook will take alot of time.</p>
+      <ul type="disc">
+        <li>Remote task recipes are not executed in parallel. Therefore if you try to deploy your application into thousands remote machine, pyKook will take alot of time.</li>
+      </ul>
 
-      <p>* Currently dependency between remote recipes is not solved what you probably want.</p>
+      <ul type="disc">
+        <li>It is not recommended to specify remote recipes as ingredients of remote recipe.</li>
+      </ul>
+
+      <div class="program_caption">
+        Kookbook.py
+      </div>
+      <pre class="program">
+        class apache(Category):
+          @recipe(remotes=[remote])
+          def start(c): ...
+
+          @recipe(remotes=[remote])
+          def start(c): ...
+
+          #@recipe(remotes=[remote])
+          #<strong>@ingreds('start', 'stop')</strong>    # not recommended!
+          #def restart(c):
+          #  pass
+          @recipe(remotes=[remote])
+          def restart(c):
+            apache.start(c)        # execute remote recipe instead
+            apache.stop(c)         # execute remote recipe instead
+</pre>
+
+      <p>Because dependency between remote recipes is not solved as what you expected.</p>
 
       <div class="program_caption">
         Kookbook.py
       </div>
       <pre class="program">
 from kook.remote import Remote
-remote = Remote(hosts = ['host1', 'host2', 'host3'])
+remote = Remote(hosts=['host1', 'host2', 'host3'])
 #
 @recipe
 @remotes(remote)
@@ -2301,29 +2337,27 @@ def maintask(c):
         Output example
       </div>
       <pre class="terminal">
-    bash&gt; kk maintask
-    ### ** prepare (recipe=prepare)
-    prepare: host1
-    prepare: host2
-    prepare: host3
-    ### * maintask (recipe=maintask)
-    maintask: host1
-    maintask: host2
-    maintask: host3
-    .--------------------
+bash&gt; kk maintask
+### ** prepare (recipe=prepare)
+prepare: host1
+prepare: host2
+prepare: host3
+### * maintask (recipe=maintask)
+maintask: host1
+maintask: host2
+maintask: host3
+</pre><br>
+      <br>
+      <a name="trouble" id="trouble"></a>
 
+      <h2 class="section1">Trouble Shooting</h2><a name="trouble-product-not-created" id="trouble-product-not-created"></a>
 
+      <h3 class="section2">xxx: product not created (in file_xxx())</h3>
 
-.$ Trouble Shooting             | trouble
+      <p>Q: I got the "xxx: product not created (in file_xxx())." error.</p>
 
-
-.$$ xxx: product not created (in file_xxx())    | trouble-product-not-created
-
-Q: I got the "xxx: product not created (in file_xxx())." error.
-
-A: You may define file recipe instead of task recipe. Don't specify '@product()' if you want to define task recipe.
-
-    .--------------------
+      <p>A: You may define file recipe instead of task recipe. Don't specify '@product()' if you want to define task recipe.</p>
+      <pre class="program">
     ## This will cause error
     @recipe
     @product("clean")
@@ -2340,16 +2374,15 @@ A: You may define file recipe instead of task recipe. Don't specify '@product()'
     @product("clean")
     def <strong>task_</strong>clean(c):        #=&gt; almost equivarent to above recipe
         rm_f("*.o")
-    .--------------------
+</pre><br>
+      <a name="trouble-cant-find-any-recipe-to-produce" id="trouble-cant-find-any-recipe-to-produce"></a>
 
+      <h3 class="section2">*.c: can't find any recipe to produce.</h3>
 
-.$$ *.c: can't find any recipe to produce.      | trouble-cant-find-any-recipe-to-produce
+      <p>Q: I got the "*.c: can't find any recipe to produce." error.</p>
 
-Q: I got the "*.c: can't find any recipe to produce." error.
-
-A: Use "$(1).c" instead of "*.c" in @ingreds() argument.
-
-    .--------------------
+      <p>A: Use "$(1).c" instead of "*.c" in @ingreds() argument.</p>
+      <pre class="program">
     ## This will cause error because "*.c" is used in ingredients.
     @recipe
     @product("*.o")
@@ -2363,16 +2396,15 @@ A: Use "$(1).c" instead of "*.c" in @ingreds() argument.
     @ingreds("<strong>$(1)</strong>.c")  #=&gt; ok
     def file_ext_o(c):
         system(c%"gcc -c $(ingred)")
-    .--------------------
+</pre><br>
+      <a name="trouble-ingred-command-not-found" id="trouble-ingred-command-not-found"></a>
 
+      <h3 class="section2">sh: line 1: ingred: command not found</h3>
 
-.$$ sh: line 1: ingred: command not found       | trouble-ingred-command-not-found
+      <p>Q: I got the "sh: line 1: ingred: command not found" error.</p>
 
-Q: I got the "sh: line 1: ingred: command not found" error.
-
-A: Add "c%" at the beginning of command string.
-
-    .--------------------
+      <p>A: Add "c%" at the beginning of command string.</p>
+      <pre class="program">
     ## "c%" is forgetten
     @recipe
     @product("*.o")
@@ -2387,252 +2419,373 @@ A: Add "c%" at the beginning of command string.
     @ingreds("$(1).c")
     def file_ext_o(c):
         system(<strong>c%</strong>"gcc -c $(ingred)")
-    .--------------------
+</pre><br>
+      <br>
+      <a name="refs" id="refs"></a>
 
+      <h2 class="section1">References</h2><a name="refs-filesystem" id="refs-filesystem"></a>
 
+      <h3 class="section2">Filesystem Functions</h3>
 
+      <p>The following functions are available in recipe.</p>
 
-.$ References                           | refs
+      <dl class="dl3">
+        <dt class="dt3"><b>system(<em>cmmand-string</em>)</b></dt>
 
+        <dd class="dd3">
+          Execute <em>command-string</em>. If command status is not zero then exception is raised.
+          <pre class="program">
+system("gcc hello.c")
+</pre>
+        </dd>
+      </dl>
 
-.$$ Filesystem Functions                        | refs-filesystem
+      <dl class="dl3">
+        <dt class="dt3"><b>system_f(<em>command-string</em>)</b></dt>
 
-The following functions are available in recipe.
+        <dd class="dd3">Execute <em>command-string</em>. Command statuis is ignored.</dd>
+      </dl>
 
-.[ system(<em>cmmand-string</em>) ]
-        Execute <em>command-string</em>. If command status is not zero then exception is raised.
-        .--------------------
-        system("gcc hello.c")
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>echo(<em>string</em>)</b></dt>
 
-.[ system_f(<em>command-string</em>) ]
-        Execute <em>command-string</em>. Command statuis is ignored.
+        <dd class="dd3">
+          Echo <em>string</em>. Newline is printed.
+          <pre class="program">
+echo("OK.")
+</pre>
+        </dd>
+      </dl>
 
-.[ echo(<em>string</em>) ]
-        Echo <em>string</em>. Newline is printed.
-        .--------------------
-        echo("OK.")
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>echo_n(<em>string</em>)</b></dt>
 
-.[ echo_n(<em>string</em>) ]
-        Echo <em>string</em>. Newline is not printed.
-        .--------------------
-        echo_n("Enter your name: ")
-        .--------------------
+        <dd class="dd3">
+          Echo <em>string</em>. Newline is not printed.
+          <pre class="program">
+echo_n("Enter your name: ")
+</pre>
+        </dd>
+      </dl>
 
-.[ cd(<em>dir</em>) ]
-        Change directory. Return current directory.
-        .--------------------
-        cwd = cd("build")
-        ...
-        cd(cwd)              # back to current directry
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>cd(<em>dir</em>)</b></dt>
 
-.[ chdir(<em>dir</em>, <em>callable=None</em>) ]
-        Change current directory temporary. If this is used with Python's with-statement, current directory will be backed automatically.
-        .--------------------
-        with chdir('test') as d:
-            ## in 'test' directory
-            system('python test_all.py')
-        ## back to current directry automatically
-        .--------------------
-        Or, if you are using Python 2.4 or older, callable object is available as 2nd argument in order the same purpose as with-statemnet.
-        .--------------------
-        def f():
-            sytem('python test_all.py')
-        chdir('test', f)   ## f() is called at 'test' directory
-        ## back to current directry automatically
-        .--------------------
+        <dd class="dd3">
+          Change directory. Return current directory.
+          <pre class="program">
+cwd = cd("build")
+...
+cd(cwd)              # back to current directry
+</pre>
+        </dd>
+      </dl>
 
-.[ pushd(<em>dir</em>) ]
-        Change current directory temporary. If this is used with Python's with-statement, current directory will be backed automatically.
-        .--------------------
-        with pushd('test') as d:
-            ## in 'test' directory
-            system('python test_all.py')
-        ## back to current directry automatically
-        .--------------------
-        Or it is available as function decorator.
-        This is useful in Python 2.4 or older which doesn't support 'with' statement.
-        .--------------------
-        @pushd('test')
-        def do():
-            sytem('python test_all.py')  ## invoked on 'test' directory
-        ## back to current directry automatically
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>chdir(<em>dir</em>, <em>callable=None</em>)</b></dt>
 
+        <dd class="dd3">
+          Change current directory temporary. If this is used with Python's with-statement, current directory will be backed automatically.
+          <pre class="program">
+with chdir('test') as d:
+    ## in 'test' directory
+    system('python test_all.py')
+## back to current directry automatically
+</pre>Or, if you are using Python 2.4 or older, callable object is available as 2nd argument in order the same purpose as with-statemnet.
+          <pre class="program">
+def f():
+    sytem('python test_all.py')
+chdir('test', f)   ## f() is called at 'test' directory
+## back to current directry automatically
+</pre>
+        </dd>
+      </dl>
 
+      <dl class="dl3">
+        <dt class="dt3"><b>pushd(<em>dir</em>)</b></dt>
 
-.[ mkdir(<em>path</em>) ]
-        Make directory.
-        .--------------------
-        mkdir("lib")
-        .--------------------
+        <dd class="dd3">
+          Change current directory temporary. If this is used with Python's with-statement, current directory will be backed automatically.
+          <pre class="program">
+with pushd('test') as d:
+    ## in 'test' directory
+    system('python test_all.py')
+## back to current directry automatically
+</pre>Or it is available as function decorator. This is useful in Python 2.4 or older which doesn't support 'with' statement.
+          <pre class="program">
+@pushd('test')
+def do():
+    sytem('python test_all.py')  ## invoked on 'test' directory
+## back to current directry automatically
+</pre>
+        </dd>
+      </dl>
 
-.[ mkdir_p(<em>path</em>) ]
-        Make directory. If parent directory is not exist then it is created automatically.
-        .--------------------
-        mkdir_p("foo/bar/baz")
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>mkdir(<em>path</em>)</b></dt>
 
-.[ rm(<em>path</em>[, <em>path2</em>, ...]) ]
-        Remove files.
-        .--------------------
-        rm('*.html', '*.txt')
-        .--------------------
+        <dd class="dd3">
+          Make directory.
+          <pre class="program">
+mkdir("lib")
+</pre>
+        </dd>
+      </dl>
 
-.[ rm_r(<em>path</em>[, <em>path2</em>, ...]) ]
-        Remove files or directories recursively.
-        .--------------------
-        rm_r('*')
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>mkdir_p(<em>path</em>)</b></dt>
 
-.[ rm_f(<em>path</em>[, <em>path2</em>, ...]) ]
-        Remove files forcedly. No errors reported even if <em>path</em> doesn't exist.
-        .--------------------
-        rm_f('*.html', '*.txt')
-        .--------------------
+        <dd class="dd3">
+          Make directory. If parent directory is not exist then it is created automatically.
+          <pre class="program">
+mkdir_p("foo/bar/baz")
+</pre>
+        </dd>
+      </dl>
 
-.[ rm_rf(<em>path</em>[, <em>path2</em>, ...]) ]
-        Remove files or directories forcedly.
-        No errors reported even if <em>path</em> doesn't exist.
-        .--------------------
-        rm_rf('*')
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>rm(<em>path</em>[, <em>path2</em>, ...])</b></dt>
 
-.[ touch(<em>path</em>[, <em>path2</em>, ...]) ]
-        Touch files or directories. If <em>path</em> doesn't exist then empty file is created.
-        .--------------------
-        touch('*.c')
-        .--------------------
+        <dd class="dd3">
+          Remove files.
+          <pre class="program">
+rm('*.html', '*.txt')
+</pre>
+        </dd>
+      </dl>
 
-.[ cp(<em>file1</em>, <em>file2</em>) ]
-        Copy <em>file1</em> to <em>file2</em>.
-        .--------------------
-        cp('foo.txt', 'bar.txt')
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>rm_r(<em>path</em>[, <em>path2</em>, ...])</b></dt>
 
-.[ cp(<em>file</em>, <em>file2</em>, ..., <em>dir</em>) ]
-        Copy <em>file</em> to <em>dir</em>.
-        .--------------------
-        cp('*.txt', '*.html', 'dir')
-        .--------------------
+        <dd class="dd3">
+          Remove files or directories recursively.
+          <pre class="program">
+rm_r('*')
+</pre>
+        </dd>
+      </dl>
 
-.[ cp_r(<em>path1</em>, <em>path2</em>) ]
-        Copy <em>path1</em> to <em>path2</em> recursively.
-        .--------------------
-        cp_r('dir1', 'dir2')
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>rm_f(<em>path</em>[, <em>path2</em>, ...])</b></dt>
 
-.[ cp_r(<em>path</em>, <em>path2</em>, ..., <em>dir</em>) ]
-        Copy <em>path</em> to <em>dir</em> recursively.  Directory <em>dir</em> must exist.
-        .--------------------
-        cp_r('lib', 'doc', 'test', 'dir')
-        .--------------------
+        <dd class="dd3">
+          Remove files forcedly. No errors reported even if <em>path</em> doesn't exist.
+          <pre class="program">
+rm_f('*.html', '*.txt')
+</pre>
+        </dd>
+      </dl>
 
-.[ cp_p(<em>file1</em>, <em>file2</em>) ]
-        Copy <em>file1</em> to <em>file2</em>. Timestams is preserved.
-        .--------------------
-        cp_p('foo.txt', 'bar.txt')
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>rm_rf(<em>path</em>[, <em>path2</em>, ...])</b></dt>
 
-.[ cp_p(<em>file</em>, <em>file2</em>, ..., <em>dir</em>) ]
-        Copy <em>file</em> to <em>dir</em>. Timestams is preserved.   Directory <em>dir</em> must exist.
-        .--------------------
-        cp_p('*.txt', '*.html', 'dir')
-        .--------------------
+        <dd class="dd3">
+          Remove files or directories forcedly. No errors reported even if <em>path</em> doesn't exist.
+          <pre class="program">
+rm_rf('*')
+</pre>
+        </dd>
+      </dl>
 
-.[ cp_pr(<em>path1</em>, <em>path2</em>) ]
-        Copy <em>path1</em> to <em>path2</em> recursively.  Timestams is preserved.
-        .--------------------
-        cp_pr('lib', 'lib.bkup')
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>touch(<em>path</em>[, <em>path2</em>, ...])</b></dt>
 
-.[ cp_pr(<em>path</em>, <em>path2</em>, ..., <em>dir</em>) ]
-        Copy <em>path</em> to <em>dir</em> recursively. Directory <em>dir</em> must exist. Timestams is preserved.
-        .--------------------
-        cp_pr('lib/**/*.rb', 'test/**/*.rb', 'tmpdir')
-        .--------------------
+        <dd class="dd3">
+          Touch files or directories. If <em>path</em> doesn't exist then empty file is created.
+          <pre class="program">
+touch('*.c')
+</pre>
+        </dd>
+      </dl>
 
+      <dl class="dl3">
+        <dt class="dt3"><b>cp(<em>file1</em>, <em>file2</em>)</b></dt>
 
-.[ mv(<em>file1</em>, <em>file2</em>) ]
-        Rename <em>file1</em> to <em>file2</em>.
-        .--------------------
-        mv('foo.txt', 'bar.txt')
-        .--------------------
+        <dd class="dd3">
+          Copy <em>file1</em> to <em>file2</em>.
+          <pre class="program">
+cp('foo.txt', 'bar.txt')
+</pre>
+        </dd>
+      </dl>
 
-.[ mv(<em>path</em>, <em>path2</em>, ..., <em>dir</em>) ]
-        Move <em>path</em> to <em>dir</em>.
-        .--------------------
-        mv('lib/*.rb', 'test/*.rb', 'tmpdir')
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>cp(<em>file</em>, <em>file2</em>, ..., <em>dir</em>)</b></dt>
 
+        <dd class="dd3">
+          Copy <em>file</em> to <em>dir</em>.
+          <pre class="program">
+cp('*.txt', '*.html', 'dir')
+</pre>
+        </dd>
+      </dl>
 
-.[ store(<em>path</em>, <em>path2</em>, ..., <em>dir</em>) ]
-        Copy <em>path</em> (files or directories) to <em>dir</em> with keeping path-structure.
-        .--------------------
-        store("lib/**/*.py", "doc/**/*.{html,css}", "dir")
-        ## ex.
-        ##   "lib/kook/__init__.py"  is copied into "dir/lib/kook/__init__.py"
-        ##   "lib/kook/utils.py"     is copied into "dir/lib/kook/utils.py"
-        ##   "lib/kook/main.py"      is copied into "dir/lib/kook/main.py"
-        ##   "doc/users-guide.html"  is copied into "dir/doc/users-guide.html"
-        ##   "doc/docstyle.css"      is copied into "dir/doc/docstyle.css"
-        .--------------------
+      <dl class="dl3">
+        <dt class="dt3"><b>cp_r(<em>path1</em>, <em>path2</em>)</b></dt>
 
-.[ store_p(<em>path</em>, <em>path2</em>, ..., <em>dir</em>) ]
-        Copy <em>path</em> (files or directories) to <em>dir</em> with keeping path-structure.
-        Timestamp is preserved.
-        .--------------------
-        store_p("lib/**/*.py", "doc/**/*.html", "dir")
-        .--------------------
+        <dd class="dd3">
+          Copy <em>path1</em> to <em>path2</em> recursively.
+          <pre class="program">
+cp_r('dir1', 'dir2')
+</pre>
+        </dd>
+      </dl>
 
+      <dl class="dl3">
+        <dt class="dt3"><b>cp_r(<em>path</em>, <em>path2</em>, ..., <em>dir</em>)</b></dt>
 
-.[ edit(<em>path</em>, <em>path2</em>, ..., by=replacer) ]
-        Edit file content.
-        Keyword argument 'by' should be a callable to edit content, or list of tuples of replacing pattern and string.
-        .--------------------
-        ## edit by list of regular expression and string
-        replacer = [
-            (r'\$Release\$', "1.0.0"),
-            (r'\$Copyright\$', "copyright(c) 2008 kuwata-lab.com"),
-        ]
-        edit("lib/**/*.py", "doc/**/*.{html,css}", by=replacer)
-        ## edit by function
-        def replacer(s):
-            s = s.replace('$Release$',   "1.0.0", s)
-            s = s.replace('$Copyright$', "copyright(c) 2008 kuwata-lab.com", s)
-            return s
-        edit("lib/**/*.py", "doc/**/*.{html,css}", by=replacer)
-        .--------------------
+        <dd class="dd3">
+          Copy <em>path</em> to <em>dir</em> recursively. Directory <em>dir</em> must exist.
+          <pre class="program">
+cp_r('lib', 'doc', 'test', 'dir')
+</pre>
+        </dd>
+      </dl>
 
+      <dl class="dl3">
+        <dt class="dt3"><b>cp_p(<em>file1</em>, <em>file2</em>)</b></dt>
 
+        <dd class="dd3">
+          Copy <em>file1</em> to <em>file2</em>. Timestams is preserved.
+          <pre class="program">
+cp_p('foo.txt', 'bar.txt')
+</pre>
+        </dd>
+      </dl>
 
+      <dl class="dl3">
+        <dt class="dt3"><b>cp_p(<em>file</em>, <em>file2</em>, ..., <em>dir</em>)</b></dt>
 
-The above functions can take lists or tuples as file or directory names.
-(If argument is list or tuple, it is flatten by <code>kook.utils.flatten()</code>.)
+        <dd class="dd3">
+          Copy <em>file</em> to <em>dir</em>. Timestams is preserved. Directory <em>dir</em> must exist.
+          <pre class="program">
+cp_p('*.txt', '*.html', 'dir')
+</pre>
+        </dd>
+      </dl>
 
-For example, the following code is available.
+      <dl class="dl3">
+        <dt class="dt3"><b>cp_pr(<em>path1</em>, <em>path2</em>)</b></dt>
 
-.--------------------
+        <dd class="dd3">
+          Copy <em>path1</em> to <em>path2</em> recursively. Timestams is preserved.
+          <pre class="program">
+cp_pr('lib', 'lib.bkup')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>cp_pr(<em>path</em>, <em>path2</em>, ..., <em>dir</em>)</b></dt>
+
+        <dd class="dd3">
+          Copy <em>path</em> to <em>dir</em> recursively. Directory <em>dir</em> must exist. Timestams is preserved.
+          <pre class="program">
+cp_pr('lib/**/*.rb', 'test/**/*.rb', 'tmpdir')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>mv(<em>file1</em>, <em>file2</em>)</b></dt>
+
+        <dd class="dd3">
+          Rename <em>file1</em> to <em>file2</em>.
+          <pre class="program">
+mv('foo.txt', 'bar.txt')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>mv(<em>path</em>, <em>path2</em>, ..., <em>dir</em>)</b></dt>
+
+        <dd class="dd3">
+          Move <em>path</em> to <em>dir</em>.
+          <pre class="program">
+mv('lib/*.rb', 'test/*.rb', 'tmpdir')
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>store(<em>path</em>, <em>path2</em>, ..., <em>dir</em>)</b></dt>
+
+        <dd class="dd3">
+          Copy <em>path</em> (files or directories) to <em>dir</em> with keeping path-structure.
+          <pre class="program">
+store("lib/**/*.py", "doc/**/*.{html,css}", "dir")
+## ex.
+##   "lib/kook/__init__.py"  is copied into "dir/lib/kook/__init__.py"
+##   "lib/kook/utils.py"     is copied into "dir/lib/kook/utils.py"
+##   "lib/kook/main.py"      is copied into "dir/lib/kook/main.py"
+##   "doc/users-guide.html"  is copied into "dir/doc/users-guide.html"
+##   "doc/docstyle.css"      is copied into "dir/doc/docstyle.css"
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>store_p(<em>path</em>, <em>path2</em>, ..., <em>dir</em>)</b></dt>
+
+        <dd class="dd3">
+          Copy <em>path</em> (files or directories) to <em>dir</em> with keeping path-structure. Timestamp is preserved.
+          <pre class="program">
+store_p("lib/**/*.py", "doc/**/*.html", "dir")
+</pre>
+        </dd>
+      </dl>
+
+      <dl class="dl3">
+        <dt class="dt3"><b>edit(<em>path</em>, <em>path2</em>, ..., by=replacer)</b></dt>
+
+        <dd class="dd3">
+          Edit file content. Keyword argument 'by' should be a callable to edit content, or list of tuples of replacing pattern and string.
+          <pre class="program">
+## edit by list of regular expression and string
+replacer = [
+    (r'\$Release\$', "1.0.0"),
+    (r'\$Copyright\$', "copyright(c) 2008 kuwata-lab.com"),
+]
+edit("lib/**/*.py", "doc/**/*.{html,css}", by=replacer)
+## edit by function
+def replacer(s):
+    s = s.replace('$Release$',   "1.0.0", s)
+    s = s.replace('$Copyright$', "copyright(c) 2008 kuwata-lab.com", s)
+    return s
+edit("lib/**/*.py", "doc/**/*.{html,css}", by=replacer)
+</pre>
+        </dd>
+      </dl>
+
+      <p>The above functions can take lists or tuples as file or directory names. (If argument is list or tuple, it is flatten by <code>kook.utils.flatten()</code>.)</p>
+
+      <p>For example, the following code is available.</p>
+      <pre class="program">
 ## copy all files into dir
 files = ['file1.txt', 'file2.txt', 'file3.txt']
 cp(files, 'dir')
-.--------------------
+</pre>
 
-The following file pattern is available.
-.[ <code>*</code> ]
-        Matches sequence of any character.
-.[ <code>?</code> ]
-        Matches a character.
-.[ <code>{<em>a</em>,<em>b</em>,<em>c</em>}</code>
-        Matches <em>a</em> or <em>b</em> or <em>c</em>.
-.[ <code>**/</code> ]
-        Matches directory recursively.
+      <p>The following file pattern is available.</p>
 
+      <dl class="dl3">
+        <dt class="dt3"><b><code>*</code></b></dt>
 
+        <dd class="dd3">Matches sequence of any character.</dd>
 
-</pre><br>
+        <dt class="dt3"><b><code>?</code></b></dt>
+
+        <dd class="dd3">Matches a character.</dd>
+
+        <dt class="dt3"><b><code>{<em>a</em>,<em>b</em>,<em>c</em>}</code></b></dt>
+
+        <dd class="dd3">Matches <em>a</em> or <em>b</em> or <em>c</em>.</dd>
+
+        <dt class="dt3"><b><code>**/</code></b></dt>
+
+        <dd class="dd3">Matches directory recursively.</dd>
+      </dl><br>
       <br>
     </div>
   </blockquote>

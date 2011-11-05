@@ -52,7 +52,8 @@ Features:
 .* Impremented in pure Rython and runs any platform which Python supports.
 .* Input file (called 'cookbook') is named 'Kookbook.py', which is equivarent to 'Makefile' of Make or 'build.xml' of Ant.
 .* Cookbook's format is pure Python. You can write any Python code in kookbook.
-.* Support command-line scripting framework.
+.* Supports command-line scripting framework.
+.* Supports {{<command execution on remote machines|#remote>}}.
 
 
 {{!Caution! pyKook is currently under experimental. It means that the design and specification of pyKook may change without prior notice.!}}
@@ -2138,6 +2139,11 @@ class deploy(Category):
     {{*ssh = c.ssh*}}
     {{*ssh(*}}'hostname'{{*)*}}
     {{*ssh(*}}'whoami'{{*)*}}
+
+  ### or
+  #@recipe({{*remotes=[remote]*}})
+  #def info(c):
+  #  ....
 .--------------------
 
 .? Output Exampl
@@ -2195,25 +2201,25 @@ class db(Category):
 The following methods are available on {{,c.ssh,}} or {{,c.sftp,}}:
 
 .[ ssh({{/OS-command/}}) ]
-	Same as {{,ssh.run({{/OS-command/}}),}}.
+	Same as {{,ssh.system({{/OS-command/}}),}}.
 	.--------------------
 	## run 'pwd' command on remote machne
 	ssh('pwd')
 	.--------------------
 
-.[ ssh.run({{/OS-command/}}) ]
+.[ ssh.system({{/OS-command/}}) ]
 	Runs {{/OS-command/}} on remote machine.
 	Raises exception when command failed.
 	.--------------------
 	## run 'pwd' command on remote machne
-	ssh.run('pwd')
+	ssh.system('pwd')
 	.--------------------
 
-.[ ssh.run_f({{/OS-command/}}) ]
+.[ ssh.system_f({{/OS-command/}}) ]
 	Runs {{/OS-command/}} on remote machine, and ignore status.
 	.--------------------
 	## run 'cat' command with non-exist file
-	ssh.run('cat not-exist.txt')
+	ssh.system_f('cat not-exist.txt')
 	.--------------------
 
 .[ ssh.sudo({{/OS-command/}}) ]
@@ -2558,43 +2564,66 @@ class deploy(Category):
 
 .$$ Restrictions		| remote-restrictions
 
+{{!(Experimental)!}}
+
 There are some restrictions about remote task recipe.
 
-* Remote task recipes are not executed in parallel.
-  Therefore if you try to deploy your application into thousands remote machine,
-  pyKook will take alot of time.
+.* Remote task recipes are not executed in parallel.
+   Therefore if you try to deploy your application into thousands remote machine,
+   pyKook will take alot of time.
 
-* Currently dependency between remote recipes is not solved what you probably want.
+.* It is not recommended to specify remote recipes as ingredients of remote recipe.
 
-    .? Kookbook.py
-    .--------------------
-    from kook.remote import Remote
-    remote = Remote(hosts = ['host1', 'host2', 'host3'])
-    #
-    @recipe
-    @remotes(remote)
-    def prepare(c):
-        print('prepare: ' + c.session.host)
-    #
-    @recipe
-    @remotes(remote)
-    @ingreds('prepare')
-    def maintask(c):
-        print('maintask: ' + c.session.host)
-    .--------------------
+	.? Kookbook.py
+	.--------------------
+	class apache(Category):
+	  @recipe(remotes=[remote])
+	  def start(c): ...
 
-    .? Output example
-    .====================
-    bash> kk maintask
-    ### ** prepare (recipe=prepare)
-    prepare: host1
-    prepare: host2
-    prepare: host3
-    ### * maintask (recipe=maintask)
-    maintask: host1
-    maintask: host2
-    maintask: host3
-    .--------------------
+	  @recipe(remotes=[remote])
+	  def start(c): ...
+
+	  #@recipe(remotes=[remote])
+	  #{{*@ingreds('start', 'stop')*}}    # not recommended!
+	  #def restart(c):
+	  #  pass
+	  @recipe(remotes=[remote])
+	  def restart(c):
+	    apache.start(c)        # execute remote recipe instead
+	    apache.stop(c)         # execute remote recipe instead
+	.--------------------
+
+   Because dependency between remote recipes is not solved as what you expected.
+
+	.? Kookbook.py
+	.--------------------
+	from kook.remote import Remote
+	remote = Remote(hosts=['host1', 'host2', 'host3'])
+	#
+	@recipe
+	@remotes(remote)
+	def prepare(c):
+	    print('prepare: ' + c.session.host)
+	#
+	@recipe
+	@remotes(remote)
+	@ingreds('prepare')
+	def maintask(c):
+	    print('maintask: ' + c.session.host)
+	.--------------------
+
+	.? Output example
+	.====================
+	bash> kk maintask
+	### ** prepare (recipe=prepare)
+	prepare: host1
+	prepare: host2
+	prepare: host3
+	### * maintask (recipe=maintask)
+	maintask: host1
+	maintask: host2
+	maintask: host3
+	.====================
 
 
 
