@@ -13,18 +13,19 @@ from oktest import ok, NG, test, skip
 import oktest.tracer
 from oktest.dummy import dummy_io
 
-import_failed = False
+import kook.remote
+from kook.remote import Remote, Password, Session, Commands, PushDir
+from kook.cookbook import Cookbook, Recipe
+from kook.kitchen import Kitchen, RecipeCooking
+
+import_failed = None
 reason = None
 try:
-    import kook.remote
-    from kook.remote import Remote, Password, Session, Commands, PushDir
+    import paramiko
+    import_failed = False
 except ImportError:
     import_failed = True
     reason = str(sys.exc_info()[1])
-    class Remote(object):
-        SESSION = object
-from kook.cookbook import Cookbook, Recipe
-from kook.kitchen import Kitchen, RecipeCooking
 
 import _testhelper
 from _testhelper import _invoke_kookbook
@@ -72,11 +73,12 @@ class KookRemoteTest(object):
 
 
     def before(self):
+        self._session_class = Remote.SESSION
         Remote.SESSION = DummySession
         self.at_end = None
 
     def after(self):
-        Remote.SESSION = Session
+        Remote.SESSION = self._session_class
         if self.at_end:
             self.at_end()
 

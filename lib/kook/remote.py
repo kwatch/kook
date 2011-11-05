@@ -18,11 +18,17 @@ def _print_at_exit(message):
     stderr = sys.stderr
     atexit.register(lambda: stderr.write(message + "\n"))
 
-try:
-    import paramiko
-except ImportError:
-    _print_at_exit("*** ERROR: you must install 'paramiko' to use kook.remote module.")
-    raise
+paramiko = None        # lazy import
+
+def _import_paramiko():
+    global paramiko
+    if paramiko:
+        return
+    try:
+        import paramiko
+    except ImportError:
+        _print_at_exit("*** ERROR: you must install 'paramiko' to use kook.remote module.")
+        raise
 
 
 __all__ = ('Remote', 'Password')
@@ -151,6 +157,7 @@ class Session(object):
         self.close()
 
     def open(self):
+        _import_paramiko()
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
@@ -177,6 +184,7 @@ class Session(object):
         sys.stdout.write("[%s@%s]$ %s\n" % (self.user, self.host, command))
 
     def _get_privatekey(self):
+        _import_paramiko()
         for fname in ('~/.ssh/id_rsa', '~/.ssh/id_dsa'):
             fpath = os.path.expanduser(fname)
             if os.path.exists(fpath):

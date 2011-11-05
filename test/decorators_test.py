@@ -13,12 +13,7 @@ from oktest.tracer import Tracer
 from kook.decorators import RecipeDecorator
 from kook.cookbook import Recipe
 from kook.utils import ArgumentError
-try:
-    import kook.remote
-    from kook.remote import Remote
-    remote_available = True
-except ImportError:
-    remote_available = False
+from kook.remote import Remote
 
 globals().update(RecipeDecorator().to_dict())
 
@@ -108,12 +103,11 @@ class KookDecoratorsTest(object):
             ok (tr[1].args) == (task_hi._kook_recipe, )
         ##
         if "'remotes' arugment specified":
-            if remote_available:
-                r1 = Remote(hosts=['host1'])
-                r2 = Remote(hosts=['host2'])
-                @recipe('*.o', ['$(1).c', '$(1).h'], remotes=[r1, r2])
-                def file_o(c): pass
-                ok (file_o._kook_remotes) == [r1, r2]
+            r1 = Remote(hosts=['host1'])
+            r2 = Remote(hosts=['host2'])
+            @recipe('*.o', ['$(1).c', '$(1).h'], remotes=[r1, r2])
+            def file_o(c): pass
+            ok (file_o._kook_remotes) == [r1, r2]
 
 
     def test_product(self):
@@ -167,7 +161,6 @@ class KookDecoratorsTest(object):
         ok (f._kook_spices) == ['-h: help', '-v: verbose']
 
     @test("@remotes(): takes Remote objects.")
-    @skip.when(not remote_available, "kook.remote is not available")
     def test_remotes(self):
         r1 = Remote(hosts=['host1'])
         r2 = Remote(hosts=['host2'])
@@ -178,7 +171,6 @@ class KookDecoratorsTest(object):
         ok (f._kook_remotes) == [r1, r2]
 
     @test("@remotes(): raises TypeError when argument is not a Remote object.")
-    @skip.when(not remote_available, "kook.remote is not available")
     def test_remotes(self):
         def fn():
             @remotes("remote")
