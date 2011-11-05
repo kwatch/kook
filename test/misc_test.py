@@ -13,6 +13,8 @@ from kook.decorators import RecipeDecorator
 _d = RecipeDecorator().to_dict()
 recipe  = _d['recipe']
 
+import _testhelper
+
 
 class KookMiscTest(object):
 
@@ -63,4 +65,4 @@ class KookCategoryTest(object):
 
 
 if __name__ == '__main__':
-    oktest.run('.*Test$')
+    oktest.main()

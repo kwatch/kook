@@ -14,6 +14,8 @@ from kook.commands import *
 from kook.utils import read_file, write_file
 from kook.utils import CommandOptionParser, CommandOptionError, ArgumentError
 
+import _testhelper
+
 
 HELLO_C = """\
 #include <stdio.h>
@@ -199,4 +201,4 @@ class CommandOptionParserTest(object):
 
 
 if __name__ == '__main__':
-    oktest.run('.*Test$')
+    oktest.main()

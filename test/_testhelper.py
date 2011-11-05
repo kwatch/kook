@@ -10,6 +10,18 @@ try:
 except ImportError:
     from os import StringIO
 
+import oktest
+try:
+    _MainApp = oktest.mainapp.MainApp
+except AttributeError:
+    _MainApp = oktest.main.MainApp
+    def main(*args, **kwargs):
+        if sys.argv[0] != oktest.__file__:
+            sys.argv.insert(0, oktest.__file__)
+        _MainApp.main(*args, **kwargs)
+    oktest.main = main
+    del main
+
 
 def mkdir_p(path):
     d = None

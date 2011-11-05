@@ -17,6 +17,7 @@ from kook.main import MainCommand, MainApplication
 import kook.config as config
 from kook.utils import write_file
 
+import _testhelper
 from _testhelper import _setup_stdio, _teardown_stdio
 
 def _stdout():
@@ -698,4 +699,4 @@ hello install - install files
 
 
 if __name__ == '__main__':
-    oktest.run('.*Test$')
+    oktest.main()

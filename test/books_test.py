@@ -21,6 +21,7 @@ from kook.kitchen import Kitchen
 from kook.utils import write_file
 from kook import config
 
+import _testhelper
 from _testhelper import dummy_sio
 
 
@@ -151,4 +152,4 @@ Hello!
 
 
 if __name__ == '__main__':
-    run()
+    oktest.main()

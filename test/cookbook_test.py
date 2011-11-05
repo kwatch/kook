@@ -14,6 +14,7 @@ from kook import KookRecipeError
 from kook.cookbook import Cookbook, Recipe
 from kook.utils import write_file
 
+import _testhelper
 from _testhelper import mkdir_p, rm_rf, _before_all, _after_all
 
 
@@ -755,4 +756,4 @@ assert kookbook.materials == ['bar.html']
 
 
 if __name__ == '__main__':
-    oktest.run('.*Test$')
+    oktest.main()

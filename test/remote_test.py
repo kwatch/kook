@@ -26,6 +26,7 @@ except ImportError, ex:
 from kook.cookbook import Cookbook, Recipe
 from kook.kitchen import Kitchen, RecipeCooking
 
+import _testhelper
 from _testhelper import _invoke_kookbook
 
 
@@ -741,4 +742,4 @@ class KookPushDirTest(object):
 
 
 if __name__ == '__main__':
-    oktest.run()
+    oktest.main()

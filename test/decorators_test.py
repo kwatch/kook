@@ -22,6 +22,8 @@ except ImportError:
 
 globals().update(RecipeDecorator().to_dict())
 
+import _testhelper
+
 
 class KookDecoratorsTest(object):
 
@@ -180,4 +182,4 @@ class KookDecoratorsTest(object):
 
 
 if __name__ == '__main__':
-    oktest.run('.*Test$')
+    oktest.main()

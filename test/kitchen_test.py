@@ -21,6 +21,7 @@ from kook.cookbook import Cookbook
 from kook.utils import read_file, write_file, CommandOptionError
 import kook.config as config
 
+import _testhelper
 from _testhelper import _setup_stdio, _teardown_stdio
 
 def _stdout():
@@ -725,4 +726,4 @@ $ gcc -o hello hello1.o hello2.o
 
 
 if __name__ == '__main__':
-    oktest.run('.*Test$')
+    oktest.main()

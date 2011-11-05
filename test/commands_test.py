@@ -14,12 +14,13 @@ try:
 except ImportError:
     from io import StringIO            # 3.x
 
-
 from kook import KookCommandError
 from kook.commands import *
 import kook.commands
 from kook.utils import read_file, write_file, glob2
 import kook.config as config
+
+import _testhelper
 
 def _getvalues(set=False):
     pair = (config.stdout.getvalue(), config.stderr.getvalue())
@@ -654,4 +655,4 @@ $ chdir -   # back to %s
 
 
 if __name__ == '__main__':
-    oktest.run('.*Test$')
+    oktest.main()
