@@ -8,10 +8,6 @@ import oktest
 from oktest import *
 import sys, os, re, shutil, random
 from glob import glob
-try:
-    from StringIO import StringIO      # 2.x
-except ImportError:
-    from io import StringIO            # 3.x
 
 from kook.main import MainCommand, MainApplication
 import kook.config as config

@@ -10,10 +10,6 @@ import oktest
 from oktest import *
 from oktest.dummy import dummy_file, dummy_io
 import sys, os, re
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 
 from kook import KookRecipeError
 from kook.cookbook import Cookbook, Recipe
