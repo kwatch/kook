@@ -8,7 +8,7 @@ import sys, os, glob, shutil
 try:
     from StringIO import StringIO
 except ImportError:
-    from os import StringIO
+    from io import StringIO
 
 import oktest
 try:
