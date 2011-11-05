@@ -100,6 +100,7 @@ assert CLEAN == expected, "%r != %r" % (CLEAN, expected)
         if "loaded then defines 'all' task.":
             fname = "__Kookbook1.py"
             fcont = r"""
+import sys
 kookbook.load('@kook/books/all.py')
 r = kookbook['all']
 assert r
@@ -115,7 +116,7 @@ ALL.extend(['hello', 'haruhi.sos'])
 @recipe
 def hello(c):
     from kook import config
-    config.stdout.write("Hello!\n")
+    sys.stdout.write("Hello!\n")
 
 @recipe('*.sos')
 def file_html(c):

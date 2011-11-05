@@ -17,10 +17,10 @@ import _testhelper
 from _testhelper import _setup_stdio, _teardown_stdio
 
 def _stdout():
-    return config.stdout.getvalue()
+    return sys.stdout.getvalue()
 
 def _stderr():
-    return config.stderr.getvalue()
+    return sys.stderr.getvalue()
 
 def _main_command(argv):
     return _main(MainCommand, argv)
@@ -34,8 +34,8 @@ def _main(klass, argv):
     _setup_stdio()
     try:
         status  = klass(argv).main()
-        soutput = config.stdout.getvalue()
-        eoutput = config.stderr.getvalue()
+        soutput = sys.stdout.getvalue()
+        eoutput = sys.stderr.getvalue()
     finally:
         _teardown_stdio()
     return soutput, eoutput, status

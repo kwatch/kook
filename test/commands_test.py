@@ -23,10 +23,10 @@ import kook.config as config
 import _testhelper
 
 def _getvalues(set=False):
-    pair = (config.stdout.getvalue(), config.stderr.getvalue())
+    pair = (sys.stdout.getvalue(), sys.stderr.getvalue())
     if set:
-        config.stdout = StringIO()
-        config.stderr = StringIO()
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
     return pair
 
 HELLO_C = """\
@@ -51,8 +51,9 @@ class KookCommandsTest(object):
 
 
     def before(self):
-        config.stdout = StringIO()
-        config.stderr = StringIO()
+        self._stdio = [sys.stdout, sys.stderr]
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
         #
         write_file('hello.c', HELLO_C)
         write_file('hello.h', HELLO_H)
@@ -70,8 +71,7 @@ class KookCommandsTest(object):
         os.utime('hello.d/src/include/hello2.h', (t, t))
 
     def after(self):
-        config.stdout = sys.stdout
-        config.stderr = sys.stderr
+        sys.stdout, sys.stderr = self._stdio
         #
         for f in glob('hello*'):
             if os.path.isdir(f):

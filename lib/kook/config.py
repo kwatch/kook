@@ -21,5 +21,5 @@ compare_contents = True
 cmdopt_parser_class = _utils.CommandOptionParser
 properties_filename = 'Properties.py'
 cookbook_filename   = 'Kookbook.py'
-stdout           = _sys.stdout
-stderr           = _sys.stderr
+#stdout           = _sys.stdout      # obsolete
+#stderr           = _sys.stderr      # obsolete

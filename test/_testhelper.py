@@ -54,16 +54,15 @@ def _after_all(cls):
     rm_rf('_test_tmp.d')
 
 
+_stdio = [sys.stdout, sys.stderr]
+
 def _setup_stdio():
-    import kook.config
-    kook.config.stdout = StringIO()
-    kook.config.stderr = StringIO()
+    sys.stdout = StringIO()
+    sys.stderr = StringIO()
 
 
 def _teardown_stdio():
-    import kook.config
-    kook.config.stdout = sys.stdout
-    kook.config.stderr = sys.stderr
+    sys.stdout, sys.stderr = _stdio
 
 
 class dummy_sio(object):
@@ -73,17 +72,17 @@ class dummy_sio(object):
 
     def __enter__(self):
         import kook.config as config
-        self.stdout, config.stdout = config.stdout, StringIO()
-        self.stderr, config.stderr = config.stderr, StringIO()
-        self.stdin,  sys.stdin     = sys.stdin,     StringIO(self.stdin_content or "")
+        self.stdout, sys.stdout = sys.stdout, StringIO()
+        self.stderr, sys.stderr = sys.stderr, StringIO()
+        self.stdin,  sys.stdin  = sys.stdin,     StringIO(self.stdin_content or "")
         return self
 
     def __exit__(self, *args):
         import kook.config as config
-        #sout, serr = config.stdout.getvalue(), config.stderr.getvalue()
-        config.stdout, self.stdout = self.stdout, config.stdout.getvalue()
-        config.stderr, self.stderr = self.stderr, config.stderr.getvalue()
-        sys.stdin,     self.stdin  = self.stdin,  self.stdin_content
+        #sout, serr = sys.stdout.getvalue(), sys.stderr.getvalue()
+        sys.stdout, self.stdout = self.stdout, sys.stdout.getvalue()
+        sys.stderr, self.stderr = self.stderr, sys.stderr.getvalue()
+        sys.stdin,  self.stdin  = self.stdin,  self.stdin_content
 
     def run(self, func, *args, **kwargs):
         try:
@@ -102,14 +101,12 @@ def _invoke_kookbook(input, start_task='remote_test', stdin=''):
     from kook.cookbook import Cookbook
     from kook.kitchen import Kitchen
     from oktest.dummy import dummy_io
-    _sout, _serr = kook.config.stdout, kook.config.stderr
+    _sout, _serr = sys.stdout, sys.stderr
     try:
         #with dummy_io(stdin) as dio:
         dio = dummy_io(stdin)
         dio.__enter__()
         try:
-            kook.config.stdout = sys.stdout
-            kook.config.stderr = sys.stderr
             kookbook = Cookbook().load(input)
             kitchen = Kitchen(kookbook)
             kitchen.start_cooking(start_task)
@@ -117,4 +114,4 @@ def _invoke_kookbook(input, start_task='remote_test', stdin=''):
             dio.__exit__(*sys.exc_info())
         return dio
     finally:
-        kook.config.stdout, kook.config.stderr = _sout, _serr
+        sys.stdout, sys.stderr = _sout, _serr

@@ -25,15 +25,15 @@ import _testhelper
 from _testhelper import _setup_stdio, _teardown_stdio
 
 def _stdout():
-    val = config.stdout.getvalue()
-    config.stdout.close()
-    config.stdout = StringIO()
+    val = sys.stdout.getvalue()
+    sys.stdout.close()
+    sys.stdout = StringIO()
     return val
 
 def _stderr():
-    val = config.stderr.getvalue()
-    config.stderr.close()
-    config.stderr = StringIO()
+    val = sys.stderr.getvalue()
+    sys.stderr.close()
+    sys.stderr = StringIO()
     return val
 
 
@@ -306,6 +306,7 @@ def all(c):
 
     def test_recipe_spices1(self):
         content = r"""
+import sys
 import kook.config as config
 @recipe
 @spices("-h: help", "-D[N]: debug level (default N is 1)", "-f file: filename",
@@ -314,10 +315,10 @@ def build(c, *args, **kwargs):
     rests, opts = args, kwargs
     keys = list(opts.keys()); keys.sort()
     s = '{' + ', '.join([ "%s: %s" % (repr(k), repr(opts[k])) for k in keys ]) + '}'
-    config.stdout.write("opts=%s\n" % s)
-    config.stdout.write("rests=%s\n" % repr(rests))
+    sys.stdout.write("opts=%s\n" % s)
+    sys.stdout.write("rests=%s\n" % repr(rests))
     for key in sorted(opts.keys()):
-        config.stdout.write("opts[%s]=%s\n" % (repr(key), opts[key]))
+        sys.stdout.write("opts[%s]=%s\n" % (repr(key), opts[key]))
 """
         self._start(content, "build", "-hf foo.txt", "-D999", "--help", "--debug", "--file=bar.txt", "aaa", "bbb")
         expected = """\
@@ -392,6 +393,7 @@ def file_ext_o(c):
 
     def test_remove_produt_when_recipe_failed1(self):
         content = r"""
+import sys
 @recipe
 @product('hello.h')
 @ingreds('hello.c')

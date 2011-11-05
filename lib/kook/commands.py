@@ -249,12 +249,12 @@ def _echo(messages, func, cmd, n=False):
     msgs = _prepare(messages, cmd)
     if config.noexec:
         return
-    write = config.stdout.write
+    write = sys.stdout.write
     for i, msg in enumerate(msgs):
         if i > 0: write(' ')
         write(msg)
     if not n: write("\n")
-    config.stdout.flush()      # requires for 'echo -n'
+    sys.stdout.flush()      # requires for 'echo -n'
 
 
 def store(*filenames):

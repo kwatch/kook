@@ -99,7 +99,7 @@ class Category(object, metaclass=_CategoryMetaClass):
 
 def _debug(msg, depth=0):
     if config.debug_level >= 1:
-        write = config.stdout.write
+        write = sys.stdout.write
         write(config.debug_prompt)
         if depth: write('+' * depth + ' ')
         write(msg)
@@ -108,7 +108,7 @@ def _debug(msg, depth=0):
 
 def _trace(msg, depth=0):
     if config.debug_level >= 2:
-        write = config.stdout.write
+        write = sys.stdout.write
         write(config.debug_prompt)
         if depth: write('+' * depth + ' ')
         write(msg)
@@ -117,7 +117,7 @@ def _trace(msg, depth=0):
 
 def _report_msg(msg, level=None):
     if not config.quiet:
-        write = config.stdout.write
+        write = sys.stdout.write
         write(config.message_prompt)
         if level: write('*' * level + ' ')
         write(msg)
@@ -126,7 +126,7 @@ def _report_msg(msg, level=None):
 
 def _report_cmd(cmd):
     if not config.quiet:
-        write = config.stdout.write
+        write = sys.stdout.write
         write(config.command_prompt)
         write(cmd)
         if cmd[-1] != "\n": write("\n")

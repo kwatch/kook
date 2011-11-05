@@ -81,11 +81,11 @@ class MainCommand(MainObject):
         #print "*** debug: command option: opts=%s, longopts=%s, rests=%s" % (repr(opts), repr(longopts), repr(rests))
         ## handle options
         if opts.get('h') or longopts.get('help') is True:
-            config.stdout.write("%s - build tool like Make, Rake, Ant, or Cook\n" % self.command)
-            config.stdout.write(optparser.help())
+            sys.stdout.write("%s - build tool like Make, Rake, Ant, or Cook\n" % self.command)
+            sys.stdout.write(optparser.help())
             return 0
         if opts.get('V'):
-            config.stdout.write(__RELEASE__ + "\n")
+            sys.stdout.write(__RELEASE__ + "\n")
             return 0
         if opts.get('q'):  config.quiet  = True
         if opts.get('F'):  config.forced = True
@@ -130,7 +130,7 @@ class MainCommand(MainObject):
         if not rests:
             default_product = cookbook.default_product()
             if not default_product:
-                write = config.stderr.write
+                write = sys.stderr.write
                 write("*** %s: target is not given\n" % self.command)
                 write("*** '%s -l' or '%s -L' shows recipes and properties.\n" % (self.command, self.command))
                 write("*** (or set 'kookbook.default=\"XXX\"' in your kookbook.)\n")
@@ -147,7 +147,7 @@ class MainCommand(MainObject):
         format  = "  %-20s: %s\n"
         #format2 = "    %-18s:   %s\n"
         format2 = "    %-20s  %s\n"
-        write = config.stdout.write
+        write = sys.stdout.write
         ## properties
         write("Properties:\n")
         for prop_name, prop_value in cookbook.all_properties():
@@ -207,11 +207,11 @@ class MainCommand(MainObject):
             ex_classes = (CommandOptionError, KookCommandError, KookRecipeError)   # or (CommandOptionError, KookError)
             if isinstance(ex, ex_classes):
                 if not isinstance(ex, CommandOptionError):
-                    config.stderr.write("*** ERROR\n")
-                config.stderr.write(self.command + ": " + str(ex) + "\n")
+                    sys.stderr.write("*** ERROR\n")
+                sys.stderr.write(self.command + ": " + str(ex) + "\n")
             ## system() failed
             if isinstance(ex, KookCommandError):
-                #config.stderr.write(self.command + ": " + str(ex) + "\n")
+                #sys.stderr.write(self.command + ": " + str(ex) + "\n")
                 traceback_obj = sys.exc_info()[2]
                 import traceback
                 found = False
@@ -222,7 +222,7 @@ class MainCommand(MainObject):
                         found = True
                         break
                 if found:
-                    config.stderr.write("%s:%s: %s\n" % (filename, linenum, message))
+                    sys.stderr.write("%s:%s: %s\n" % (filename, linenum, message))
                 else:
                     traceback.print_tb(traceback_obj, file=sys.stderr)
             ## kick emacsclient when $E defined
@@ -301,7 +301,7 @@ class MainApplication(MainObject):
             return 0
         ## other options
         #if opts.get('V'):
-        #    config.stdout.write(__RELEASE__ + "\n")
+        #    sys.stdout.write(__RELEASE__ + "\n")
         #    return 0
         #if opts.get('q'):  config.quiet  = True
         if opts.get('F'):  config.forced = True
@@ -332,7 +332,7 @@ class MainApplication(MainObject):
 
     def _show_help_for(self, cookbook, target):
         recipes = cookbook.specific_task_recipes
-        write = config.stdout.write
+        write = sys.stdout.write
         lst = [ recipe for recipe in recipes if recipe.product == target ]
         if not lst:
             raise CommandOptionError("%s: sub command not found." % target)
@@ -345,7 +345,7 @@ class MainApplication(MainObject):
 
     def _show_help_all(self, cookbook, optparser):
         recipes = cookbook.specific_task_recipes
-        write = config.stdout.write
+        write = sys.stdout.write
         desc = cookbook.context.get('kook_desc') or ''
         write("%s - %s\n" % (self.command, desc))
         if False:
@@ -366,8 +366,8 @@ class MainApplication(MainObject):
         except CommandOptionError:
             ex = sys.exc_info()[1]
             if self.command:
-                config.stderr.write(self.command + ": " + str(ex) + "\n")
+                sys.stderr.write(self.command + ": " + str(ex) + "\n")
             else:
-                config.stderr.write(str(ex) + "\n")
+                sys.stderr.write(str(ex) + "\n")
             status = 1
         return status
