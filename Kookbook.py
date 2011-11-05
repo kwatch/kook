@@ -36,6 +36,7 @@ def package(c):
     def do():
         system(c%'$(python) setup.py sdist')
         #system('python setup.py sdist --keep-temp')
+    cp(c%'$(dir)/MANIFEST', '.')
 
 @recipe(None, ['doc'])
 def dist(c):
@@ -45,21 +46,16 @@ def dist(c):
     os.path.exists(dir) and rm_rf(dir)
     mkdir_p(dir)
     ## copy files
-    text_files = ['README.txt', 'CHANGES.txt', 'MIT-LICENSE',  #'MANIFEST'
+    text_files = ['README.txt', 'CHANGES.txt', 'MIT-LICENSE',  'MANIFEST.in',
                   'Kookbook.py', 'setup.py', 'Properties.py', ]
     store(text_files, dir)
-    store('lib/kook/**/*.py', 'bin/*', 'test/**/*.py', dir)
+    store('lib/kook/**/*.py', 'bin/*', 'test/**/*.py', 'examples/*.py', dir)
     store('doc/users-guide.html', 'doc/docstyle.css', 'doc/fig001.png', dir)
     ##
     @pushd(dir)
     def do():
         ## edit files
         edit("**/*", exclude=["*.png", "oktest.py", "Kookbook.py"], by=replacer)
-        ## create manifest file
-        system("find . -type f > MANIFEST")
-        rexp = re.compile(r'^\./', re.M)
-        edit("MANIFEST", by=lambda s: rexp.sub('', s))
-        cp("MANIFEST", "../..")
 
 @recipe
 def update_headers(c):
