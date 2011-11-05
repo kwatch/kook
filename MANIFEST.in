@@ -1,13 +1,6 @@
-include README.txt MANIFEST MIT-LICENSE CHANGES.txt setup.py
-include bin/pykook bin/kk
-include lib/*/*.py
-include doc/users-guide.html doc/docstyle.css doc/fig001.png
-#include benchmark/bench.py benchmark/bench_context.* benchmark/Makefile
-#include benchmark/templates/*.*
-include test/*.py
-#recursive-include test/data *.py *.yaml *.pyhtml *.result *.cgi *.html *.pycsv
-#recursive-include test/data *.*
-#recursive-exclude test/data *.cache *.pyc
-#exclude test/Kookbook.yaml
-#recursive-include examples *.py *.pyhtml Makefile
-#exclude examples/test_examples.py
+include README.txt CHANGES.txt MIT-LICENSE setup.py Kookbook.py Properties.py
+recursive-include lib *
+recursive-include bin *
+recursive-include test *
+recursive-include doc *
+recursive-include examples *
