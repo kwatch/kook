@@ -111,31 +111,26 @@ python_versions = [ '2.5.5', '2.6.7', '2.7.2', '3.0.1', '3.1.4', '3.2.1' ]
 def test(c, *args, **kwargs):
     from glob import glob
     pwd = os.getcwd()
-    #os.environ['PYTHONPATH'] = "%s:%s/lib" % (pwd, pwd)
+    if os.getenv('PYTHONPATH'):
+        os.environ['PYTHONPATH'] = os.environ['PYTHONPATH'] + ":%s/test" % pwd
+    else:
+        os.environ['PYTHONPATH'] = "%s:%s/lib:%s/test" % (pwd, pwd, pwd)
     oktest_opt = ''
     if 's' in kwargs:
         oktest_opt = '-s ' + kwargs['s']
+    extra = os.path.isfile('test_remote.py') and 'test_remote.py' or ''
+    cmd = c%" -m oktest $(oktest_opt) -sp test $(extra)"
     if kwargs.get('a'):
         for ver in python_versions:
-            python_bin = vs_path % { 'version': version }
+            python_bin = vs_path % { 'version': ver }
             print(c%"---------- python $(ver)")
-            @pushd('test')
-            def do(testdir, python_bin=python_bin, opt=oktest_opt):
-                opt = oktest_opt
-                #for fname in glob('test_*.py'):
-                #    run(c%"$(python_bin) $(fname)")
-                run(c%"$(python_bin) -m oktest $(opt) .")
+            run(python_bin + cmd)
     else:
         ver = kwargs.get('v')
         #python_bin = ver and ('/usr/local/python/%s/bin/python' % ver) or 'python'
         python_bin = ver and ('/opt/local/bin/python%s' % ver) or 'python'
-        targets = [ 'test_%s.py' % arg for arg in args ]
-        @pushd('test')
-        def do(d, python_bin=python_bin, opt=oktest_opt):
-            #run("python test_all.py 2>&1 >  test.log")
-            #for fname in targets or glob('test_*.py'):
-            #    run(c%"$(python_bin) $(fname)")
-            run(c%"$(python_bin) -m oktest $(opt) .")
+        #targets = [ 'test/%s_test.py' % arg for arg in args ]
+        run(python_bin + cmd)
 
 
 kookbook.load("@kook/books/clean.py")
