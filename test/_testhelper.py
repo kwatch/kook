@@ -104,12 +104,17 @@ def _invoke_kookbook(input, start_task='remote_test', stdin=''):
     from oktest.dummy import dummy_io
     _sout, _serr = kook.config.stdout, kook.config.stderr
     try:
-        with dummy_io(stdin) as dio:
+        #with dummy_io(stdin) as dio:
+        dio = dummy_io(stdin)
+        dio.__enter__()
+        try:
             kook.config.stdout = sys.stdout
             kook.config.stderr = sys.stderr
             kookbook = Cookbook().load(input)
             kitchen = Kitchen(kookbook)
             kitchen.start_cooking(start_task)
+        finally:
+            dio.__exit__(*sys.exc_info())
         return dio
     finally:
         kook.config.stdout, kook.config.stderr = _sout, _serr
