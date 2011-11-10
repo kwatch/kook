@@ -83,7 +83,7 @@ See `User's Guide`_ for details.
     #download_url    = 'http://downloads.sourceforge.net/kook/%s-%s.tar.gz' % (name, version)
     #download_url    = 'http://jaist.dl.sourceforge.net/sourceforge/kook/%s-%s.tar.gz' % (name, version)
 
-    py_modules       = ['kook']
+    #py_modules       = ['kook']
     package_dir      = {'': 'lib'}
     scripts          = ['bin/pykook', 'bin/kk']
     packages         = ['kook']
