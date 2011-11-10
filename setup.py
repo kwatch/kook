@@ -87,6 +87,7 @@ See `User's Guide`_ for details.
     package_dir      = {'': 'lib'}
     scripts          = ['bin/pykook', 'bin/kk']
     packages         = ['kook']
+    package_data     = {'kook': ['books/*.py']}
     #zip_safe        = False
 
     classifiers = [
