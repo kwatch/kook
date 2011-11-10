@@ -1,6 +1,13 @@
 
 releases:
 
+  - release:  0.7.1
+    date:     2011-11-11
+    bugfix:
+
+      - Fixed to include 'kook/books/*.py' into .egg file.
+
+
   - release:  0.7.0
     date:     2011-11-05
     enhancements:
