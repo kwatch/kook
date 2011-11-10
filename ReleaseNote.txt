@@ -1,4 +1,26 @@
 .################################################################################
+.$ [ANN] pyKook 0.7.1 - task automation tool for Python, similar to Rake or Ant
+
+I have released pyKook 0.7.1.
+http://pypi.python.org/pypi/Kook/
+http://www.kuwata-lab.com/kook/
+http://www.kuwata-lab.com/kook/pykook-users-guide.html
+
+pyKook is a task automation tool for Python, similar to Rake or Ant.
+
+Bugfix in this release
+----------------------
+
+* Fixed to include 'kook/books/*.py' into .egg file
+
+
+--
+regads,
+makoto kuwata
+
+
+
+.################################################################################
 .$ [ANN] pyKook 0.7.0 - task automation tool for Python, similar to Rake or Ant
 
 Hi,
