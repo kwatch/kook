@@ -8,11 +8,12 @@
 
 
 ###
-### 'clean' and 'sweep' recipes.
+### 'clean' and 'clean:all' recipes.
 ###
 ### * 'clean' task is intended to remove by-products, such as *.o or *.class.
-### * 'sweep' task is intended to remove products and by-products,
+### * 'clean:all' task is intended to remove products and by-products,
 ###   for example *.war, *.egg, and so on.
+### * 'sweep' task is available for backward compatibility, but not recommended.
 ###
 ### example::
 ###
@@ -21,7 +22,7 @@
 ###    kookbook.load("@kook/books/clean.py")
 ###    ## add file patterns to remove
 ###    CLEAN.extend(["**/*.o", "**/*.class"])   # by-products
-###    SWEEP.extend(["*.egg", "*.war"])         # products
+###    CLEAN_FULL.extend(["*.egg", "*.war"])    # products
 ###
 
 
@@ -29,39 +30,30 @@ import types
 from kook.utils import flatten
 
 
-__export__ = ('CLEAN', 'SWEEP')
+__export__ = ('CLEAN', 'CLEAN_FULL', 'SWEEP')
 
 
 CLEAN = []
-
-@recipe
-def clean(c):
-    """remove by-products"""
-    rm_rf(CLEAN)
-
-#def add(self, *file_patterns):
-#    CLEAN.extend(flatten(file_patterns))
-#    return self
-#
-#r = kookbook['clean']
-#r.add = types.MethodType(add, r)
-#
-#del r, add
+CLEAN_ALL = []
+SWEEP = CLEAN_ALL        # for compatibility
 
 
-SWEEP = []
+class clean(Category):
+
+    @recipe
+    def default(c):
+        """remove by-products"""
+        rm_rf(CLEAN)
+
+    @recipe
+    def all(c):
+        """remove products and by-products"""
+        rm_rf(CLEAN)
+        rm_rf(CLEAN_ALL)
+
 
 @recipe
 def sweep(c):
-    """remove products and by-products"""
+    """same as clean:all (for backward compatibility)"""
     rm_rf(CLEAN)
     rm_rf(SWEEP)
-
-#def add(self, *file_patterns):
-#    SWEEP.extend(flatten(file_patterns))
-#    return self
-#
-#r = kookbook['sweep']
-#r.add = types.MethodType(add, r)
-#
-#del r, add
