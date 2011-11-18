@@ -48,8 +48,36 @@ CLEAN.extend(['*.hogeratta', '*.geriatta'])
             def fn2():
                 dummy_file(fname, fcont).run(fn1)
             d_io = dummy_sio("").run(fn2)
-            ok (d_io.stdout) == ("### * clean (recipe=clean)\n"
+            ok (d_io.stdout) == ("### * clean (recipe=default)\n"
                                  "$ rm -rf *.hogeratta *.geriatta\n")
+            ok (d_io.stderr) == ""
+
+        if "loaded then defines 'clear:all' task.":
+            fname = "__Kookbook2.py"
+            fcont = r"""
+kookbook.load('@kook/books/clean.py')
+r = kookbook['clean:all']
+assert r
+assert r.__class__.__name__ == 'Recipe'
+assert 'CLEAN_ALL' in globals()
+assert CLEAN_ALL == []
+#kookbook['clean:all'].add('*.hogeratta2', '*.geriatta2')
+#assert CLEAN_ALL == ['*.hogeratta2', '*.geriatta2']
+#kookbook['clean'].add('*.hogeratta')
+CLEAN_ALL.extend(['*.hogeratta2', '*.geriatta2'])
+CLEAN.append('*.hogeratta')
+"""[1:]
+            def fn():
+                book = Cookbook().load_file(fname)
+                ok (book.find_recipe('clean:all')).is_a(Recipe)
+                kitchen = Kitchen(book)
+                kitchen.start_cooking('clean:all')
+            def fn2():
+                dummy_file(fname, fcont).run(fn)
+            d_io = dummy_sio("").run(fn2)
+            ok (d_io.stdout) == ("### * clean:all (recipe=all)\n"
+                                 "$ rm -rf *.hogeratta\n"
+                                 "$ rm -rf *.hogeratta2 *.geriatta2\n")
             ok (d_io.stderr) == ""
 
         if "loaded then defines 'sweep' task.":
