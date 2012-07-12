@@ -20,7 +20,7 @@ command=`basename $0`
 		old=$cwd
 		cd ..
 		cwd=`pwd`
-		[ "$cwd" == "$old" ] && die "$command: No kookbook found."
+		[ "$cwd" = "$old" ] && die "$command: No kookbook found."
 	done
 #fi
 
