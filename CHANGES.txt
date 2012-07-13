@@ -1,6 +1,13 @@
 
 releases:
 
+  - release:  0.7.2
+    date:     2012-07-13
+    bugfix:
+
+      - Fix 'bin/kk' to work on Linux
+
+
   - release:  0.7.1
     date:     2011-11-11
     bugfix:
