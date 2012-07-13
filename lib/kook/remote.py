@@ -2,7 +2,7 @@
 
 ###
 ### $Release: 0.0.0 $
-### $Copyright: copyright(c) 2008-2011 kuwata-lab.com all rights reserved. $
+### $Copyright: copyright(c) 2008-2012 kuwata-lab.com all rights reserved. $
 ### $License: MIT License $
 ###
 import sys, os, re, time
